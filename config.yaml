@@ -1,0 +1,4 @@
+paths:
+    CONCOCT: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT
+    CONCOCT_TEST: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/CONCOCT-test-data-0.3.2
+    CONCOCT_EXAMPLE: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/snakemake-concot
