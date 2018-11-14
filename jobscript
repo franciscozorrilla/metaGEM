@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#SBATCH -A C3SE2018-1-23 -p hebbe
+#SBATCH -n 15
+#SBATCH -t 0-30:00:00
+
+snakemake all -j 800

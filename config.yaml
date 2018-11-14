@@ -13,6 +13,7 @@ cutcontigs_params:
     chunk_size: 10000
     script_dir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT/scripts/cut_up_fasta.py
     o: 0
+    dir: contigs
 
 bowtie_params:
     MRKDUP_jardir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/.conda/envs/concoct_env/share/picard-2.18.4-0/MarkDuplicates.jar
@@ -71,12 +72,19 @@ speciesProt_params:
     dir: speciesProt
     scriptdir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/
     infile: clustering_gt1000_scg.tab
-    metaFASTA: ../annotations/proteins/megahit_c10K.faa
-    metaFASTAcleanID: cleanID.faa
+    pFASTA: ../annotations/proteins/megahit_c10K.faa
+    pFASTAcleanID: cleanID.faa
+
+
+speciesDNA_params:
+    dir: speciesDNA
+    cutoff: 300k
+    FASTAcleanID: cleanID.fa
+    FASTA: ../contigs/megahit_c10K.fa
 
 carveme_params:
     dir: carvemeOut
-    cutoff: 120
+    cutoff: 100k
 
 fetchMG_params:
     dir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/fetchMG/

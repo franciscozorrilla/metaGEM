@@ -1,15 +1,16 @@
 configfile: "config.yaml"
 
-IDs = "Sample118_s1e5_R1.fa Sample120_s1e5_R1.fa Sample127_s1e5_R1.fa Sample134_s1e5_R1.fa Sample177_s1e5_R1.fa Sample215_s1e5_R1.fa Sample230_s1e5_R1.fa Sample234_s1e5_R1.fa Sample244_s1e5_R1.fa Sample261_s1e5_R1.fa Sample263_s1e5_R1.fa Sample290_s1e5_R1.fa Sample302_s1e5_R1.fa Sample321_s1e5_R1.fa Sample330_s1e5_R1.fa Sample343_s1e5_R1.fa".split()
+import os
+import glob
 
-#import os
-#import glob
-#SPECIES = glob.glob('carvemeOut/*.txt')
-#SPECIES = [os.path.splitext(val)[0] for val in glob.glob('carvemeOut/*.txt')]
-
+R1 = [os.path.splitext(val)[0] for val in (glob.glob('reads/*R1.fa'))] #These commands dont recognize the config.yaml file
+R1names = [os.path.basename(val) for val in R1]
+R2 = [os.path.splitext(val)[0] for val in glob.glob('reads/*R2.fa')] #Change the filepath to wherever raw reads are stored
+                                                                     #Code assumes that reads are in same folder as snakefile, under subfolder called /reads/
 rule all:
-    input: "fetchMG/output", dynamic("carvemeOut/{species}.xml.html")
-    shell:"snakemake --dag | dot -Tpng > pipemap.png"
+    input: dynamic("carvemeOut/{speciesProt}.xml.html"), "fetchMG/output", "requiredDummyFile"
+    output: "pipemap.png"
+    shell:"snakemake --dag | dot -Tpng > {output}"
 
 rule mergeReads:
     output:"All_{read}.fa"
@@ -22,25 +23,32 @@ rule megahit:
 
 rule cutcontigs:
     input:"megahitAssembly"
-    output:"megahit_c10K.fa"
-    shell:"set +u;source activate concoct_env;set -u; cd {input}; python {config[cutcontigs_params][script_dir]} -c {config[cutcontigs_params][chunk_size]} -o {config[cutcontigs_params][o]} -m final.contigs.fa > {output}; cp {output} {config[paths][concoct_run]}; cd .."
-
-rule bowtie:
-    input:"megahit_c10K.fa"
-    output:"map/{id}"
+    output:"contigs/megahit_c10K.fa"
     shell:
         """
-        export MRKDUP={config[bowtie_params][MRKDUP_jardir]};
         set +u;source activate concoct_env;set -u;
-        bowtie2-build {input} {input};
+        cd {input};
+        python {config[cutcontigs_params][script_dir]} -c {config[cutcontigs_params][chunk_size]} -o {config[cutcontigs_params][o]} -m final.contigs.fa > $(basename {output});
+        cp $(basename {output}) {config[paths][concoct_run]}/{config[cutcontigs_params][dir]};
+        cd {config[paths][concoct_run]};
+        bowtie2-build {output} {output};
+        """
+
+rule bowtie:
+    input: assembly="contigs/megahit_c10K.fa",reads="reads/{readID}.fa"
+    output:"map/{readID}"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        export MRKDUP={config[bowtie_params][MRKDUP_jardir]};
         mkdir -p {output}
         cd {output};
-        bash {config[bowtie_params][MRKDUP_shelldir]} -ct 1 -p '-f' {config[paths][raw_reads]}/$(basename /{output}) $(echo {config[paths][raw_reads]}/$(basename /{output}) | sed s/R1/R2/) pair {config[paths][concoct_run]}/{input} asm bowtie2;
+        bash {config[bowtie_params][MRKDUP_shelldir]} -ct 1 -p '-f' {config[paths][concoct_run]}/{input.reads} $(echo {config[paths][concoct_run]}/{input.reads} | sed s/R1/R2/) pair {config[paths][concoct_run]}/{input.assembly} asm bowtie2;
         cd {config[paths][concoct_run]};
         """
 
 rule covtable:
-    input: expand("map/{id}", id=IDs)
+    input: expand("map/{readID}", readID=R1names)
     output:"concoct-input/concoct_inputtable.tsv"
     shell:
         """
@@ -48,7 +56,7 @@ rule covtable:
         cd {config[paths][concoct_run]}/{config[bowtie_params][outputdir]}
         python {config[paths][CONCOCT]}/scripts/gen_input_table.py --isbedfiles \
             --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
-            ../megahit_c10K.fa */bowtie2/asm_pair-smds.coverage > concoct_inputtable.tsv;
+            ../contigs/megahit_c10K.fa */bowtie2/asm_pair-smds.coverage > concoct_inputtable.tsv;
         mkdir -p {config[paths][concoct_run]}/{config[covtable_params][outdir]};
         mv concoct_inputtable.tsv {config[paths][concoct_run]}/{config[covtable_params][outdir]}/;
         """
@@ -92,8 +100,8 @@ rule evaluate:
         #NOTE: heatmap doesnt work:  Rscript {config[paths][CONCOCT]}/scripts/ConfPlot.R  -c evaluation-output/clustering_gt1000_conf.csv -o  evaluation-output/clustering_gt1000_conf.pdf;
 
 rule prodigal:
-    input:"megahit_c10K.fa"
-    output:"annotations/proteins/megahit_c10K.gff"
+    input:"contigs/megahit_c10K.fa"
+    output: gff = "annotations/proteins/megahit_c10K.gff", faa= "annotations/proteins/megahit_c10K.faa"
     shell:
         """
         set +u;source activate concoct_env;set -u
@@ -101,7 +109,7 @@ rule prodigal:
         mkdir -p {config[paths][concoct_run]}/{config[prodigal_params][outputdir]}
         prodigal -a {config[prodigal_params][outputdir]}/megahit_c10K.faa \
          -i {input} \
-         -f {config[prodigal_params][output]} -p meta  > {output}
+         -f {config[prodigal_params][output]} -p meta  > {output.gff}
         """
 
 rule RPSblast:
@@ -146,56 +154,115 @@ rule COGfilter:
 #        {config[paths][CONCOCT]}/scripts/ClusterLinkNOverlap.pl --cfile={config[paths][concoct_run]}/{config[linkage_params][c]} --lfile={config[paths][concoct_run]}/{input} --covfile={config[linkage_params][cov]} --ofile={output}
 #        """
 
-rule speciesProt:
+rule parseFASTA:
     input:"evaluation-output/clustering_gt1000_scg.tab"
-    output: dynamic("carvemeOut/{species}.txt")
+    output: "speciesProt"#dynamic("carvemeOut/{speciesProt}.txt"),dynamic("speciesDNA/{speciesDNA}.txt")
     shell:
         """
         cd {config[paths][concoct_run]}
-        #touch {output}
         mkdir -p {config[speciesProt_params][dir]}
         cp {input} {config[paths][concoct_run]}/{config[speciesProt_params][dir]}
         cd {config[speciesProt_params][dir]}
         sed -i '1d' {config[speciesProt_params][infile]} #removes first row
         awk '{{print $2}}' {config[speciesProt_params][infile]} > allspecies.txt #extracts node information
-        sed '/^>/ s/ .*//' {config[speciesProt_params][metaFASTA]} > {config[speciesProt_params][metaFASTAcleanID]} #removes annotation to protein ID
+        sed '/^>/ s/ .*//' {config[speciesDNA_params][FASTA]} > {config[speciesDNA_params][FASTAcleanID]} #removes annotation to gene ID
+        sed '/^>/ s/ .*//' {config[speciesProt_params][pFASTA]} > {config[speciesProt_params][pFASTAcleanID]} #removes annotation to protein ID
         Rscript {config[speciesProt_params][scriptdir]}multiFASTA2speciesFASTA.R
         sed -i 's/"//g' species*
         sed -i '/k99/s/^/>/' species*
         sed -i 's/{config[speciesProt_params][tab]}/{config[speciesProt_params][newline]}/' species*
+        sed -i '1d' speciesDNA* #remove first row
+        sed -i '1d' speciesDNA* #remove second row
+        cd {config[paths][concoct_run]}
+        """
+
+rule pseudoProt:
+    input: "speciesProt"
+    output: dynamic("carvemeOut/{speciesProt}.txt")
+    shell:
+        """
         cd {config[paths][concoct_run]}
         mkdir -p {config[carveme_params][dir]}
         cd {config[carveme_params][dir]}
-        cp {config[paths][concoct_run]}/{config[speciesProt_params][dir]}/species* {config[paths][concoct_run]}/{config[carveme_params][dir]}
-        find . -name "species*" -size -{config[carveme_params][cutoff]} -delete #delete files with little information, these cause trouble
+        cp {config[paths][concoct_run]}/{config[speciesProt_params][dir]}/speciesProt*.txt {config[paths][concoct_run]}/{config[carveme_params][dir]}
+        find . -name "species*.txt" -size -{config[carveme_params][cutoff]} -delete #delete files with little information, these cause trouble
         cd {config[paths][concoct_run]}
         """
 
+rule pseudoDNA:
+    input: "speciesProt"
+    output: dynamic("speciesDNA/{speciesDNA}.fa")
+    shell:
+        """
+        cd {config[paths][concoct_run]}
+        mkdir -p {config[speciesDNA_params][dir]}
+        cp {config[speciesProt_params][dir]}/speciesDNA*.txt {config[paths][concoct_run]}/{config[speciesDNA_params][dir]}
+        cp {config[speciesProt_params][dir]}/cleanID.fa {config[paths][concoct_run]}/{config[speciesDNA_params][dir]}
+        cd {config[speciesDNA_params][dir]}
+        find . -name "species*.txt" -size -{config[speciesDNA_params][cutoff]} -delete #delete files with little information, these cause trouble
+        for file in *.txt; do
+            mv "$file" "$(basename "$file" .txt).fa"
+        done
+        cd {config[paths][concoct_run]}
+        """
+
+#rule speciesDNA:
+#    input:"evaluation-output/clustering_gt1000_scg.tab"
+#    output: "speciesDNA/{speciesDNA}.txt"
+#    shell:
+#        """
+#        cd {config[paths][concoct_run]}
+#        mkdir -p {config[speciesDNA_params][dir]}
+#        cp {input} {config[paths][concoct_run]}/{config[speciesDNA_params][dir]}
+#        cd {config[speciesDNA_params][dir]}
+#        sed -i '1d' {config[speciesDNA_params][infile]} #removes first row
+#        awk '{{print $2}}' {config[speciesDNA_params][infile]} > allspecies.txt #extracts node information
+#        sed '/^>/ s/ .*//' {config[speciesDNA_params][FASTA]} > {config[speciesDNA_params][FASTAcleanID]} #removes annotation to gene ID
+#        Rscript {config[speciesProt_params][scriptdir]}DNAmultiFASTA2speciesFASTA.R
+#        sed -i 's/"//g' species*
+#        sed -i '/k99/s/^/>/' species*
+#        sed -i 's/{config[speciesProt_params][tab]}/{config[speciesProt_params][newline]}/' species*
+#        find . -name "species*.txt" -size -{config[speciesDNA_params][cutoff]} -delete #delete files with little information, these cause trouble
+#        cd {config[paths][concoct_run]}
+#        """
+
+rule metaphlan:
+    input: "speciesDNA/{speciesDNA}.fa"
+    output: "speciesDNA/{speciesDNA}.txt"
+    shell:
+        """
+        set +u;source activate deeploc_env;set -u;
+        metaphlan2.py {input} --input_type fasta > {output}
+        """
+#cd {config[speciesDNA_params][dir]}
+#cd {config[paths][concoct_run]}
+#metaphlan2.py $(basename {input}) --input_type fasta > $(basename {output})
+
+rule requiredRule:
+    input: dynamic("speciesDNA/{speciesDNA}.txt")
+    output: "requiredDummyFile"
+    shell: "cd {config[paths][concoct_run]} ;touch {output}"
+
 rule carveme:
-    input: "carvemeOut/{species}.txt"
-    output: "carvemeOut/{species}.xml"
+    input: "carvemeOut/{speciesProt}.txt"
+    output: "carvemeOut/{speciesProt}.xml"
     shell:
         """
         set +u;source activate concoct_env;set -u
-        #echo {input}
-        #echo {output}
         carve {config[carveme_params][dir]}/$(basename {input})
-        #mv {output}
-        #touch {output}
         """
 rule memote:
-    input: "carvemeOut/{species}.xml"
-    output: "carvemeOut/{species}.xml.html"
+    input: "carvemeOut/{speciesProt}.xml"
+    output: "carvemeOut/{speciesProt}.xml.html"
     shell:
         """
         set +u;source activate concoct_env;set -u
-        #cd {config[paths][concoct_run]}/{config[carveme_params][dir]}
-        memote report snapshot --filename "{input}.html" {input}
-        #cd {config[paths][concoct_run]}
+        memote report snapshot --filename "{input}.html" {input} #generate .html report
+        memote run {input} #generate quick printout of model summary
         """
 
 rule fetchMG:
-    input: dna="megahit_c10K.fa" ,protein="annotations/proteins/megahit_c10K.faa"
+    input: dna="contigs/megahit_c10K.fa" ,protein="annotations/proteins/megahit_c10K.faa"
     output: "fetchMG/output"
     shell:
         """
