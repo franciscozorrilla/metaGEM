@@ -3,9 +3,10 @@ configfile: "config.yaml"
 import os
 import glob
 
-R1 = [os.path.splitext(val)[0] for val in (glob.glob('reads/*R1.fa'))] #These commands dont recognize the config.yaml file
+R1 = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra/*_1.fastq'))]) #These commands dont recognize the config.yaml file
 R1names = [os.path.basename(val) for val in R1]
-R2 = [os.path.splitext(val)[0] for val in glob.glob('reads/*R2.fa')] #Change the filepath to wherever raw reads are stored
+R2 = sorted([os.path.splitext(val)[0] for val in glob.glob('/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra/*_2.fastq')]) #Change the filepath to wherever raw reads are stored
+
                                                                      #Code assumes that reads are in same folder as snakefile, under subfolder called /reads/
 rule all:
     input: dynamic("carvemeOut/{speciesProt}.xml.html"), "fetchMG/output", "requiredDummyFile"
@@ -14,28 +15,27 @@ rule all:
 
 rule mergeReads:
     output:"All_{read}.fa"
-    shell:"cat {config[paths][raw_reads]}/Sample*_{wildcards.read}.fa  > {output}"
+    shell:"cat {config[paths][raw_reads]}/ERR*_{wildcards.read}.fa  > {output}"
 
 rule megahit:
-    input:R1="All_R1.fa",R2="All_R2.fa"
-    output:"megahitAssembly"
-    shell:"megahit --min-count {config[megahit_params][mincount]} --k-list {config[megahit_params][klistdefault]} -1 {input.R1} -2 {input.R2} -o {output}"
+    input: R1 = expand("{R1files}.fastq", R1files= R1), R2=expand("{R2files}.fastq", R2files= R2)
+    params: R1= ",".join(x + ".fastq" for x in R1), R2= ",".join(y + ".fastq" for y in R2)
+    output:"megahitAssembly/final.contigs.fa"
+    shell: "megahit --min-count {config[megahit_params][mincount]} --k-list {config[megahit_params][klistfz]} --kmin-1pass --verbose --continue -1 {params.R1} -2 {params.R2} -o $(dirname {output})"
 
 rule cutcontigs:
-    input:"megahitAssembly"
+    input:"megahitAssembly/final.contigs.fa"
     output:"contigs/megahit_c10K.fa"
     shell:
         """
         set +u;source activate concoct_env;set -u;
-        cd {input};
-        python {config[cutcontigs_params][script_dir]} -c {config[cutcontigs_params][chunk_size]} -o {config[cutcontigs_params][o]} -m final.contigs.fa > $(basename {output});
+        python {config[cutcontigs_params][script_dir]} -c {config[cutcontigs_params][chunk_size]} -o {config[cutcontigs_params][o]} -m {input} > $(basename {output});
         cp $(basename {output}) {config[paths][concoct_run]}/{config[cutcontigs_params][dir]};
-        cd {config[paths][concoct_run]};
-        bowtie2-build {output} {output};
+        bowtie2-build {output} {output}; #this should probably be its own rule
         """
 
 rule bowtie:
-    input: assembly="contigs/megahit_c10K.fa",reads="reads/{readID}.fa"
+    input: assembly="contigs/megahit_c10K.fa",reads="/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra/{readID}.fastq"
     output:"map/{readID}"
     shell:
         """
@@ -43,7 +43,7 @@ rule bowtie:
         export MRKDUP={config[bowtie_params][MRKDUP_jardir]};
         mkdir -p {output}
         cd {output};
-        bash {config[bowtie_params][MRKDUP_shelldir]} -ct 1 -p '-f' {config[paths][concoct_run]}/{input.reads} $(echo {config[paths][concoct_run]}/{input.reads} | sed s/R1/R2/) pair {config[paths][concoct_run]}/{input.assembly} asm bowtie2;
+        bash {config[bowtie_params][MRKDUP_shelldir]} -ct 1 -p '-f' {input.reads} $(echo {input.reads} | sed s/R1/R2/) pair {config[paths][raw_reads]}/{input.assembly} asm bowtie2;
         cd {config[paths][concoct_run]};
         """
 
@@ -55,7 +55,7 @@ rule covtable:
         set +u;source activate concoct_env;set -u;
         cd {config[paths][concoct_run]}/{config[bowtie_params][outputdir]}
         python {config[paths][CONCOCT]}/scripts/gen_input_table.py --isbedfiles \
-            --samplenames <(for s in Sample*; do echo $s | cut -d'_' -f1; done) \
+            --samplenames <(for s in ERR*; do echo $s | cut -d'_' -f1; done) \
             ../contigs/megahit_c10K.fa */bowtie2/asm_pair-smds.coverage > concoct_inputtable.tsv;
         mkdir -p {config[paths][concoct_run]}/{config[covtable_params][outdir]};
         mv concoct_inputtable.tsv {config[paths][concoct_run]}/{config[covtable_params][outdir]}/;

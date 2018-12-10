@@ -1,13 +1,14 @@
 paths:
     CONCOCT: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT
     CONCOCT_TEST: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/CONCOCT-test-data-0.3.2
-    raw_reads: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/CONCOCT-test-data-0.3.2/reads
-    concoct_run: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/snakemake-concot
+    raw_reads: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra
+    concoct_run: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest4
 
 megahit_params:
     mincount: 2
     klistcomplex: 27,37,47,57,67,77,87
     klistdefault: 21,41,61,81,99
+    klistfz: 31,41,51,61,71,81 
 
 cutcontigs_params:
     chunk_size: 10000
