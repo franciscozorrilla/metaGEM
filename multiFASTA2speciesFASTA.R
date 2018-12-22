@@ -1,5 +1,6 @@
 # Author: Francisco Zorrilla
-# Chalmers University of Technology
+# Contact: zorrilla@chalmers.se
+# Chalmers University of Technology, Sweden
 # 10/09/2018
 
 # This script is part of a larger metagenomics pipeline developed for my thesis project.
