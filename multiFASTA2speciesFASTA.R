@@ -1,10 +1,10 @@
-#Author: Francisco Zorrilla
-#Chalmers University of Technology
-#10/09/2018
+# Author: Francisco Zorrilla
+# Chalmers University of Technology
+# 10/09/2018
 
-#This script is part of a larger metagenomics pipeline developed for my thesis project, please take a look at the Snakefile (particularly the parseFASTA rule) and config file to understand script usage.
-
-#Script will extract .fa and .faa files for each identified cluster (species) from a multifasta file based on CONCOCT output.
+# This script is part of a larger metagenomics pipeline developed for my thesis project.
+# Please take a look at the Snakefile (particularly the parseFASTA rule) and config file to understand script usage.
+# Script will extract .fa and .faa files for each identified cluster (species) from a multifasta file based on CONCOCT output.
 
 #Load libraries
 source("https://bioconductor.org/biocLite.R")
