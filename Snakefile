@@ -19,7 +19,7 @@ rule mergeReads:
 
 rule megahit:
     input: R1 = expand("{R1files}.fastq", R1files= R1), R2=expand("{R2files}.fastq", R2files= R2)
-    params: R1= ",".join(x + ".fastq" for x in R1), R2= ",".join(y + ".fastq" for y in R2)
+    params: R1= ",".join(x + ".fastq" for x in R1), R2= ",".join(y + ".fastq" for y in R2) #creates lists for R1 and R2
     output:"megahitAssembly/final.contigs.fa"
     shell: "megahit --min-count {config[megahit_params][mincount]} --k-list {config[megahit_params][klistfz]} --kmin-1pass --verbose --continue -1 {params.R1} -2 {params.R2} -o $(dirname {output})"
 
@@ -30,12 +30,24 @@ rule cutcontigs:
         """
         set +u;source activate concoct_env;set -u;
         python {config[cutcontigs_params][script_dir]} -c {config[cutcontigs_params][chunk_size]} -o {config[cutcontigs_params][o]} -m {input} > $(basename {output});
-        cp $(basename {output}) {config[paths][concoct_run]}/{config[cutcontigs_params][dir]};
-        bowtie2-build {output} {output}; #this should probably be its own rule
+        mv $(basename {output}) {config[paths][concoct_run]}/{config[cutcontigs_params][dir]};
+        """
+
+rule bowtieBuild:
+    input:"contigs/megahit_c10K.fa"
+    output:"contigs/buildDummy.txt"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        cd contigs;
+        bowtie2-build $(basename {input}) $(basename {input});
+        cd {config[paths][concoct_run]};
+        touch {output}
         """
 
 rule bowtie:
-    input: assembly="contigs/megahit_c10K.fa",reads="/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra/{readID}.fastq"
+    input: assembly="contigs/megahit_c10K.fa",reads="/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra/{readID}.fastq", index= "contigs/buildDummy.txt"
+#    params: R2names = [os.path.basename(val) for val in R2]
     output:"map/{readID}"
     shell:
         """
@@ -43,9 +55,11 @@ rule bowtie:
         export MRKDUP={config[bowtie_params][MRKDUP_jardir]};
         mkdir -p {output}
         cd {output};
-        bash {config[bowtie_params][MRKDUP_shelldir]} -ct 1 -p '-f' {input.reads} $(echo {input.reads} | sed s/R1/R2/) pair {config[paths][raw_reads]}/{input.assembly} asm bowtie2;
+        bash {config[bowtie_params][MRKDUP_shelldir]} -ct 1 -p '-q' {input.reads} $(echo {input.reads} | sed s/_1.fastq/_2.fastq/) pair {config[paths][concoct_run]}/{input.assembly} asm bowtie2;
         cd {config[paths][concoct_run]};
         """
+#        bash {config[bowtie_params][MRKDUP_shelldir]} -ct 1 -p '-f' {input.reads} {config[paths][raw_reads]}/{params.R2names}.fastq pair {config[paths][concoct_run]}/{input.assembly} asm bowtie2;
+
 
 rule covtable:
     input: expand("map/{readID}", readID=R1names)
