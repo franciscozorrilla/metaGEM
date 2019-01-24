@@ -1,103 +1,55 @@
+#NOTE: DO NOT INCLUDE "/" AT THE END OF PATHS!!!
 paths:
     CONCOCT: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT
     CONCOCT_TEST: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/CONCOCT-test-data-0.3.2
-    raw_reads: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra
-    concoct_run: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest4
+    raw_reads: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe/reads
+    concoct_run: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe
 
 megahit_params:
-    mincount: 2
-    klistcomplex: 27,37,47,57,67,77,87
-    klistdefault: 21,41,61,81,99
-    klistfz: 31,41,51,61,71,81 
+    threads: 64
 
 cutcontigs_params:
-    chunk_size: 10000
     script_dir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT/scripts/cut_up_fasta.py
-    o: 0
-    dir: contigs
 
-bowtie_params:
-    MRKDUP_jardir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/.conda/envs/concoct_env/share/picard-2.18.4-0/MarkDuplicates.jar
-    MRKDUP_shelldir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT/scripts/map-bowtie2-markduplicates.sh
-    outputdir: map
-
-covtable_params:
-    outdir: concoct-input
-
-linktable_params:
-    m: 8
-    regionlength: 500
-    search: fullsearch
+kallisto_params:
+    threads: 64
+    script: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/kallisto2concoctTable.py
 
 concoct_params:
-    cutoptions: -f1,3-
-    covfile: concoct-input/concoct_inputtableR.tsv
-    c: 40
-    compositionfile: megahitAssembly/megahit_c10K.fa
-    outputdir: concoct-output/
+    clusters: 2000
+    threads: 64
 
-evaluate_params:
-    outputdir: evaluation-output
-    p: concoct-output/PCA_transformed_data_gt1000.csv
-    m: concoct-output/pca_means_gt1000.csv
-    r: concoct-output/pca_variances_gt1000_dim
-    cfile: concoct-output/clustering_gt1000.csv
-    sfile: evaluation-output/clustering_gt1000_s.csv
-    ofile: evaluation-output/clustering_gt1000_conf.csv
-    ffile: megahitAssembly/megahit_c10K.fa
-
-prodigal_params:
-    outputdir: annotations/proteins
-    output: gff
-
-RPSblast_params:
-    cogsdir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/snakemake-concot/cog_le
-    f: annotations/proteins/megahit_c10K.faa
-    c: 8
-    r: 1
-    outdir: annotations/cog-annotations
-
-COGfilter_params:
-    b: annotations/cog-annotations/megahit_c10K.out
-    m: scgs/scg_cogs_min0.97_max1.03_unique_genera.txt
-    c: concoct-output/clustering_gt1000.csv
-    cdd2cog: scgs/cdd_to_cog.tsv
-
-linkage_params:
-    c: concoct-output/clustering_gt1000.csv
-    cov: concoct-input/concoct_inputtableR.tsv
-
-speciesProt_params:
-    newline: \n
-    tab: \t
-    dir: speciesProt
-    scriptdir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/
-    infile: clustering_gt1000_scg.tab
-    pFASTA: ../annotations/proteins/megahit_c10K.faa
-    pFASTAcleanID: cleanID.faa
-
-
-speciesDNA_params:
-    dir: speciesDNA
-    cutoff: 300k
-    FASTAcleanID: cleanID.fa
-    FASTA: ../contigs/megahit_c10K.fa
+checkM_params:
+    threads: 64
 
 carveme_params:
     dir: carvemeOut
     cutoff: 100k
 
-fetchMG_params:
-    dir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/fetchMG/
-    foldername: fetchMG
+                              #BELOW ARE PARAMS FOR RULES NO LONGER USED
 
-velvet_params:
-    output_dir: velveth_k71
-    hash_length: 71
-    file_format: fasta
-    read_type: shortPaired
-    separate_interleaved: separate
-    ins_length: 400
-    exp_cov: auto
-    cov_cutoff: auto
-    clean_output: contigs
+#bowtie_params:
+#    MRKDUP_jardir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/.conda/envs/concoct_env/share/picard-2.18.4-0/MarkDuplicates.jar
+#    MRKDUP_shelldir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT/scripts/map-bowtie2-markduplicates.sh
+#    threads: 8
+
+#speciesProt_params:
+#    newline: \n
+#    tab: \t
+#    dir: speciesProt
+#    scriptdir: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/
+#    infile: clustering_gt1000_scg.tab
+#    pFASTA: ../annotations/proteins/megahit_c10K.faa
+#    pFASTAcleanID: cleanID.faa
+
+#speciesDNA_params:
+#    dir: speciesDNA
+#    cutoff: 300k
+#    FASTAcleanID: cleanID.fa
+#    FASTA: ../contigs/megahit_c10K.fa
+
+#old concoct PARAMS
+    #cutoptions: -f1,3-
+    #covfile: concoct-input/concoct_inputtableR.tsv
+    #compositionfile: contigs/megahit_c10K.fa
+    #outputdir: concoct-output/
