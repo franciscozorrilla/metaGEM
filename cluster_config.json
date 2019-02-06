@@ -1,0 +1,16 @@
+{
+"__default__" : {
+        "account" : "C3SE2019-1-14",
+        "time" : "0-06:00:00",
+        "n" : 24,
+        "tasks" : 1,
+        "cpusPerTask" : 24,
+        "partition" : "vera",
+        "mail-type" : "END,FAIL",
+        "mail-user" : "$USER@chalmers.se",
+        "name"      : "DL.{rule}",
+        "output"    : "out.txt",
+        "error"     : "out.txt",
+},
+}
+#nohup snakemake -j 100 --rerun-incomplete --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output} --error {cluster.error}" &

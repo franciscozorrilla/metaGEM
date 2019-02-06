@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-#SBATCH -A C3SE2018-1-23 -p hebbe
-#SBATCH -n 24
-#SBATCH -C MEM512|MEM1024
-#SBATCH -t 0-72:00:00
-
-snakemake covtable -j 24
