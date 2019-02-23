@@ -3,16 +3,16 @@ configfile: "config.yaml"
 import os
 import glob
 
-R1 = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe/concoct_output/ERR*'))]) #These commands dont recognize the config.yaml file so had to hardcode raw data filepath
-
-names = [os.path.basename(val) for val in R1]
-
-#namesR1 = [os.path.basename(val) for val in R1]
-#names = [x[:-2] for x in namesR1]
+R1 = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/groups/c3-c3se605-19-1/pipeTest/reads/sra/ERR*'))]) #For sample names
+R12 = [os.path.splitext(val)[0] for val in R1]
+names1 = [os.path.basename(val) for val in R12]
+names = [x[:-2] for x in names1]
 
 rule all:
     input:
-        expand("bracken_out/{names}/output.bracken", names = names)
+        #expand("bins_organized/{names}.dummy", names=names)
+        #expand("bracken_out/{names}/output.bracken", names = names)
+        "quantification/kallistoIndices/indexDummy.txt"
     output:
         "pipemap.png"
     shell:
@@ -20,85 +20,98 @@ rule all:
         snakemake --dag | dot -Tpng > {output}
         """
 
-#rule megahit:
-#    input:
-#        R1=config["paths"]["raw_reads"]+"/{ref}_1.fastq",
-#        R2=config["paths"]["raw_reads"]+"/{ref}_2.fastq"
-#    output:
-#        "megahitAssembly/{ref}/final.contigs.fa"
-#    shell:
-#        """
-#        rm -r $(dirname {output})
-#        megahit -t {config[megahit_params][threads]} --tmp-dir $TMPDIR --presets meta-large --verbose -1 {input.R1} -2 {input.R2} --continue -o {config[paths][concoct_run]}/$(dirname {output})
-#        """
+rule qfilter:
+    input:
+        R1=config["paths"]["raw_reads"]+"/{ref}_1.fastq.gz",
+        R2=config["paths"]["raw_reads"]+"/{ref}_2.fastq.gz"
+    output:
+        R1="qfiltered/{ref}/{ref}_1.fastq.gz",
+        R2="qfiltered/{ref}/{ref}_2.fastq.gz"
+    shell:
+        """
+        fastp --thread 8 -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -j $(dirname {output.R1})/$(echo $( basename $(dirname {output.R1}))).json -h $(dirname {output.R1})/$(echo $( basename $(dirname {output.R1}))).html
+        """
 
-#rule cutcontigs:
-#    input:
-#        "megahitAssembly/{ref}/final.contigs.fa"
-#    output:
-#        "contigs/{ref}/megahit_c10K.fa"
-#    shell:
-#        """
-#        set +u;source activate concoct_env;set -u;
-#        cd $(dirname {input})
-#        python {config[cutcontigs_params][script_dir]} -c 10000 -o 0 -m $(basename {input}) > $(basename {output});
-#        mv $(basename {output}) {config[paths][concoct_run]}/$(dirname {output});
-#        cd {config[paths][concoct_run]}
-#        tar -cvf {output} megahitAssembly/
-#        """
+rule megahit:
+    input:
+        R1="qfiltered/{ref}/{ref}_1.fastq.gz",
+        R2="qfiltered/{ref}/{ref}_2.fastq.gz"
+    output:
+        "megahitAssembly/{ref}/final.contigs.fa"
+    shell:
+        """
+        rm -r $(dirname {output})
+        megahit -t {config[megahit_params][threads]} --tmp-dir $TMPDIR --presets meta-large --verbose -1 {input.R1} -2 {input.R2} -o {config[paths][concoct_run]}/$(dirname {output})
+        rm -r $(dirname {output})/intermediate_contigs
+        """
 
-#rule kallistoBuild:
-#    input:
-#        "contigs/{ref}/megahit_c10K.fa"
-#    output:
-#        "quantification/kallistoIndices/{ref}.kaix"
-#    shell:
-#        """
-#        set +u;source activate checkm_env;set -u;
-#        kallisto index {input} -i {output}
-#        """
+rule cutcontigs:
+    input:
+        "megahitAssembly/{ref}/final.contigs.fa"
+    output:
+        "contigs/{ref}/megahit_c10K.fa"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        cd $(dirname {input})
+        python {config[cutcontigs_params][script_dir]} -c 10000 -o 0 -m $(basename {input}) > $(basename {output});
+        mv $(basename {output}) {config[paths][concoct_run]}/$(dirname {output});
+        cd {config[paths][concoct_run]}
+        #tar -cvf {output} megahitAssembly/ #NEED THESE FOR CHECKM FILTERING!!!
+        """
 
-#rule gatherIndexes:
-#    input:
-#        expand("quantification/kallistoIndices/{ref}.kaix", ref = names)
-#    output:
-#        "quantification/kallistoIndices/indexDummy.txt"
-#    shell:
-#        """
-#        touch {output}
-#        """
+rule kallistoBuild:
+    input:
+        "contigs/{ref}/megahit_c10K.fa"
+    output:
+        "quantification/kallistoIndices/{ref}.kaix"
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        kallisto index {input} -i {output}
+        """
 
-#rule kallistoQuant:
-#    input:
-#        R1= config["paths"]["raw_reads"]+"/{names}_1.fastq",
-#        R2= config["paths"]["raw_reads"]+"/{names}_2.fastq",
-#        index="quantification/kallistoIndices/{ref}.kaix",
-#        indexDummy="quantification/kallistoIndices/indexDummy.txt"
-#    output:
-#        "quantification/ref_{ref}/{names}/abundance.tsv.gz"
-#    threads: 16
-#    shell:
-#        """
-#        set +u;source activate checkm_env;set -u;
-#        cd $TMPDIR
-#        kallisto quant --threads {config[kallisto_params][threads]} --plaintext -i {config[paths][concoct_run]}/{input.index} -o $TMPDIR {input.R1} {input.R2}
-#        gzip abundance.tsv
-#        cp $(basename {output}) {config[paths][concoct_run]}/$(dirname {output})
-#        cp run_info.json {config[paths][concoct_run]}/$(dirname {output})
-#        rm $(basename {output})
-#        rm run_info.json
-#        cd {config[paths][concoct_run]}
-#        """
+rule gatherIndexes:
+    input:
+        expand("quantification/kallistoIndices/{ref}.kaix", ref = names)
+    output:
+        "quantification/kallistoIndices/indexDummy.txt"
+    shell:
+        """
+        touch {output}
+        """
 
-#rule gatherAbundance:
-#    input:
-#        expand("quantification/ref_{ref}/{names}/abundance.tsv.gz",ref=names, names=names)
-#    output:
-#        "quantification/quantDummy.txt"
-#    shell:
-#        """
-#        touch {output}
-#        """
+rule kallistoQuant:
+    input:
+        R1=config["paths"]["concoct_run"]+"/qfiltered/{ref}/{ref}_1.fastq.gz",
+        R2=config["paths"]["concoct_run"]+"/qfiltered/{ref}/{ref}_2.fastq.gz",
+        index="quantification/kallistoIndices/{ref}.kaix",
+        indexDummy="quantification/kallistoIndices/indexDummy.txt"
+    output:
+        "quantification/ref_{ref}/{names}/abundance.tsv.gz"
+    threads: 8
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        cd $TMPDIR
+        kallisto quant --threads {config[kallisto_params][threads]} --plaintext -i {config[paths][concoct_run]}/{input.index} -o $TMPDIR {input.R1} {input.R2}
+        gzip abundance.tsv
+        cp $(basename {output}) {config[paths][concoct_run]}/$(dirname {output})
+        cp run_info.json {config[paths][concoct_run]}/$(dirname {output})
+        rm $(basename {output})
+        rm run_info.json
+        cd {config[paths][concoct_run]}
+        """
+
+rule gatherAbundance:
+    input:
+        expand("quantification/ref_{ref}/{names}/abundance.tsv.gz",ref=names, names=names)
+    output:
+        "quantification/quantDummy.txt"
+    shell:
+        """
+        touch {output}
+        """
 
 rule kallisto2concoctTable:
     input:
@@ -176,32 +189,46 @@ rule checkMtable:
         checkm qa --tmpdir $TMPDIR --tab_table $(dirname {output})/lineage.ms $(dirname {output}) > {output}
         """
 
-rule binFilter:
+#rule binFilter:
+#    input:
+#        bins= "bins/{names}",
+#        table= "checkm_out/{names}/binTable.txt"
+#    output:
+#        "bins_filtered/{names}"
+#    shell:
+#        """
+#        mkdir -p {output}
+#        {config[checkM_params][filterScript]} {input.bins} {input.table} {output} --min_completeness {config[checkM_params][comp]} --max_contamination {config[checkM_params][cont]}
+#        """
+
+rule binOrganize:
     input:
-        bins= "bins/{names}",
-        table= "checkm_out/{names}/binTable.txt"
-    output:
         "bins_filtered/{names}"
+    output:
+        "bins_organized/{names}.dummy"
     shell:
         """
-        mkdir -p {output}
-        {config[checkM_params][filterScript]} {input.bins} {input.table} {output} --min_completeness {config[checkM_params][comp]} --max_contamination {config[checkM_params][cont]}
+        cd {config[paths][concoct_run]}
+        cd {input}
+        for file in *.fa; do cp $file ../../$(dirname {output})/$(echo $file |sed s/^/{wildcards.names}_/); done;
+        touch ../../{output}
+        cd {config[paths][concoct_run]}
         """
 
-rule zipBins:
-    input:
-        expand("bins_filtered/{names}", names=names)
-    output:
-        "bins.gz"
-    shell:
-        """
-        gzip bins
-        """
+#rule zipBins:
+#    input:
+#        expand("bins/{names}", names=names)
+#    output:
+#        "bins.tar.gz"
+#    shell:
+#        """
+#        tar -zcvf {output} bins/
+#        """
 
 rule kraken2:
     input:
         binsFilt="bins_filtered/{names}",
-        binZip="bins.gz"
+        #binZip="bins.tar.gz"
     output:
         classified="kraken2_out/{names}/classified",
         unclassified="kraken2_out/{names}/unclassified",
@@ -222,28 +249,6 @@ rule bracken:
         set +u;source activate checkm_env;set -u;
         bracken -d {config[kraken2_params][db]} -i {input.report} -o {output}
         """
-
-#rule carveme:
-#    input:
-#        "bins_filtered/{names}/{fasta}"
-#    output:
-#        "carvemeOut/{names}/{fasta}.xml"
-#    shell:
-#        """
-#        set +u;source activate concoct_env;set -u
-#        carve --dna {input} -o {output}
-#        """
-#rule memote:
-#    input: "carvemeOut/{speciesProt}.xml"
-#    output: "carvemeOut/{speciesProt}.xml.html"
-#    shell:
-#        """
-#        set +u;source activate concoct_env;set -u
-#        memote report snapshot --filename "{input}.html" {input} #generate .html report
-#        memote run {input} #generate quick printout of model summary
-#        """
-
-#ADD SMETANA RULE
 
 
                             #BELOW ARE RULES USEFUL FOR EXTRACTING BINS USING MY OWN R SCRIPT, NO LONGER USED

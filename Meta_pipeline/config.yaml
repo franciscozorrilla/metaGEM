@@ -2,8 +2,8 @@
 paths:
     CONCOCT: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/repos/CONCOCT
     CONCOCT_TEST: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/temp/CONCOCT-test-data-0.3.2
-    raw_reads: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/pipeTest/reads/sra
-    concoct_run: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe
+    raw_reads: /c3se/NOBACKUP/groups/c3-c3se605-19-1/pipeTest/reads/sra
+    concoct_run: /c3se/NOBACKUP/users/zorrilla/binning/perSamplePipe
 
 megahit_params:
     threads: 32
@@ -22,8 +22,8 @@ concoct_params:
 checkM_params:
     threads: 48
     filterScript: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binFilter.py
-    comp: 80
-    cont: 10
+    comp: 50
+    cont: 20
 
 kraken2_params:
     db: /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/KRAKEN2_DB/

@@ -1,0 +1,75 @@
+#configfile: "config.yaml"
+
+import os
+import glob
+
+bins = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe/bins_filtered/ERR*'))]) #for sample labels (137)
+#bins = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/metabolismPipe/bins_organized/ERR*.fa'))]) #for bin labels (~2800)
+fasta = [os.path.basename(val) for val in bins]
+
+#namesR1 = [os.path.basename(val) for val in R1]
+#names = [x[:-2] for x in namesR1]
+
+rule all:
+    input:
+        #expand("carvemeOut/{fasta}.xml", fasta = fasta) #for bin-label operations
+        expand("SMETANA/{fasta}_global.tsv", fasta = fasta) #for sample-label operations
+    output:
+        "pipemap.png"
+    shell:
+        """
+        snakemake --dag | dot -Tpng > {output}
+        """
+
+rule carveme:
+    input:
+        "bins_organized/{fasta}.fa"
+    output:
+        "carvemeOut/{fasta}.xml"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        carve -g LB[-O2] -i LB[-O2] -v --fbc2 --dna {input} -o {output}
+        """
+
+rule memote:
+    input: "carvemeOut/{fasta}.xml"
+    output: "carvemeOut/{fasta}.xml.html"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        memote report snapshot --filename "{input}.html" {input} #generate .html report
+        memote run {input}> {input}_summary.txt #generate quick printout of model summary
+        """
+
+rule gapfill:
+    input:
+        "carvemeOut/{fasta}.xml"
+    output:
+        "gapFilled/{fasta}.xml"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        gapfill -v {input} -m M9[-O2] -o {output}
+        """
+
+rule smetana:
+    input:
+        "/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe/bins_filtered/{fasta}"
+    output:
+        "SMETANA/{fasta}_global.tsv"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        smetana --flavor fbc2 --mediadb "/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/.conda/envs/concoct_env/lib/python2.7/site-packages/carveme/data/input/media_db.tsv" -m LB[-O2] carvemeOut/$(echo $(basename {input}) | cut -f 1 -d '.')_*.xml --solver CPLEX -o SMETANA/$(basename {input}) -v
+        """
+
+rule mergeCommunity:
+    input:
+        "/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe/bins_filtered/{fasta}"
+    output:
+        "communityModels/{fasta}_community.xml"
+    shell:
+        """
+        merge_community carvemeOut/$(basename {input})*.xml --split-pool -no-community-biomass -o {output}
+        """
