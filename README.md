@@ -1,2 +1,2 @@
 # Pipeline for Metagenomic Analysis of Gut Microbiome Samples
-# ![pipemap](pipemap.png)
+# ![pipemap_v0.1](pipemap_v0.1.png)
