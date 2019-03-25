@@ -1,5 +1,5 @@
-## metaBAGpipes: metaBolism And metaGenomic analysis pipeline 
-### Snakemake workflow for bioinformatics
+## metaBAGpipes: metaBolism And metaGenomic analysis pipelines 
+### A Sakemake Workflow for Bioinformatics Analysis of Gut Microbiome Data
 # ![pipemap_v0.1](pipemap_v0.1.png)
 
 
