@@ -1,5 +1,5 @@
-# metaBAGpipes: Snakemake workflow for bioinformatics
-## metaBolism And metaGenomic analysis pipeline 
+# metaBAGpipes: metaBolism And metaGenomic analysis pipeline 
+## Snakemake workflow for bioinformatics
 # ![pipemap_v0.1](pipemap_v0.1.png)
 
 
