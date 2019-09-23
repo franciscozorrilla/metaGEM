@@ -1,5 +1,5 @@
-## metaBAGpipes:
-### metaBolism And metaGenomic analysis pipelines
+# metaBAGpipes
+## metaBolism And metaGenomic analysis pipelines
 # ![pipemap_v0.1.png](pipemap_v0.1.png)
 
 
