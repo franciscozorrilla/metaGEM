@@ -1,0 +1,344 @@
+configfile: "config.yaml"
+
+#perSampleAssemly Snakefile
+
+import os
+import glob
+
+R1 = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/groups/c3-c3se605-19-1/pipeTest/reads/sra/ERR*'))]) #For sample names
+#R1 = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/bins_organized/*.fa'))]) #For bin names
+
+R12 = [os.path.splitext(val)[0] for val in R1] #removes filepath (i.e. /c3se/NOBACKUP/groups/c3-c3se605-19-1/pipeTest/reads/sra/)
+names = [os.path.basename(val) for val in R12] #removes extension (i.e. .fa)
+names = [x[:-2] for x in names] #removes paired end information (i.e. _1 or _2)
+names = list(dict.fromkeys(names)) #removes duplicates for sample names, since there are two files with same sample ID (i.e. _1 or _2)
+
+rule qfilter:
+    input:
+        R1=config["paths"]["raw_reads"]+"/{ref}_1.fastq.gz",
+        R2=config["paths"]["raw_reads"]+"/{ref}_2.fastq.gz"
+    output:
+        R1="qfiltered/{ref}/{ref}_1.fastq.gz",
+        R2="qfiltered/{ref}/{ref}_2.fastq.gz"
+    shell:
+        """
+        fastp --thread 8 -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -j $(dirname {output.R1})/$(echo $( basename $(dirname {output.R1}))).json -h $(dirname {output.R1})/$(echo $( basename $(dirname {output.R1}))).html
+        """
+
+rule megahit:
+    input:
+        R1="qfiltered/{ref}/{ref}_1.fastq.gz",
+        R2="qfiltered/{ref}/{ref}_2.fastq.gz"
+    output:
+        "megahitAssembly/{ref}/final.contigs.fa"
+    shell:
+        """
+        rm -r $(dirname {output})
+        megahit -t {config[megahit_params][threads]} --tmp-dir $TMPDIR --presets meta-large --verbose -1 {input.R1} -2 {input.R2} -o {config[paths][concoct_run]}/$(dirname {output})
+        rm -r $(dirname {output})/intermediate_contigs
+        """
+
+rule cutcontigs:
+    input:
+        "megahitAssembly/{ref}/final.contigs.fa"
+    output:
+        "contigs/{ref}/megahit_c10K.fa"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        cd $(dirname {input})
+        python {config[cutcontigs_params][script_dir]} -c 10000 -o 0 -m $(basename {input}) > $(basename {output});
+        mv $(basename {output}) {config[paths][concoct_run]}/$(dirname {output});
+        cd {config[paths][concoct_run]}
+        #tar -cvf {output} megahitAssembly/ #NEED THESE FOR CHECKM FILTERING!!!
+        """
+
+rule kallistoBuild:
+    input:
+        "contigs/{ref}/megahit_c10K.fa"
+    output:
+        "quantification/kallistoIndices/{ref}.kaix"
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        kallisto index {input} -i {output}
+        """
+
+rule gatherIndexes:
+    input:
+        expand("quantification/kallistoIndices/{ref}.kaix", ref = names)
+    output:
+        "quantification/kallistoIndices/indexDummy.txt"
+    shell:
+        """
+        touch {output}
+        """
+
+rule kallistoQuant:
+    input:
+        R1=config["paths"]["concoct_run"]+"/qfiltered/{names}/{names}_1.fastq.gz",
+        R2=config["paths"]["concoct_run"]+"/qfiltered/{names}/{names}_2.fastq.gz",
+        index="quantification/kallistoIndices/{ref}.kaix",
+        indexDummy="quantification/kallistoIndices/indexDummy.txt",
+    output:
+        "quantification/ref_{ref}/{names}/abundance.tsv.gz"
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        cd $TMPDIR
+        kallisto quant --threads {config[kallisto_params][threads]} --plaintext -i {config[paths][concoct_run]}/{input.index} -o $TMPDIR {input.R1} {input.R2}
+        gzip abundance.tsv
+        cp $(basename {output}) {config[paths][concoct_run]}/$(dirname {output})
+        cp run_info.json {config[paths][concoct_run]}/$(dirname {output})
+        rm $(basename {output})
+        rm run_info.json
+        cd {config[paths][concoct_run]}
+        """
+
+rule gatherAbundance:
+    input:
+        expand("quantification/ref_{ref}/{names}/abundance.tsv.gz",ref=names, names=names)
+    output:
+        "quantification/quantDummy.txt"
+    shell:
+        """
+        touch {output}
+        """
+
+rule kallisto2concoctTable:
+    input:
+        abundances = lambda wildcards: expand("quantification/ref_{ref}/{{names}}/abundance.tsv.gz".format(ref=wildcards.concoct), names = names),
+        abdunaceDummy= "quantification/quantDummy.txt"
+    output:
+        "concoct_input/{concoct}_concoct_inputtableR.tsv"
+    params:
+        files= names
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        python {config[kallisto_params][script]} \
+            --samplenames <(for s in {params.files}; do echo $s; done) \
+                {input.abundances} > {output}
+        """
+
+rule concoct:
+    input:
+        table="concoct_input/{names}_concoct_inputtableR.tsv",
+        comp="contigs/{names}/megahit_c10K.fa"
+    output:
+        "concoct_output/{names}/clustering_gt1000.csv"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        cd {config[paths][concoct_run]};
+        concoct --coverage_file {input.table} --composition_file {input.comp} -b $(dirname {output}) -t {config[concoct_params][threads]} -c {config[concoct_params][clusters]}
+        cut -d"," -f2 $(dirname {output})/clustering_gt1000.csv | sort | uniq -c | wc > $(dirname {output})/binfo.txt
+        """
+
+rule mergeClustering:
+    input:
+        "concoct_output/{names}/clustering_gt1000.csv"
+    output:
+        "concoct_output/{names}/clustering_merged.csv"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        merge_cutup_clustering.py {input} > {output}
+        """
+
+rule extractBins:
+    input:
+        clustering="concoct_output/{names}/clustering_merged.csv",
+        OGcontigs="megahitAssembly/{names}/final.contigs.fa"
+    output:
+        "bins/{names}"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        mkdir -p {output}
+        extract_fasta_bins.py {input.OGcontigs} {input.clustering} --output_path {output}
+        """
+
+rule checkM:
+    input:
+        "bins/{names}"
+    output:
+        "checkm_out/{names}/lineage.ms"
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        checkm lineage_wf --tmpdir $TMPDIR -x fa -t {config[checkM_params][threads]} --pplacer_threads {config[checkM_params][threads]} {input} $(dirname {output})
+        """
+
+rule checkMtable:
+    input:
+        "checkm_out/{names}/lineage.ms"
+    output:
+        "checkm_out/{names}/binTable.txt"
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        checkm qa --tmpdir $TMPDIR --tab_table $(dirname {output})/lineage.ms $(dirname {output}) > {output}
+        """
+
+rule binFilter:
+    input:
+        bins= "bins/{names}",
+        table= "checkm_out/{names}/binTable.txt"
+    output:
+        "bins_filtered/{names}"
+    shell:
+        """
+        mkdir -p {output}
+        {config[checkM_params][filterScript]} {input.bins} {input.table} {output} --min_completeness {config[checkM_params][comp]} --max_contamination {config[checkM_params][cont]}
+        """
+
+rule zipBins:
+    input:
+        expand("bins/{names}", names=names)
+    output:
+        "bins.tar.gz"
+    shell:
+        """
+        tar -zcvf {output} bins/
+
+
+rule binCoverage2:
+    input:
+        bins = "/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/bins_organized/",
+        qfiltered = "/c3se/users/zorrilla/Vera/binningBackup/perSamplePipe/qfiltered/{ref}"
+    output:
+        "binCoverage2/{ref}.fa/map.stats"
+    message:
+        """
+        For each sample maps qfiltered reads to all bins concatenated using samtools.
+        """
+    shell:
+        """
+        cd {config[paths][concoct_run]}
+        mkdir -p binCoverage2
+        cd binCoverage2
+        mkdir -p $(basename ${input.qfiltered})
+        cd $TMPDIR
+        cp {input.bins}$(basename {input.qfiltered})/* .
+        cat ERR*.fa > $(basename {input.qfiltered}).fa
+        cp {input.qfiltered}/*.gz .
+        bwa index $(basename {input.qfiltered}).fa
+        bwa mem -t 16 $(basename {input.qfiltered}).fa $(echo *_1.fastq.gz) $(echo *_2.fastq.gz) > $(basename {input.qfiltered}).sam
+        samtools view -@ 16 -Sb $(basename {input.qfiltered}).sam > $(basename {input.qfiltered}).bam
+        samtools sort -@ 16 $(basename {input.qfiltered}).bam > $(basename {input.qfiltered}).sort
+        samtools flagstat $(basename {input.qfiltered}).sort > map.stats
+        cp map.stats {config[paths][concoct_run]}/binCoverage2/$(basename {input.qfiltered})
+        cd {config[paths][concoct_run]}
+        """
+
+rule binCoverage3:
+    input:
+        bins = "/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/bins_organized/{ref}",
+        qfiltered = "/c3se/users/zorrilla/Vera/binningBackup/perSamplePipe/qfiltered/{ref}"
+    output:
+        "binCoverage3/{ref}"
+    message:
+        """
+        This rule generates X & Y in the equation below. Z is generated by rule binCoverage2.
+
+        To calculate bin fraction abundance estimate given:
+
+        X = # of reads mapped to bin_i by mapping qfiltered reads to bin_i using samtools.
+        Y = length of bin_i.
+        Z = total # of reads mapped to all bins in sample_k
+
+        binAbundanceFraction = (X / Y / Z)*100
+
+        NOTES:
+        binAbundance is calculated in rule binFraction below.
+        Requires {input.bins} folder to be organized into per sample subfolders.
+        """
+    shell:
+        """
+        cd {config[paths][concoct_run]}
+        mkdir -p binCoverage3
+        cd binCoverage3
+        mkdir -p $(basename ${input.qfiltered})
+        cd $TMPDIR
+        cp {input.bins}/* {input.qfiltered}/*.gz .
+        for bin in ERR*.fa;do
+            mkdir -p $(echo "$bin"| sed "s/.fa//")
+            cp  $bin $(echo "$bin"| sed "s/.fa//")
+            cd $(echo "$bin"| sed "s/.fa//")
+            bwa index $bin
+            bwa mem -t 16 $bin $(echo "$TMPDIR/$bin"| sed "s/_.*$/_1.fastq.gz/") $(echo "$TMPDIR/$bin"| sed "s/_.*$/_2.fastq.gz/") > $(echo "$bin"|sed "s/.fa/.sam/")
+            samtools view -@ 16 -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
+            samtools sort -@ 16 $(echo "$bin"|sed "s/.fa/.bam/") > $(echo "$bin"|sed "s/.fa/.sort/")
+            samtools flagstat $(echo "$bin"|sed "s/.fa/.sort/") > $(echo "$bin"|sed "s/.fa/.map/")
+            echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
+            less $bin|grep len| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
+            cp *.map {config[paths][concoct_run]}/binCoverage3/$(basename ${input.qfiltered})
+            cd ..
+            rm -r $(echo "$bin"| sed "s/.fa//")
+        done
+        """
+
+rule binFraction:
+    input:
+    output:
+    message:
+        """
+        Calculate bin abundance fraction using output of binCoverage2 & binCoverage3:
+
+        X = # of reads mapped to bin_i by mapping qfiltered reads to bin_i using samtools.
+        Y = length of bin_i.
+        Z = total # of reads mapped to all bins in sample_k
+
+        binAbundanceFraction = (X / Y / Z)*100
+
+
+        """
+    shell:
+        """
+        cd /c3se/NOBACKUP/users/zorrilla/binning/perSamplePipe/binCoverage3/
+        for sample in ERR*;do
+            cd $sample
+            for bin in ERR*.map;do
+                echo -n "$bin" >> binAbundance.fraction
+                echo -n $'\t' >> binAbundance.fraction
+                X=$(less $bin|grep "mapped ("|awk -F' ' '{print $1}')
+                Y=$(less $bin|tail -n 1|awk -F' ' '{print $4}')
+                Z=$(less "/c3se/NOBACKUP/users/zorrilla/binning/perSamplePipe/binCoverage2/$sample/map.stats"|grep "mapped ("|awk -F' ' '{print $1}')
+                awk -v x="$X" -v y="$Y" -v z="$Z" 'BEGIN{print (x/y/z) * 100}' >> binAbundance.fraction
+            done
+            cd ..
+        done
+        """
+
+
+rule makeBinFolders:
+    shell:
+        """
+        cd /c3se/NOBACKUP/users/zorrilla/binning/perSamplePipe/kraken2_perBin/
+        for sample in ERR*;do
+            cd $sample;
+            for bin in ERR*.kreport;do
+                mkdir -p $(echo $bin |sed 's/.fa.kreport//');
+                mv $(echo $bin |sed 's/.fa.kreport//').* $(echo $bin |sed 's/.fa.kreport//')
+            done;
+            cd ..;
+        done
+        """
+
+rule organizeSubfolders:
+    params: names= names
+    shell:
+        """
+        cd /c3se/users/zorrilla/Vera/binningNoBackup/binning/metabolismPipe/bins_organized
+        for k in {params.names}; do mkdir -p $k;mv $k*.fa $k; done
+        """
+
+rule organizeOnefolder:
+    params: names= names
+    message: "Organizes bins from CheckM output into one folder without subdirectories. Make sure python variable 'names' is pointing towards sample names."
+    shell:
+        """
+        cd /c3se/users/zorrilla/Vera/binningNoBackup/binning/metabolismPipe/bins_organized
+        for k in {params.names}; do mv $k/*.fa .;rm -r $k; done
+        """

@@ -1,0 +1,140 @@
+#configfile: "config.yaml"
+
+#metabolism pipe
+
+import os
+import glob
+
+bins = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/SampleNames/ERR*'))]) #for sample labels (137)
+#bins = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/bins_organized/ERR*.fa'))]) #for bin labels
+#bins = sorted([os.path.splitext(val)[0] for val in (glob.glob('/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/carvemeOut/ERR*.xml'))]) #for GEM labels
+
+
+fasta = [os.path.basename(val) for val in bins]
+
+#namesR1 = [os.path.basename(val) for val in R1]
+#names = [x[:-2] for x in namesR1]
+
+rule all:
+    input:
+        expand("SMETANA/{fasta}", fasta=fasta)
+    output:
+        "pipemap.png"
+    shell:
+        """
+        snakemake --dag | dot -Tpng > {output}
+        """
+
+rule carveme:
+    input:
+        "bins_organized/{fasta}.fa"
+    output:
+        "carvemeOut-GFwM3/{fasta}.xml"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        cp {input} $TMPDIR
+        cd $TMPDIR
+        carve -g M3 -v --fbc2 --dna $(basename {input}) -o $(basename {output})
+        cp $(basename {output}) /c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/carvemeOut-GFwM3
+        cd /c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe
+        """
+
+rule memote:
+    input: "carvemeOut/{fasta}.xml"
+    output: "carvemeOut/{fasta}.html"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        memote report snapshot --filename $(echo {input}|sed 's/.xml/.html/') {input} #generate .html report
+        memote run {input}> {input}_summary.txt #generate quick printout of model summary
+        """
+
+rule gapfill:
+    input:
+        "carvemeOut/{fasta}.xml"
+    output:
+        "gapFilled/{fasta}.xml"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        gapfill -v {input} -m M9[-O2] -o {output}
+        """
+
+rule smetana:
+    input:
+        "/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/SampleNames/{fasta}"
+    output:
+        "SMETANA/{fasta}"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        mkdir -p SMETANA/$(basename {input})
+        cd $TMPDIR
+        cp /c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/carvemeOut-GFwM3/$(basename {input})* /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/.conda/envs/concoct_env/lib/python2.7/site-packages/carveme/data/input/media_db.tsv .
+        smetana --detailed --flavor fbc2 --mediadb media_db.tsv -m M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16 $(basename {input})* --solver CPLEX -o $(basename {input}) -v
+        cp ERR*.tsv /c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/SMETANA/$(basename {input})
+        """
+
+rule smetanaSummary:
+    shell:
+        """
+        cd "/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/SMETANA/"
+        awk 'NF' "/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/SMETANA/ERR260137/ERR260137_detailed.tsv"|head -n 1 >> SMETANA.sum
+        for folder in ERR*;do
+            awk 'NF' $folder/ERR*.tsv|tail -n +2 >> SMETANA.sum
+        done
+        cut -f1 --complement SMETANA.sum  >> SMETANA.summary
+        rm SMETANA.sum
+        for column in {2,3};do
+            awk 'NF' SMETANA.summary|tail -n +2|cut -f$column >> SMETANA.ids
+        done
+        less SMETANA.ids |sort -r|uniq >> SMETANA.binIds
+        rm SMETANA.ids
+        while read bin ;do
+            echo -n "$bin" >> SMETANA.scores
+            echo -n $'\t' >> SMETANA.scores
+            N=$(less SMETANA.summary|grep "$bin"|wc -l)
+            echo -n "$N" >> SMETANA.scores
+            echo -n $'\t' >> SMETANA.scores
+            SCS=$(less SMETANA.summary|grep "$bin"|awk '{sum+=$(NF-3)} END {printf sum}');
+            awk -v scs="$SCS" -v n="$N" 'BEGIN{print scs/n}' >> SMETANA.scores
+            echo -n $'\t' >> SMETANA.scores
+            MUS=$(less SMETANA.summary|grep "$bin"|awk '{sum+=$(NF-2)} END {printf sum}');
+            awk -v mus="$MUS" -v n="$N" 'BEGIN{print mus/n}' >> SMETANA.scores
+            echo -n $'\t' >> SMETANA.scores
+            MPS=$(less SMETANA.summary|grep "$bin"|awk '{sum+=$(NF-1)} END {printf sum}');
+            awk -v mps="$MPS" -v n="$N" 'BEGIN{print mps/n}' >> SMETANA.scores
+            echo -n $'\t' >> SMETANA.scores
+            SMETANA=$(less SMETANA.summary|grep "$bin"|awk '{sum+=$NF} END {printf sum}');
+            awk -v smetana="$SMETANA" -v n="$N" 'BEGIN{print smetana/n}' >> SMETANA.scores
+            unset SCS MUS MPS SMETANA N
+        done < SMETANA.binIds
+        """
+
+#rule smetanaLoop:
+#    input:
+#        "/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/SampleNames"
+#    output:
+#        "SMETANA"
+#    shell:
+#        """
+#        set +u;source activate concoct_env;set -u
+#        mkdir -p SMETANA
+#        cd $TMPDIR
+#        for sample in {input}/ERR*;do
+#            cp /c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/carvemeOut/$(basename $sample)* /c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/.conda/envs/concoct_env/lib/python2.7/site-packages/carveme/data/input/media_db.tsv .
+#            smetana --flavor fbc2 --mediadb media_db.tsv -m M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16 $(basename $sample)* --solver CPLEX -o $(basename {input}) -v
+#            cp ERR*.tsv /c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/testDir3/SMETANA
+#        done
+#        """
+
+rule mergeCommunity:
+    input:
+        "/c3se/NOBACKUP/groups/c3-c3se605-17-8/projects_francisco/binning/perSamplePipe/bins_filtered/{fasta}"
+    output:
+        "communityModels/{fasta}_community.xml"
+    shell:
+        """
+        merge_community carvemeOut/$(basename {input})*.xml --split-pool -no-community-biomass -o {output}
+        """
