@@ -1,0 +1,53 @@
+rule kallisto2concoctTable:
+    input:
+        abundances = lambda wildcards: expand("quantification/ref_{ref}/{{names}}/abundance.tsv.gz".format(ref=wildcards.concoct), names = names),
+        abdunaceDummy= "quantification/quantDummy.txt"
+    output:
+        "concoct_input/{concoct}_concoct_inputtableR.tsv"
+    params:
+        files= names
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        python {config[kallisto_params][script]} \
+            --samplenames <(for s in {params.files}; do echo $s; done) \
+                {input.abundances} > {output}
+        """
+
+rule concoct:
+    input:
+        table="concoct_input/{names}_concoct_inputtableR.tsv",
+        comp="contigs/{names}/megahit_c10K.fa"
+    output:
+        "concoct_output/{names}/clustering_gt1000.csv"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        cd {config[paths][concoct_run]};
+        concoct --coverage_file {input.table} --composition_file {input.comp} -b $(dirname {output}) -t {config[concoct_params][threads]} -c {config[concoct_params][clusters]}
+        cut -d"," -f2 $(dirname {output})/clustering_gt1000.csv | sort | uniq -c | wc > $(dirname {output})/binfo.txt
+        """
+
+rule mergeClustering:
+    input:
+        "concoct_output/{names}/clustering_gt1000.csv"
+    output:
+        "concoct_output/{names}/clustering_merged.csv"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        merge_cutup_clustering.py {input} > {output}
+        """
+
+rule extractBins:
+    input:
+        clustering="concoct_output/{names}/clustering_merged.csv",
+        OGcontigs="megahitAssembly/{names}/final.contigs.fa"
+    output:
+        "bins/{names}"
+    shell:
+        """
+        set +u;source activate concoct_env;set -u;
+        mkdir -p {output}
+        extract_fasta_bins.py {input.OGcontigs} {input.clustering} --output_path {output}
+        """

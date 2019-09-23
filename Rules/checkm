@@ -1,0 +1,33 @@
+rule checkM:
+    input:
+        "bins/{names}"
+    output:
+        "checkm_out/{names}/lineage.ms"
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        checkm lineage_wf --tmpdir $TMPDIR -x fa -t {config[checkM_params][threads]} --pplacer_threads {config[checkM_params][threads]} {input} $(dirname {output})
+        """
+
+rule checkMtable:
+    input:
+        "checkm_out/{names}/lineage.ms"
+    output:
+        "checkm_out/{names}/binTable.txt"
+    shell:
+        """
+        set +u;source activate checkm_env;set -u;
+        checkm qa --tmpdir $TMPDIR --tab_table $(dirname {output})/lineage.ms $(dirname {output}) > {output}
+        """
+
+rule binFilter:
+    input:
+        bins= "bins/{names}",
+        table= "checkm_out/{names}/binTable.txt"
+    output:
+        "bins_filtered/{names}"
+    shell:
+        """
+        mkdir -p {output}
+        {config[checkM_params][filterScript]} {input.bins} {input.table} {output} --min_completeness {config[checkM_params][comp]} --max_contamination {config[checkM_params][cont]}
+        """

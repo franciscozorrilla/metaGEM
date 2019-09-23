@@ -1,6 +1,6 @@
 #configfile: "config.yaml"
 
-#metabolism pipe
+#metaBolism pipeline
 
 import os
 import glob

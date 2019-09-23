@@ -1,0 +1,25 @@
+rule organizeSubfolders:
+    params: names= names
+    shell:
+        """
+        cd /c3se/users/zorrilla/Vera/binningNoBackup/binning/metabolismPipe/bins_organized
+        for k in {params.names}; do mkdir -p $k;mv $k*.fa $k; done
+        """
+
+rule organizeOnefolder:
+    params: names= names
+    message: "Organizes bins from CheckM output into one folder without subdirectories. Make sure python variable 'names' is pointing towards sample names."
+    shell:
+        """
+        cd /c3se/users/zorrilla/Vera/binningNoBackup/binning/metabolismPipe/bins_organized
+        for k in {params.names}; do mv $k/*.fa .;rm -r $k; done
+        """
+
+rule zipBins:
+    input:
+        expand("bins/{names}", names=names)
+    output:
+        "bins.tar.gz"
+    shell:
+        """
+        tar -zcvf {output} bins/

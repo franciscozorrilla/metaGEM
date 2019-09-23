@@ -1,0 +1,28 @@
+rule classifyMotus2:
+    input:
+        bins="/c3se/NOBACKUP/users/zorrilla/binning/metabolismPipe/bins_organized/{ref}",
+        script="/c3se/users/zorrilla/Vera/temp/classify-genomes"
+    output:
+        "classify-motus2/{ref}"
+    message:
+        """
+        Run classify-genome on each MAG: https://github.com/AlessioMilanese/classify-genomes
+        Requires /bins_filtered/ folder to be organized in subdirectories for each sample.
+        """
+    shell:
+        """
+        set +u;source activate concoct_env;set -u
+        cd {config[paths][concoct_run]}
+        mkdir -p classify-motus2/$(basename {output})
+        cd $TMPDIR
+        cp -r {input.bins}/* .
+        cp -r {input.script}/* .
+        for bin in ERR*.fa; do
+            echo "RUNNING BIN $bin"
+            $PWD/classify-genomes $bin -t 16 -o $(echo $bin|sed 's/.fa/.taxonomy/')
+            cp *.taxonomy /c3se/NOBACKUP/users/zorrilla/binning/perSamplePipe/classify-motus2/$(basename {output})
+            rm *.taxonomy
+            rm $bin
+        done
+        cd {config[paths][concoct_run]}
+        """
