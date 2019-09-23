@@ -6,7 +6,7 @@ metaBAGpipes integrates an array of existing bioinformatics and metabolic modeli
 # ![pipemap_v0.1.png](pipemap_v0.1.png)
 
 Dataset used:
-  * Karlsson, Fredrik H., et al. “Gut Metagenome in European Women with Normal, Impaired andDiabeticGlucoseControl.”*Nature*, vol.498,no.7452,2013,pp.99–103., doi:10.1038/nature12198.
+  * Karlsson, Fredrik H., et al. “Gut Metagenome in European Women with Normal, Impaired and Diabetic Glucose Control.” *Nature*, vol.498, no.7452, 2013, pp.99–103. , doi:10.1038/nature12198.
 
 This repository is administered by Francisco Zorrilla ([@franciscozorrilla](https://github.com/franciscozorrilla/)), Structural and Computational Biology Unit, EMBL. metaBAGpipes was developed throughout my Master's thesis project at the Systems and Synthetic Biology division of Chalmers Univeristy of Technology, under the supervision of Aleksej Zelezniak.
 
