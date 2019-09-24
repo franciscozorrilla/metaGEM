@@ -7,7 +7,7 @@ metaBAGpipes integrates an array of existing bioinformatics and metabolic modeli
 
 ### Significance
 
-To our best knowledge, the work presented in this thesis project represents the first application of sample-specific gut microbiome community FBA simulations using MAG-based GEMs. While there are limitations to this approach, as discussed in the thesis write-up, it is conceivable that a fine-tuned version of such a pipeline could be used to develop personalized and targeted treatments.  
+To our best knowledge, the work presented in this thesis project represents the first application of sample-specific gut microbiome community FBA simulations using MAG-based GEMs. While there are limitations to this approach, as discussed in the thesis write-up, it is conceivable that a fine-tuned version of such a pipeline could be used to develop personalized and targeted treatments. The figure above represents a visualization of the output information one can obtain using metaBAGpipes. 
 
 # ![ERR260149.png](ERR260149.png)
 
