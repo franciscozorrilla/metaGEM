@@ -16,4 +16,4 @@ Dataset used:
 
 This repository is administered by Francisco Zorrilla ([@franciscozorrilla](https://github.com/franciscozorrilla/)), Structural and Computational Biology Unit, EMBL. metaBAGpipes was developed throughout my Master's thesis project at the Systems and Synthetic Biology division of Chalmers Univeristy of Technology, under the supervision of Aleksej Zelezniak.
 
-  * Last update: 23-09-2019
+  * Last update: 24-09-2019
