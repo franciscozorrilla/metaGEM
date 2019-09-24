@@ -5,6 +5,10 @@ metaBAGpipes integrates an array of existing bioinformatics and metabolic modeli
 
 # ![pipemap_v0.1.png](pipemap_v0.1.png)
 
+### Significance
+
+# ![ERR260149.png](ERR260149.png)
+
 Dataset used:
   * Karlsson, Fredrik H., et al. “Gut Metagenome in European Women with Normal, Impaired and Diabetic Glucose Control.” *Nature*, vol.498, no.7452, 2013, pp.99–103. , doi:10.1038/nature12198.
 
