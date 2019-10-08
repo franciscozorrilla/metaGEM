@@ -4,13 +4,13 @@
 
 1. Paired end read QC using fastp
 2. Assembly using metaSPAdes or megahit
-3. Binning 
-⋅⋅* using metabat2 (easy, lower quality results)
-⋅⋅* using CONCOCT (more steps, high quality results)
+3. Binning
+  * using metabat2 (easy, lower quality results)
+  * using CONCOCT (more steps, high quality results)
 4. MAG QC using CheckM
 5. MAG abundance
-⋅⋅* using mOTUs2
-⋅⋅* based on mapping using bwa
+  * using mOTUs2
+  * based on mapping using bwa
 6. MAG classification using mOTUs2 classifier
 7. MAG growth rate estimates using GRiD
 8. GEM reconstruction using CarveMe
