@@ -3,12 +3,12 @@
 ### Use cases:
 
 1. Paired end reads QC using [fastp](https://github.com/OpenGene/fastp).
-2. Assembly :
+2. Assembly:
       * using [metaSPAdes](https://github.com/ablab/spades) (better assemblies).
       * using [megahit](https://github.com/voutcn/megahit) (better performance).
 3. Binning:
       * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/) (less steps, lower quality results).
-      * using [CONCOCT](https://github.com/BinPro/CONCOCT) (more steps, high quality results)
+      * using [CONCOCT](https://github.com/BinPro/CONCOCT) (more steps, high quality results):
         1. cut large contigs into 10 kb chunks.
         2. cross map all samples using kallisto quant.
         3. summarize coverage results into concoct input tables.
