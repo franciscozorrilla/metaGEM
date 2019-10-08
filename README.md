@@ -8,12 +8,12 @@
 3. Binning
       * using metabat2 (easier, lower quality results)
    * using CONCOCT (more steps, high quality results)
-        * cut large contigs into 10 kb chunks
-        * cross map all samples using kallisto quant
-        * summarize coverage results into concoct input tables
-        * run CONCOCT
-        * merge clustering results to get original uncut contigs
-        * extract bins
+        1* cut large contigs into 10 kb chunks
+        2* cross map all samples using kallisto quant
+        3* summarize coverage results into concoct input tables
+        4* run CONCOCT
+        5* merge clustering results to get original uncut contigs
+        6* extract bins
 4. MAG QC using CheckM
 5. MAG abundance
    * using mOTUs2
