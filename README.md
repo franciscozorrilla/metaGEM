@@ -2,7 +2,7 @@
 
 ### Use cases
 
-1. Paired end reads QC using ([fastp](https://github.com/OpenGene/fastp))
+1. Paired end reads QC using [fastp](https://github.com/OpenGene/fastp)
 2. Assembly 
       * using metaSPAdes (better assemblies)
       * using megahit (better performance)
