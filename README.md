@@ -4,16 +4,17 @@
 
 1. Paired end read QC using fastp
 2. Assembly 
-    * using metaSPAdes or megahit
+      * using metaSPAdes (better assemblies)
+      * using megahit (better performance)
 3. Binning
-      * using metabat2 (easier, lower quality results)
-   * using CONCOCT (more steps, high quality results)
-        1* cut large contigs into 10 kb chunks
-        2* cross map all samples using kallisto quant
-        3* summarize coverage results into concoct input tables
-        4* run CONCOCT
-        5* merge clustering results to get original uncut contigs
-        6* extract bins
+      * using metabat2 (less steps, lower quality results)
+      * using CONCOCT (more steps, high quality results)
+        1. cut large contigs into 10 kb chunks
+        2. cross map all samples using kallisto quant
+        3. summarize coverage results into concoct input tables
+        4. run CONCOCT
+        5. merge clustering results to get original uncut contigs
+        6. extract bins
 4. MAG QC using CheckM
 5. MAG abundance
    * using mOTUs2
