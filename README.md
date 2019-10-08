@@ -4,7 +4,7 @@
 
 1. Paired end read QC using fastp
 2. Assembly using metaSPAdes or megahit
-3. Binning
+3. Binning 
 ⋅⋅* using metabat2 (easy, lower quality results)
 ⋅⋅* using CONCOCT (more steps, high quality results)
 4. MAG QC using CheckM
