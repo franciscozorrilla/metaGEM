@@ -5,8 +5,9 @@
 1. Paired end read QC using fastp
 2. Assembly using metaSPAdes or megahit
 3. Binning
-   * using metabat2 (easy, lower quality results)
+   * using metabat2 (easier, lower quality results)
    * using CONCOCT (more steps, high quality results)
+        * step
 4. MAG QC using CheckM
 5. MAG abundance
    * using mOTUs2
