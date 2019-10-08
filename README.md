@@ -11,7 +11,7 @@
         1. generate bam files by mapping each set of paired end reads against its corresponding assembly only, using [bwa](https://github.com/lh3/bwa).
         2. convert bam files to sorted sam files.
         3. run metabat2.
-      * using [CONCOCT](https://github.com/BinPro/CONCOCT) (more steps, high quality results):
+      * using [CONCOCT](https://github.com/BinPro/CONCOCT) (more steps, higher quality results):
         1. cut large contigs into 10 kb chunks.
         2. cross map every set of paired end reads against every sample assembly using [kallisto](https://github.com/pachterlab/kallisto) quant.
         3. summarize coverage results into concoct input tables.
