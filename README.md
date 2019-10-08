@@ -3,9 +3,10 @@
 ### Use cases
 
 1. Paired end read QC using fastp
-2. Assembly using metaSPAdes or megahit
+2. Assembly 
+    * using metaSPAdes or megahit
 3. Binning
-   * using metabat2 (easier, lower quality results)
+      * using metabat2 (easier, lower quality results)
    * using CONCOCT (more steps, high quality results)
         * cut large contigs into 10 kb chunks
         * cross map all samples using kallisto quant
