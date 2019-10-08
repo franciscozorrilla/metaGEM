@@ -7,10 +7,13 @@
       * using [metaSPAdes](https://github.com/ablab/spades) (better assemblies).
       * using [megahit](https://github.com/voutcn/megahit) (better performance).
 3. Binning:
-      * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/) (less steps, lower quality results).
+      * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/) (less steps, lower quality results):
+        1. generate bam files by mapping each set of paired end reads against its corresponding assembly only, using [bwa](https://github.com/lh3/bwa).
+        2. convert bam files to sorted sam files.
+        3. run metabat2.
       * using [CONCOCT](https://github.com/BinPro/CONCOCT) (more steps, high quality results):
         1. cut large contigs into 10 kb chunks.
-        2. cross map all samples using kallisto quant.
+        2. cross map every set of paired end reads against every sample assembly using [kallisto](https://github.com/pachterlab/kallisto) quant.
         3. summarize coverage results into concoct input tables.
         4. run CONCOCT.
         5. merge clustering results to get original uncut contigs.
