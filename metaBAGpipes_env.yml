@@ -1,4 +1,4 @@
-name: binenv
+name: metabagpipes
 channels:
   - ursky
   - bioconda
@@ -228,5 +228,4 @@ dependencies:
     - mpmath==1.1.0
     - python-libsbml==5.18.0
     - sympy==1.4
-prefix: /g/scb2/patil/zorrilla/conda/envs/binenv
 
