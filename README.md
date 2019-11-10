@@ -45,3 +45,29 @@ Dataset used:
 This repository is administered by Francisco Zorrilla ([@franciscozorrilla](https://github.com/franciscozorrilla/)), Structural and Computational Biology Unit, EMBL. metaBAGpipes was developed throughout my Master's thesis project at the Systems and Synthetic Biology division of Chalmers Univeristy of Technology, under the supervision of Aleksej Zelezniak.
 
   * Last update: 24-09-2019
+
+
+
+### Installation
+
+```bash
+git clone git@github.com:franciscozorrilla/metaBAGpipes.git
+```
+
+#### Conda
+
+A [conda](https://conda.io/en/latest/) specification file is provided to install required packages inside an
+environment called `metabagpipes`.
+
+```bash
+conda env create -f metaBAGpipes_env.yml
+source activate metabagpipes
+```
+
+#### Singularity
+
+A [Singularity](https://sylabs.io/docs/) recipe files is provided to build an image that can be used with HPC clusters.
+
+```bash
+sudo singularity --verbose build metabagpipes.simg Singularity
+```
