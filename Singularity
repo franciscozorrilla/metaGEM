@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: continuumio/miniconda3
+From: continuumio/miniconda3:4.6.14
 
 %labels
     DESCRIPTION Singularity image containing the conda environment for metaBAGpipes
