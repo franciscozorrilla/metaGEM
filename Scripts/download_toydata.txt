@@ -1,0 +1,6 @@
+https://zenodo.org/record/3534949/files/sample1_1.fastq.gz?download=1
+https://zenodo.org/record/3534949/files/sample1_2.fastq.gz?download=1
+https://zenodo.org/record/3534949/files/sample2_1.fastq.gz?download=1
+https://zenodo.org/record/3534949/files/sample2_2.fastq.gz?download=1
+https://zenodo.org/record/3534949/files/sample3_1.fastq.gz?download=1
+https://zenodo.org/record/3534949/files/sample3_2.fastq.gz?download=1
