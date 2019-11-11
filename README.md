@@ -1,6 +1,6 @@
-## metaBAGpipes: metaBolism And metaGenomic analysis pipelines
+# metaBAGpipes: metaBolism And metaGenomic analysis pipelines
 
-### Use cases
+## Use cases
 
 1. Assembly using [metaSPAdes](https://github.com/ablab/spades).
 2. Binning using:
@@ -49,10 +49,12 @@ sudo singularity --verbose build metabagpipes.simg Singularity
 
 As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ). Expected output can be found in the Tutorial folder.
 
+### Tutorial
+
+
+
 ### Abstract
 metaBAGpipes integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WGS metagenomic datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Abundance estimates for community members are estimated by mapping metagenomic samples to the generated MAGs, which are used in combination with the simulated cross feeding interactions for the generation of explanatory and statistically significant linear models. We conclude that there is indeed a correlation, ranging from weak to moderate, between gut microbiome members’ abundance and set of metabolic cross-feeding interactions across samples. A more comprehensive analysis incorporating multiple datasets needs to be conducted to strengthen and expand the findings of this work.
-
-# ![pipemap_v0.1.png](pipemap_v0.1.png)
 
 ### Significance
 
