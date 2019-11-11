@@ -62,7 +62,9 @@ cd tutorial
 pwd
 ```
 
-Use your favorite text editor to replace the root path (second line) with the absolute path of your working directory. Additionally, ensure that the scripts and dbs point to the correct folders/files.
+#### Configure config.yaml
+
+Use your favorite text editor to replace the root path (second line) with the absolute path of your working directory in the config.yaml file. Additionally, ensure that the scripts and dbs point to the correct folders/files.
 
 To test that your snakemake installation and snakefile are working properly, run the `createFolders` snakemake rule. These folders can alternatively be generated later on during the execution of each individual rule.
 
@@ -82,11 +84,15 @@ Organize reads into sample specific sub-directories. This is required as metaBAG
 snakemake organizeData
 ```
 
+#### Configure Snakefile wildcards
+
 Ensure that the line 6 of your Snakefile is indeed pointing to the dataset folder with sample specific subfolders. In the case of this tutorial:
 
 ```
 IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
 ```
+
+#### Configure cluster_config.json
 
 Finally, configure the cluster_config.json file by editing the account field in line 3 of the cluster_config.json file.
 
