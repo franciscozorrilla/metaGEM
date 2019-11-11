@@ -22,3 +22,4 @@ scripts:
     binFilter: /home/zorrilla/workspace/tutorial/scripts/binFilter.py
 dbs:
     carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
+    toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt

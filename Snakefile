@@ -18,18 +18,6 @@ rule all:
         echo {input}
         """
 
-rule organizeData:
-    message:
-        "Assuming all samples are downloaded to the same directory, sorting paired end raw reads into sample specific sub folders within the 'dataset' folder"
-    shell:
-        """
-        cd dataset
-        for file in *.gz;do echo $file;done|sed 's/_.*$//g'|uniq > ID_samples.txt
-        while read line;do mkdir -p $line;mv $line*.gz $line;done < ID_samples.txt
-        rm ID_samples.txt
-        cd config["path"]["root"]
-        """
-
 rule createFolders:
     input:
         {config["path"]["root"]}
@@ -42,6 +30,27 @@ rule createFolders:
         while read line;do mkdir -p $line;done < folders.txt
         rm folders.txt
         """      
+
+rule downloadToy:
+    input: config["dbs"]["toy"]
+    shell:
+        """
+        cd {config[path][root]}/{config[folder][data]}
+        while read line;do wget $line;done < {input}
+        for file in *;do mv $file ./$(echo $file|sed 's/?download=1//g'');done
+        """
+
+rule organizeData:
+    message:
+        "Assuming all samples are downloaded to the same directory, sorting paired end raw reads into sample specific sub folders within the 'dataset' folder"
+    shell:
+        """
+        cd dataset
+        for file in *.gz;do echo $file;done|sed 's/_.*$//g'|uniq > ID_samples.txt
+        while read line;do mkdir -p $line;mv $line*.gz $line;done < ID_samples.txt
+        rm ID_samples.txt
+        cd config["path"]["root"]
+        """
 
 rule metaspades: 
     input:
@@ -362,7 +371,7 @@ rule smetana:
     input:
         config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{IDs}"
     output:
-        config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}.tsv"
+        config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}_detailed.tsv"
     benchmark:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.smetana.benchmark.txt"
     shell:
@@ -442,4 +451,3 @@ rule smetanaTest:
         smetana -o TEST --flavor fbc2 --mediadb smetana/media_db.tsv -m M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16 --detailed --solver CPLEX -v smetana/*.xml
         mv *.tsv /home/zorrilla/workspace/tutorial/test/smetana
      	"""
-
