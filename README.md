@@ -53,12 +53,24 @@ As a tutorial, and to verify that your metaBAGpipes installation is working corr
 
 ### 0. Setup
 
-Create working directory folder:
+Create tutorial directory and move Snakefile, config.yaml, and cluster_config.json to working directory:
 
 ```
 mkdir -p tutorial
+mv Snakefile config.yaml cluster_config.json tutorial
 cd tutorial
+pwd
 ```
+
+Use your favorite text editor to replace the root path with the absolute path of your working directory. Additionally, ensure that the scripts and carveme database point to the correct folder and file.
+
+Optionally, run the createFolders snakemake rule to generate all necessary folders. These can alternatively be generated later on during the execution of each individual rule.
+
+```
+snakemake createFolders
+```
+
+
 
 ## Abstract
 metaBAGpipes integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WGS metagenomic datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Abundance estimates for community members are estimated by mapping metagenomic samples to the generated MAGs, which are used in combination with the simulated cross feeding interactions for the generation of explanatory and statistically significant linear models. We conclude that there is indeed a correlation, ranging from weak to moderate, between gut microbiome members’ abundance and set of metabolic cross-feeding interactions across samples. A more comprehensive analysis incorporating multiple datasets needs to be conducted to strengthen and expand the findings of this work.
