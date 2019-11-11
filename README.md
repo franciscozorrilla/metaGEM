@@ -5,24 +5,13 @@
 1. Assembly:
       * using [metaSPAdes](https://github.com/ablab/spades).
 2. Binning:
-     * using [CONCOCT](https://github.com/BinPro/CONCOCT):
-        1. cut large contigs into 10 kb chunks.
-        2. cross map every set of paired end reads against every sample assembly using [kallisto](https://github.com/pachterlab/kallisto) quant.
-        3. summarize coverage results into concoct input tables.
-        4. run CONCOCT.
-        5. merge clustering results to get original uncut contigs.
-        6. extract bins.
-        7. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
+      * using [CONCOCT](https://github.com/BinPro/CONCOCT):
       * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/):
-        1. generate bam files by mapping each set of paired end reads against its corresponding assembly only, using [bwa](https://github.com/lh3/bwa).
-        2. convert bam files to sorted sam files.
-        3. run metabat2.
-        4. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
       * using [maxbin2](https://sourceforge.net/projects/maxbin2/)
-        1. Run maxbin2.
-        2. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
-4. Bin refinement using [metaWRAP](https://github.com/bxlab/metaWRAP)
-5. Bin reassembly using [metaWRAP](https://github.com/bxlab/metaWRAP)
+4. Bin refinement using [metaWRAP](https://github.com/bxlab/metaWRAP):
+      * reconciles binning output from different tools using [CheckM](https://github.com/Ecogenomics/CheckM) and [binning_refiner](https://github.com/songweizhi/Binning_refiner).
+5. Bin reassembly using [metaWRAP](https://github.com/bxlab/metaWRAP):
+      * extracts reads corresponding to bins from each sample and re-assembles using [SPAdes](https://github.com/ablab/spades)
 6. MAG classification using [classify genomes](https://github.com/AlessioMilanese/classify-genomes) based on mOTUs2.
 7. MAG abundance:
    * using [mOTUs2](https://github.com/motu-tool/mOTUs_v2).
