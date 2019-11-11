@@ -1,5 +1,5 @@
 path:
-    root: /home/zorrilla/workspace/tutorial
+    root: /home/zorrilla/workspace/githubReadmeTutorial
 folder:
     data: dataset
     logs: logs
@@ -23,3 +23,17 @@ scripts:
 dbs:
     carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
     toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt
+cores:
+    metaspades: 24
+    kallisto: 24
+    concoct: 24
+    metabat: 24
+    maxbin: 24
+    refine: 24
+    reassemble: 24
+    classify: 2
+    abundance: 16
+    carveme: 4
+    smetana: 12
+    memote: 4
+    grid: 24

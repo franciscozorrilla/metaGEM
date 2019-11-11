@@ -3,7 +3,7 @@ configfile: "config.yaml"
 import os
 import glob
 
-IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('raw/*'))])
+IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
 IDs = [os.path.basename(val) for val in IDs] #grab just sample ID
 
 #Make sure that final_bins/ folder contains all bins in single folder for binIDs wildcard to work. Use moveBins rule or perform manually.
