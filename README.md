@@ -12,20 +12,25 @@
         4. run CONCOCT.
         5. merge clustering results to get original uncut contigs.
         6. extract bins.
+        7. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
       * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/):
         1. generate bam files by mapping each set of paired end reads against its corresponding assembly only, using [bwa](https://github.com/lh3/bwa).
         2. convert bam files to sorted sam files.
         3. run metabat2.
+        4. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
       * using [maxbin2](https://sourceforge.net/projects/maxbin2/)
-4. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
-5. MAG abundance:
+        1. Run maxbin2.
+        2. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
+4. Bin refinement using [metaWRAP](https://github.com/bxlab/metaWRAP)
+5. Bin reassembly using [metaWRAP](https://github.com/bxlab/metaWRAP)
+6. MAG classification using [classify genomes](https://github.com/AlessioMilanese/classify-genomes) based on mOTUs2.
+7. MAG abundance:
    * using [mOTUs2](https://github.com/motu-tool/mOTUs_v2).
    * based on MAG-sample mapping using [bwa](https://github.com/lh3/bwa).
-6. MAG classification using [classify genomes](https://github.com/AlessioMilanese/classify-genomes) based on mOTUs2.
-7. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
 8. GEM reconstruction using [CarveMe](https://github.com/cdanielmachado/carveme).
 9. GEM QC using [memote](https://github.com/opencobra/memote).
 10. GEM community simulations using [SMETANA](https://github.com/cdanielmachado/smetana).
+11. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
 
 ### Abstract
 metaBAGpipes integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WGS metagenomic datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Abundance estimates for community members are estimated by mapping metagenomic samples to the generated MAGs, which are used in combination with the simulated cross feeding interactions for the generation of explanatory and statistically significant linear models. We conclude that there is indeed a correlation, ranging from weak to moderate, between gut microbiome members’ abundance and set of metabolic cross-feeding interactions across samples. A more comprehensive analysis incorporating multiple datasets needs to be conducted to strengthen and expand the findings of this work.
