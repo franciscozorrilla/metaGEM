@@ -1,0 +1,7 @@
+Bin Id	Marker lineage	# genomes	# markers	# marker sets	0	1	2	3	4	5+	Completeness	Contamination	Strain heterogeneity
+sample3.001	k__Bacteria (UID203)	5449	103	57	1	63	35	4	0	0	98.25	39.03	2.13
+sample3.002	k__Bacteria (UID203)	5449	104	58	3	69	27	5	0	0	96.39	39.11	4.76
+sample3.003	k__Bacteria (UID203)	5449	104	58	5	57	37	4	1	0	92.95	35.92	0.00
+sample3.004	k__Bacteria (UID203)	5449	104	58	38	37	16	10	3	0	50.85	27.61	6.25
+sample3.005	c__Clostridia (UID1118)	387	223	124	8	126	80	8	1	0	95.67	51.65	2.73
+sample3.006	k__Archaea (UID2)	207	149	107	115	27	6	1	0	0	19.75	5.61	0.00
