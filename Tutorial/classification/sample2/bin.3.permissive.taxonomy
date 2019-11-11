@@ -1,0 +1,16 @@
+Fasta sequence: bin.3.permissive.fa
+Consensus NCBI ID: NA
+Consensus taxonomy: Faecalibacterium species incertae sedis
+Consensus mOTUs: meta_mOTU_v25_12376
+Number of detected genes: 7
+Number of mapped genes: 6
+Number of genes that map to -1: 0
+Percentage of agreeing genes: 83.33333333333334%
+
+Gene annotation:
+COG0172_1	100.0	NA Faecalibacterium species incertae sedis@meta_mOTU_v25_12376
+COG0018_1	99.6	853 Faecalibacterium prausnitzii@ref_mOTU_v25_06111
+COG0215_1	100.0	NA Faecalibacterium species incertae sedis@meta_mOTU_v25_12376
+COG0533_1	100.0	NA Faecalibacterium species incertae sedis@meta_mOTU_v25_12376
+COG0552_1	99.4	NA Faecalibacterium species incertae sedis@meta_mOTU_v25_12376
+COG0525_1	99.1	NA Faecalibacterium species incertae sedis@meta_mOTU_v25_12376

@@ -1,0 +1,16 @@
+Fasta sequence: bin.9.permissive.fa
+Consensus NCBI ID: 2173
+Consensus taxonomy: Methanobrevibacter smithii [Methanobrevibacter smithii CAG:186/Methanobrevibacter sp. A54/Methanobrevibacter smithii]
+Consensus mOTUs: ref_mOTU_v25_03695
+Number of detected genes: 7
+Number of mapped genes: 6
+Number of genes that map to -1: 0
+Percentage of agreeing genes: 100.0%
+
+Gene annotation:
+COG0012_1	100.0	2173 Methanobrevibacter smithii [Methanobrevibacter smithii CAG:186/Methanobrevibacter sp. A54/Methanobrevibacter smithii]@ref_mOTU_v25_03695
+COG0016_1	99.9	2173 Methanobrevibacter smithii [Methanobrevibacter smithii CAG:186/Methanobrevibacter sp. A54/Methanobrevibacter smithii]@ref_mOTU_v25_03695
+COG0215_1	99.6	2173 Methanobrevibacter smithii [Methanobrevibacter smithii CAG:186/Methanobrevibacter sp. A54/Methanobrevibacter smithii]@ref_mOTU_v25_03695
+COG0541_1	99.8	2173 Methanobrevibacter smithii [Methanobrevibacter smithii CAG:186/Methanobrevibacter sp. A54/Methanobrevibacter smithii]@ref_mOTU_v25_03695
+COG0525_1	99.6	2173 Methanobrevibacter smithii [Methanobrevibacter smithii CAG:186/Methanobrevibacter sp. A54/Methanobrevibacter smithii]@ref_mOTU_v25_03695
+COG0552_1	96.8	2173 Methanobrevibacter smithii [Methanobrevibacter smithii CAG:186/Methanobrevibacter sp. A54/Methanobrevibacter smithii]@ref_mOTU_v25_03695

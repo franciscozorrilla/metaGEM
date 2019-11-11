@@ -1,0 +1,12 @@
+Fasta sequence: bin.5.orig.fa
+Consensus NCBI ID: NA
+Consensus taxonomy: Clostridiales species incertae sedis
+Consensus mOTUs: meta_mOTU_v25_13558
+Number of detected genes: 4
+Number of mapped genes: 2
+Number of genes that map to -1: 0
+Percentage of agreeing genes: 100.0%
+
+Gene annotation:
+COG0016_1	98.8	NA Clostridiales species incertae sedis@meta_mOTU_v25_13558
+COG0533_1	99.9	NA Clostridiales species incertae sedis@meta_mOTU_v25_13558

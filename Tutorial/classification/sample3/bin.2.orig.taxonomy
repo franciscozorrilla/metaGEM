@@ -1,0 +1,12 @@
+Fasta sequence: bin.2.orig.fa
+Consensus NCBI ID: 40518
+Consensus taxonomy: Ruminococcus bromii [Ruminococcus sp. CAG:108/Ruminococcus sp. A254.MGS-108/uncultured Ruminococcus sp./Ruminococcus sp. CAG:108-related_41_35/Ruminococcus bromii]
+Consensus mOTUs: ref_mOTU_v25_00853
+Number of detected genes: 3
+Number of mapped genes: 2
+Number of genes that map to -1: 1
+Percentage of agreeing genes: 100.0%
+
+Gene annotation:
+COG0016_1	99.6	40518 Ruminococcus bromii [Ruminococcus sp. CAG:108/Ruminococcus sp. A254.MGS-108/uncultured Ruminococcus sp./Ruminococcus sp. CAG:108-related_41_35/Ruminococcus bromii]@ref_mOTU_v25_00853
+COG0215_1	100.0	40518 Ruminococcus bromii [Ruminococcus sp. CAG:108/Ruminococcus sp. A254.MGS-108/uncultured Ruminococcus sp./Ruminococcus sp. CAG:108-related_41_35/Ruminococcus bromii]@ref_mOTU_v25_00853
