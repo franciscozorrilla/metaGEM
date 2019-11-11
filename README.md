@@ -2,22 +2,21 @@
 
 ### Use cases:
 
-1. Paired end reads QC using [fastp](https://github.com/OpenGene/fastp).
-2. Assembly:
-      * using [metaSPAdes](https://github.com/ablab/spades) (better assemblies).
-      * using [megahit](https://github.com/voutcn/megahit) (better performance).
-3. Binning:
-      * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/) (less steps, lower quality results):
-        1. generate bam files by mapping each set of paired end reads against its corresponding assembly only, using [bwa](https://github.com/lh3/bwa).
-        2. convert bam files to sorted sam files.
-        3. run metabat2.
-      * using [CONCOCT](https://github.com/BinPro/CONCOCT) (more steps, higher quality results):
+1. Assembly:
+      * using [metaSPAdes](https://github.com/ablab/spades).
+2. Binning:
+     * using [CONCOCT](https://github.com/BinPro/CONCOCT):
         1. cut large contigs into 10 kb chunks.
         2. cross map every set of paired end reads against every sample assembly using [kallisto](https://github.com/pachterlab/kallisto) quant.
         3. summarize coverage results into concoct input tables.
         4. run CONCOCT.
         5. merge clustering results to get original uncut contigs.
         6. extract bins.
+      * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/):
+        1. generate bam files by mapping each set of paired end reads against its corresponding assembly only, using [bwa](https://github.com/lh3/bwa).
+        2. convert bam files to sorted sam files.
+        3. run metabat2.
+      * using [maxbin2](https://sourceforge.net/projects/maxbin2/)
 4. MAG QC using [CheckM](https://github.com/Ecogenomics/CheckM).
 5. MAG abundance:
    * using [mOTUs2](https://github.com/motu-tool/mOTUs_v2).
