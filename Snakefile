@@ -32,24 +32,26 @@ rule createFolders:
         """      
 
 rule downloadToy:
-    input: config["dbs"]["toy"]
+    input: 
+        config["dbs"]["toy"]
     shell:
         """
         cd {config[path][root]}/{config[folder][data]}
         while read line;do wget $line;done < {input}
-        for file in *;do mv $file ./$(echo $file|sed 's/?download=1//g'');done
+        for file in *;do mv $file ./$(echo $file|sed 's/?download=1//g');done
         """
 
 rule organizeData:
+    input:
+        config["path"]["root"]+"/"+config["folder"]["data"]
     message:
         "Assuming all samples are downloaded to the same directory, sorting paired end raw reads into sample specific sub folders within the 'dataset' folder"
     shell:
         """
-        cd dataset
+        cd {input}
         for file in *.gz;do echo $file;done|sed 's/_.*$//g'|uniq > ID_samples.txt
         while read line;do mkdir -p $line;mv $line*.gz $line;done < ID_samples.txt
         rm ID_samples.txt
-        cd config["path"]["root"]
         """
 
 rule metaspades: 
