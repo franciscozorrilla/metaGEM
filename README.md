@@ -1,5 +1,4 @@
-# metaBAGpipes:
-# metaBolism And metaGenomic analysis pipelines
+# metaBAGpipes
 
 ## Use cases
 
