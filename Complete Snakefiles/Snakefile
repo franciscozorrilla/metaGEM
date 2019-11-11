@@ -3,12 +3,16 @@ configfile: "config.yaml"
 import os
 import glob
 
-IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
+IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('raw/*'))])
 IDs = [os.path.basename(val) for val in IDs] #grab just sample ID
+
+#Make sure that final_bins/ folder contains all bins in single folder for binIDs wildcard to work. Use moveBins rule or perform manually.
+binIDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('final_bins/*'))])
+binIDs = [os.path.basename(val) for val in binIDs] #grab just bin ID
 
 rule all:
     input:
-        expand(config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{IDs}", IDs = IDs)
+        expand(config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}.tsv", IDs = IDs)
     shell:
         """
         echo {input}
@@ -16,7 +20,7 @@ rule all:
 
 rule organizeData:
     message:
-        "Sorting paired end raw reads into sample specific sub folders within the 'dataset' folder"
+        "Assuming all samples are downloaded to the same directory, sorting paired end raw reads into sample specific sub folders within the 'dataset' folder"
     shell:
         """
         cd dataset
@@ -29,13 +33,15 @@ rule organizeData:
 rule createFolders:
     input:
         {config["path"]["root"]}
+    message:
+        "Not strictly necessary, as we could create individual folders within rules, but doing this at the beginning may give the user a better idea of what output/intermediate files to expect"
     shell:
         """
         cd {input}
         paste config.yaml |cut -d':' -f2|tail -n +4|head -n 15 > folders.txt
         while read line;do mkdir -p $line;done < folders.txt
         rm folders.txt
-        """
+        """      
 
 rule metaspades: 
     input:
@@ -294,25 +300,80 @@ rule abundance:
         mv $(basename {output}).abund {output}
         """
 
+rule moveBins:
+    message:
+        "Moves and renames all bins from reassembled_bins/{sampleID}/ subfolders to single folder final_bins/. Need all bins in one folder to run rules with {binIDs} wildcard."
+    shell:
+        """
+        cd {config[path][root]}
+        mkdir -p final_bins
+        for folder in reassembled_bins/*/;do for bin in $folder/reassembled_bins/*.fa;do mv $bin final_bins/$(echo $bin|sed 's|reassembled_bins/||g'|sed 's|/|_|g'|sed 's/strict/s/g'|sed 's/orig/o/g'|sed 's/permissive/p/g');done;done
+        """
+
 rule carveme:
     input:
-        bins=config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}/reassembled_bins",
+        bin=config["path"]["root"]+"/"+"final_bins/{binIDs}.fa",
         media=config["dbs"]["carveme"]
     output:
-        directory(config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{IDs}")
+        config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{binIDs}.xml"
     benchmark:
-        config["path"]["root"]+"/"+"benchmarks/{IDs}.carveme.benchmark.txt"
+        config["path"]["root"]+"/"+"benchmarks/{binIDs}.carveme.benchmark.txt"
     shell:
         """
         set +u;source activate carvenv;set -u
-        mkdir -p {output}
-        cp {input.bins}/*.fa {input.media} $TMPDIR
+        mkdir -p $(dirname {output})
+        cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
-        for bin in *.fa;do
-        carve -g M3 -v --mediadb $(basename {input.media}) --fbc2 --dna $bin -o $(echo $bin| sed 's/.fa/.xml/g')
-        mv $(echo $bin| sed 's/.fa/.xml/g') {output}
-        rm $bin
-        done
+        carve -g M8 -v --mediadb $(basename {input.media}) --fbc2 --dna $(basename {input.bin}) -o $(echo $(basename {input.bin})|sed 's/.fa/.xml/g')
+        [ -f *.xml ] && mv *.xml $(dirname {output})
+        """
+
+#rule carvemeSample:
+#    input:
+#        bins=config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}/reassembled_bins",
+#        media=config["dbs"]["carveme"]
+#    output:
+#        directory(config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{IDs}")
+#    benchmark:
+#        config["path"]["root"]+"/"+"benchmarks/{IDs}.carveme.benchmark.txt"
+#    shell:
+#        """
+#        set +u;source activate carvenv;set -u
+#        mkdir -p {output}
+#        cp {input.bins}/*.fa {input.media} $TMPDIR
+#        cd $TMPDIR
+#        for bin in *.fa;do
+#        carve -g M8 -v --mediadb $(basename {input.media}) --fbc2 --dna $bin -o $(echo $bin| sed 's/.fa/.xml/g')
+#        [ -f *.xml ] && mv *.xml {output}
+#        rm $bin
+#        done
+#        """
+
+rule organizeGEMs:
+    message:
+        "Organizes GEMs into sample specific subfolders. Necessary to run smetana per sample using the {IDs} wildcard."
+    shell:
+        """
+        cd {config[path][refined]}
+        for folder in */;do mkdir -p ../{config[path][GEMs]}; mv ../{config[path][GEMs]}/$(echo $folder|sed 's|/||')_*.xml ../{config[path][GEMs]}/$folder;done
+        """
+
+rule smetana:
+    input:
+        config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{IDs}"
+    output:
+        config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}.tsv"
+    benchmark:
+        config["path"]["root"]+"/"+"benchmarks/{IDs}.smetana.benchmark.txt"
+    shell:
+        """
+        set +u;source activate memotenv;set -u
+        mkdir -p {config[path][root]}/{config[folder][SMETANA]}
+        cp {config[dbs][carveme]} {input}/*.xml $TMPDIR
+        cd $TMPDIR
+        smetana -o $(basename {input}) --flavor fbc2 --mediadb media_db.tsv -m M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16 --detailed --solver CPLEX -v *.xml
+        cp *.tsv {config[path][root]} #safety measure for backup of results in case rule fails for some reason
+        mv *.tsv $(dirname {output})
         """
 
 rule memote:
@@ -382,4 +443,3 @@ rule smetanaTest:
         mv *.tsv /home/zorrilla/workspace/tutorial/test/smetana
      	"""
 
-     	smetana -o TEST --flavor fbc2 --mediadb media_db.tsv -m M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16 --detailed --solver CPLEX -v *.xml
