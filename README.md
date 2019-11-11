@@ -82,15 +82,17 @@ Organize reads into sample specific sub-directories. This is required as metaBAG
 snakemake organizeData
 ```
 
-Finally, ensure that the line 6 of your Snakefile is indeed pointing to the dataset folder with sample specific subfolders. In the case of this tutorial:
+Ensure that the line 6 of your Snakefile is indeed pointing to the dataset folder with sample specific subfolders. In the case of this tutorial:
 
 ```
 IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
 ```
 
+Finally, configure the cluster_config.json file by editing the account field in line 3 of the cluster_config.json file.
+
 ### 1. Assembly
 
-
+We use the metaSPAdes assembler which contains its own internal quality control module. If you wish to use another assembler such as [megahit](https://github.com/voutcn/megahit), we recommend pre-processing using [fastp](https://github.com/OpenGene/fastp) or [trimmomatic](https://github.com/timflutre/trimmomatic).
 
 ### 2. Binning
 
