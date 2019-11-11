@@ -4,7 +4,7 @@
 
 1. Assembly using [metaSPAdes](https://github.com/ablab/spades).
 2. Binning using:
-      2.1* [CONCOCT](https://github.com/BinPro/CONCOCT).
+      * [CONCOCT](https://github.com/BinPro/CONCOCT).
       * [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/).
       * [maxbin2](https://sourceforge.net/projects/maxbin2/).
 3. Bin refinement using [metaWRAP](https://github.com/bxlab/metaWRAP):
@@ -100,6 +100,40 @@ IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
 #### metabat2
 
 #### maxbin2
+
+
+
+### 3. Bin refinement
+
+
+
+### 4. Bin reassembly
+
+
+
+### 5. MAG classification
+
+
+
+### 6. MAG abundance
+
+
+
+### 7. GEM reconstruction
+
+
+
+### 8. GEM quality control
+
+
+
+### 9. Community simulations
+
+
+
+### 10. GEM/MAG growth rate
+
+
 
 ## Abstract
 metaBAGpipes integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WGS metagenomic datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Abundance estimates for community members are estimated by mapping metagenomic samples to the generated MAGs, which are used in combination with the simulated cross feeding interactions for the generation of explanatory and statistically significant linear models. We conclude that there is indeed a correlation, ranging from weak to moderate, between gut microbiome members’ abundance and set of metabolic cross-feeding interactions across samples. A more comprehensive analysis incorporating multiple datasets needs to be conducted to strengthen and expand the findings of this work.
