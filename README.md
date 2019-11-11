@@ -2,8 +2,7 @@
 
 ### Use cases:
 
-1. Assembly:
-      * using [metaSPAdes](https://github.com/ablab/spades).
+1. Assembly using [metaSPAdes](https://github.com/ablab/spades).
 2. Binning:
       * using [CONCOCT](https://github.com/BinPro/CONCOCT):
       * using [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/):
