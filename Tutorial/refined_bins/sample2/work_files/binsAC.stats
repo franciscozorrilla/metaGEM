@@ -1,0 +1,16 @@
+bin	completeness	contamination	GC	lineage	N50	size	binner
+Refined_10	99.31	1.590	0.596	Bifidobacteriaceae	29860	2207502	binsAC
+Refined_11	0.0	0.0	0.505	root	1965	554426	binsAC
+Refined_12	96.81	1.789	0.415	Clostridiales	15206	1885494	binsAC
+Refined_13	59.36	3.489	0.382	Clostridiales	1834	1376003	binsAC
+Refined_14	31.06	0.265	0.607	Clostridiales	1416	851862	binsAC
+Refined_15	65.47	19.32	0.267	Clostridiales	3408	1651263	binsAC
+Refined_1	93.75	2.034	0.495	Clostridiales	26809	1973109	binsAC
+Refined_2	56.83	1.711	0.599	Actinobacteria	1876	1196365	binsAC
+Refined_3	78.82	3.856	0.321	Euryarchaeota	3130	1214779	binsAC
+Refined_4	47.02	13.94	0.603	Clostridiales	1434	1371752	binsAC
+Refined_5	66.61	3.236	0.602	Clostridiales	3204	1675974	binsAC
+Refined_6	79.97	0.0	0.455	Clostridiales	98280	1590634	binsAC
+Refined_7	0.0	0.0	0.495	root	9433	547320	binsAC
+Refined_8	10.05	0.0	0.498	Bacteria	1308	565095	binsAC
+Refined_9	32.17	7.060	0.421	Bacteroidales	1263	1501963	binsAC
