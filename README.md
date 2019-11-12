@@ -128,6 +128,8 @@ params:
 
 The `folders` section should be left as is. However, ensure that the `scripts` and `dbs` point to the correct folders/files. The `cores` section can be modified to best suit the architecture of your cluster. Note that these parameters are only used by the `Snakefile`, so the `cluster_config.json` file also needs to be modified for each batch of jobs.
 
+#### Configure Snakefile wildcards
+
 To test that your snakemake installation and Snakefile are working properly, run the `createFolders` snakemake rule. These folders can alternatively be generated later on during the execution of each individual rule.
 
 ```
@@ -145,8 +147,6 @@ Organize reads into sample specific sub-directories. This is required as metaBAG
 ```
 snakemake organizeData
 ```
-
-#### Configure Snakefile wildcards
 
 Ensure that the line 6 of your Snakefile is indeed pointing to the dataset folder with sample specific subfolders. In the case of this tutorial:
 
