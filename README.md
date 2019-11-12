@@ -24,7 +24,7 @@
 ## Installation
 
 ```bash
-git clone git@github.com:franciscozorrilla/metaBAGpipes.git
+git clone https://github.com/franciscozorrilla/metaBAGpipes.git
 ```
 
 ### Conda
