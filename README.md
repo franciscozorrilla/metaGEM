@@ -20,28 +20,33 @@
 9. GEM community simulations using [SMETANA](https://github.com/cdanielmachado/smetana).
 10. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
 
+## Toy dataset
 
-### Toy dataset
-
-
-As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ).
-
+As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ). Expected output can be found in the Tutorial folder.
 
 ## Installation
 
-```bash
+```
 git clone https://github.com/franciscozorrilla/metaBAGpipes.git
 ```
 
-### Conda
+### Conda environments
+
+#### metaBAGpipes
 
 A [conda](https://conda.io/en/latest/) specification file is provided to install required packages inside an
 environment called `metabagpipes`.
 
-```bash
+```
 conda env create -f metaBAGpipes_env.yml
 source activate metabagpipes
 ```
+
+##### CPLEX
+
+GEM reconstruction (step 7) and GEM community simulations (step 9) require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting.
+
+#### metaWRAP
 
 Bin refinement (step 3) and bin reassembly (step 4) make use of metaWRAP modules. To avoid package conflicts, set up metaWRAP in its own environment using the provided conda specification file.
 
@@ -50,17 +55,17 @@ conda env create -f metaWRAP_env.yml
 source activate metawrap
 ```
 
+##### CheckM
+
+CheckM is used extensively to evaluate the output of various itntermediate steps. Although the CheckM package is installed in the `metawrap` environment, the user is required to download the CheckM database and run `checkm data setRoot <db_dir>` as outlined in the [CheckM installation guide](https://github.com/Ecogenomics/CheckM/wiki/Installation#how-to-install-checkm).
+
 ### Singularity
 
 A [Singularity](https://sylabs.io/docs/) recipe files is provided to build an image that can be used with HPC clusters.
 
-```bash
+```
 sudo singularity --verbose build metabagpipes.simg Singularity
 ```
-
-## Toy dataset
-
-As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ). Expected output can be found in the Tutorial folder.
 
 ## Tutorial
 
@@ -335,19 +340,11 @@ Edit the input of `rule all` to expand the output of `rule abundance`, edit `clu
 
 ### 7. GEM reconstruction
 
-
-
 ### 8. GEM quality control
-
-
 
 ### 9. Community simulations
 
-
-
 ### 10. GEM/MAG growth rate
-
-
 
 ## Abstract
 metaBAGpipes integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WGS metagenomic datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Abundance estimates for community members are estimated by mapping metagenomic samples to the generated MAGs, which are used in combination with the simulated cross feeding interactions for the generation of explanatory and statistically significant linear models. We conclude that there is indeed a correlation, ranging from weak to moderate, between gut microbiome members’ abundance and set of metabolic cross-feeding interactions across samples. A more comprehensive analysis incorporating multiple datasets needs to be conducted to strengthen and expand the findings of this work.
