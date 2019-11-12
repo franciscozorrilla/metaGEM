@@ -137,6 +137,9 @@ params:
     carveMedia: M8
     smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
     smetanaSolver: CPLEX
+envs:
+    metabagpipes: metabagpipes
+    metawrap: metawrap
 ```
 
 The `folders` section should be left as is. However, ensure that the `scripts` and `dbs` point to the correct folders/files. The `cores` section can be modified to best suit the architecture of your cluster. Note that these parameters are only used by the `Snakefile`, so the `cluster_config.json` file also needs to be modified for each batch of jobs.
@@ -325,11 +328,11 @@ Edit the input of `rule all` to expand the output of `rule maxbin`, edit `cluste
 
 ### 3. Bin refinement
 
-Edit the input of `rule all` to expand the output of `rule binRefine`, edit `cluster_config.json` if necessary, and run snakemake.
+Edit the input of `rule all` to expand the output of `rule binRefine`, edit `cluster_config.json` if necessary, and run snakemake. Note that this step uses the `metawrap` conda environment instead of the `metabagpipes` environment. Ensure that CheckM is correctly installed and the downloaded database is configured as described in the Installation section.
 
 ### 4. Bin reassembly
 
-Edit the input of `rule all` to expand the output of `rule binReassemble`, edit `cluster_config.json` if necessary, and run snakemake.
+Edit the input of `rule all` to expand the output of `rule binReassemble`, edit `cluster_config.json` if necessary, and run snakemake. Note that this step uses the `metawrap` conda environment instead of the `metabagpipes` environment. Again, ensure that CheckM is correctly installed and the downloaded database is configured as described in the Installation section.
 
 ### 5. MAG classification
 
