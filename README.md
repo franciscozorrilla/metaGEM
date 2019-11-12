@@ -181,7 +181,7 @@ nohup snakemake all -j 200 -k --cluster-config cluster_config.json -c "sbatch -A
 
 Note that the `n` (line 5) and `cpusPerTask` (line 8) should always match. Read the [slurm documentation](https://slurm.schedmd.com/documentation.html) to learn about different possible flags.
 
-#### rule all
+#### Rule all
 
 Since snakemake rules with wildcards cannot be target rules, we use the input of `rule all` to expand our wildcards. For example, to run SMETANA one would do:
 
@@ -229,8 +229,47 @@ squeue -u <USER>
 
 ### 2. Binning
 
+Run CONCOT, metabat2, and maxbin2 individually. The output of these different tools will later be reconciled using the metaWRAP bin refinement module.
 
 #### CONCOCT
+
+CONCOCT requires coverage information across samples. To generate this input, we use `rule kallisto` to map each sample to each assembly.
+
+Edit the input of `rule all` to expand the output of `rule kallisto`:
+
+```
+rule all:
+    input:
+        expand(config["path"]["root"]+"/"+config["folder"]["concoctInput"]+"/{IDs}_concoct_inputtableR.tsv", IDs = IDs)
+    shell:
+        """
+        echo {input}
+        """
+```
+
+Edit `cluster_config.json` if necessary and run run snakemake using:
+
+```
+nohup snakemake all -j 3 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output}" &
+```
+
+Once these jobs finish, edit the input of `rule all` to expand the output of `rule concoct`:
+
+```
+rule all:
+    input:
+        expand(config["path"]["root"]+"/"+config["folder"]["concoctOutput"]+"/{IDs}/{IDs}.concoct-bins", IDs = IDs)
+    shell:
+        """
+        echo {input}
+        """
+```
+
+Edit `cluster_config.json` if necessary and run run snakemake using:
+
+```
+nohup snakemake all -j 3 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output}" &
+```
 
 #### metabat2
 
