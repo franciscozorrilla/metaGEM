@@ -189,6 +189,7 @@ The main body of the cluster_config.json file should look like this:
 }
 ```
 
+
 Configure the `cluster_config.json` file by editing the account field (line 3). The majority of the pipeline will be run through the cluster using the last line in the `cluster_config.json` file:
 
 ```
