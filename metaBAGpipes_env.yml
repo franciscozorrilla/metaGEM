@@ -28,7 +28,6 @@ dependencies:
   - ca-certificates=2019.9.11=hecc5488_0
   - cairo=1.16.0=hfb77d84_1002
   - cdbtools=0.99=he941832_4
-  - certifi=2019.9.11=py27_0
   - checkm-genome=1.0.18=py_0
   - concoct=1.1.0=py27h88e4a8a_0
   - curl=7.65.3=hf8cf82a_0
@@ -44,7 +43,6 @@ dependencies:
   - freetype=2.10.0=he983fc9_1
   - fribidi=1.0.5=h516909a_1002
   - functools32=3.2.3.2=py_3
-  - futures=3.3.0=py27_0
   - gcc_impl_linux-64=7.3.0=habb00fd_2
   - gcc_linux-64=7.3.0=h553295d_12
   - gettext=0.19.8.1=hc5be6a0_1002
@@ -194,7 +192,6 @@ dependencies:
   - setuptools=41.2.0=py27_0
   - singledispatch=3.4.0.3=py27_1000
   - sip=4.19.8=py27hf484d3e_1000
-  - six=1.12.0=py27_1000
   - spades=3.13.1=h2d02072_2
   - sqlite=3.30.0=hcee41ef_0
   - subprocess32=3.5.4=py27h516909a_0
@@ -220,12 +217,23 @@ dependencies:
   - zlib=1.2.11=h516909a_1006
   - zstd=1.4.0=h3b9ef0a_0
   - pip:
+    - cache==1.0.3
     - carveme==1.2.2
+    - certifi==2017.7.27.1
     - configparser==4.0.2
-    - framed==0.5.1
+    - cplex==12.9.0.0
+    - docloud==1.0.257
+    - docplex==2.9.133
+    - framed==0.5.2
     - future==0.18.2
+    - futures==3.1.1
     - idna==2.8
+    - memote==0.9.12
     - mpmath==1.1.0
     - python-libsbml==5.18.0
+    - requests==2.18.4
+    - six==1.10.0
+    - smetana==1.0.0
     - sympy==1.4
+    - urllib3==1.22
 

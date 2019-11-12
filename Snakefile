@@ -64,7 +64,7 @@ rule metaspades:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.metaspades.benchmark.txt"
     shell:
         """
-        set +u;source activate binenv;set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         cp {input.R1} {input.R2} $TMPDIR    
         cd $TMPDIR
         metaspades.py -1 $(basename {input.R1}) -2 $(basename {input.R2}) -t {config[cores][metaspades]} -o .
@@ -83,7 +83,7 @@ rule kallisto:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.kallisto.benchmark.txt"
     shell:
         """
-        set +u;source activate binenv;set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         cp {input.contigs} $TMPDIR
         cd $TMPDIR
         gunzip $(basename {input.contigs})
@@ -110,7 +110,7 @@ rule concoct:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.concoct.benchmark.txt"
     shell:
         """
-        set +u;source activate binenv;set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname {output})
         mkdir -p $(dirname $(dirname {output}))
         cp {input.contigs} {input.table} $TMPDIR
@@ -121,7 +121,6 @@ rule concoct:
         merge_cutup_clustering.py $(basename $(dirname {output}))_clustering_gt1000.csv > $(basename $(dirname {output}))_clustering_merged.csv
         mkdir -p $(basename {output})
         extract_fasta_bins.py contigs.fasta $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
-        checkm lineage_wf -x fa -t {config[cores][concoct]} --pplacer_threads {config[cores][concoct]} --file $(basename $(dirname {output})).tab --tab_table $(basename {output}) .
         mv $(basename {output}) *.log *.txt *.csv *.tab $(dirname {output})
         """
 
@@ -136,7 +135,7 @@ rule metabat:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.metabat.benchmark.txt"
     shell:
         """
-        set +u;source activate binenv;set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
         mkdir -p $(dirname {output})
         cp {input.assembly} {input.R1} {input.R2} $TMPDIR
@@ -148,7 +147,6 @@ rule metabat:
         samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
         samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
         runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
-        checkm lineage_wf -x fa -t {config[cores][metabat]} --pplacer_threads {config[cores][metabat]} --file $(basename $(dirname {input.assembly})).tab --tab_table $(basename $(dirname {input.assembly})).metabat-bins .
         mv *.txt *.tab $(basename {output}) $(dirname {output})
         """
 
@@ -163,7 +161,7 @@ rule maxbin:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.maxbin.benchmark.txt"
     shell:
         """
-        set +u;source activate binenv;set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
         mkdir -p $(dirname {output})
         cp {input.assembly} {input.R1} {input.R2} $TMPDIR
@@ -173,7 +171,6 @@ rule maxbin:
         rm contigs.fasta *.gz
         mkdir $(basename {output})
         mv *.fasta $(basename {output})
-        checkm lineage_wf -x fasta -t {config[cores][maxbin]} --pplacer_threads {config[cores][maxbin]} --file $(basename $(dirname {input.assembly})).tab --tab_table $(basename {output}) .
         mv *.abund1 *.abund2 *.tab $(basename {output}) $(dirname {output})
         """
 
@@ -188,7 +185,7 @@ rule binRefine:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.binRefine.benchmark.txt"
     shell:
         """
-        set +u;source activate metawrap;set -u;
+        set +u;source activate {config[envs][metawrap]};set -u;
         cp -r {input.concoct} {input.metabat} {input.maxbin} $TMPDIR
         mkdir -p $(dirname {output})
         cd $TMPDIR
@@ -209,7 +206,7 @@ rule binReassemble:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.binReassemble.benchmark.txt"
     shell:
         """
-        set +u;source activate metawrap;set -u;
+        set +u;source activate {config[envs][metawrap]};set -u;
         mkdir -p $(dirname {output})
         cp -r {input.refinedBins} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
@@ -230,7 +227,7 @@ rule classifyGenomes:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.classify-genomes.benchmark.txt"
     shell:
         """
-        set +u;source activate binenv;set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p {output}
         cd $TMPDIR
         cp -r {input.script}/* {input.bins}/* .
@@ -267,6 +264,7 @@ rule abundance:
         """
     shell:
         """
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p {output}
         cd $TMPDIR
         cp {input.bins}/* .
@@ -331,7 +329,7 @@ rule carveme:
         config["path"]["root"]+"/"+"benchmarks/{binIDs}.carveme.benchmark.txt"
     shell:
         """
-        set +u;source activate carvenv;set -u
+        set +u;source activate {config[envs][metabagpipes]};set -u
         mkdir -p $(dirname {output})
         cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
@@ -378,7 +376,7 @@ rule smetana:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.smetana.benchmark.txt"
     shell:
         """
-        set +u;source activate memotenv;set -u
+        set +u;source activate {config[envs][metabagpipes]};set -u
         mkdir -p {config[path][root]}/{config[folder][SMETANA]}
         cp {config[dbs][carveme]} {input}/*.xml $TMPDIR
         cd $TMPDIR
@@ -396,7 +394,7 @@ rule memote:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.memote.benchmark.txt"
     shell:
         """
-        set +u;source activate memotenv;set -u
+        set +u;source activate {config[envs][metabagpipes]};set -u
         mkdir -p $(dirname {output})
         mkdir -p {output}
         cp {input}/*.xml $TMPDIR
@@ -420,36 +418,10 @@ rule grid:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.grid.benchmark.txt"
     shell:
         """
-        set +u;source activate binenv;set -u
+        set +u;source activate {config[envs][metabagpipes]};set -u
         cp -r {input.bins} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
         mkdir MAGdb
         update_database -d MAGdb -g $(basename {input.bins}) -p MAGdb
      	rm -r $(basename {input.bins})
         """
-
-rule gridTest:
-    input:
-        db="/home/zorrilla/workspace/tutorial/test/MAGdb",
-        sample="/home/zorrilla/workspace/tutorial/test/ERR260173.fastq.gz"
-    output:
-        "/home/zorrilla/workspace/tutorial/test/out3"
-    shell:
-        """
-        set +u;source activate binenv;set -u
-        cp -r {input.db} {input.sample} $TMPDIR
-        cd $TMPDIR
-        mkdir out3
-        grid multiplex -r . -e fastq.gz -d MAGdb -p -c 0.2 -o out3 -n {config[cores][grid]}
-        mv out3 /home/zorrilla/workspace/tutorial/test/
-     	"""
-
-rule smetanaTest:
-    shell:
-        """
-        set +u;source activate memotenv;set -u
-        cp -r /home/zorrilla/workspace/tutorial/test/smetana $TMPDIR
-        cd $TMPDIR
-        smetana -o TEST --flavor fbc2 --mediadb smetana/media_db.tsv -m M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16 --detailed --solver CPLEX -v smetana/*.xml
-        mv *.tsv /home/zorrilla/workspace/tutorial/test/smetana
-     	"""

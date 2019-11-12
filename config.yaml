@@ -49,3 +49,7 @@ params:
     carveMedia: M8
     smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
     smetanaSolver: CPLEX
+envs:
+    metabagpipes: metabagpipes
+    metawrap: metawrap
+    
