@@ -26,7 +26,7 @@ rule createFolders:
     shell:
         """
         cd {input}
-        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 15 > folders.txt
+        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 16 > folders.txt
         while read line;do mkdir -p $line;done < folders.txt
         rm folders.txt
         """      
@@ -67,7 +67,7 @@ rule metaspades:
         set +u;source activate binenv;set -u;
         cp {input.R1} {input.R2} $TMPDIR    
         cd $TMPDIR
-        metaspades.py -1 $(basename {input.R1}) -2 $(basename {input.R2}) -t 48 -o .
+        metaspades.py -1 $(basename {input.R1}) -2 $(basename {input.R2}) -t {config[cores][metaspades]} -o .
         gzip contigs.fasta
         mkdir -p $(dirname {output})
         mv -v contigs.fasta.gz spades.log $(dirname {output})
@@ -87,11 +87,11 @@ rule kallisto:
         cp {input.contigs} $TMPDIR
         cd $TMPDIR
         gunzip $(basename {input.contigs})
-        cut_up_fasta.py -c 10000 -o 0 -m contigs.fasta > metaspades_c10k.fa
+        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > metaspades_c10k.fa
         kallisto index metaspades_c10k.fa -i $(basename $(dirname {input.contigs})).kaix
         for folder in {input.reads}*;do
         cp $folder/*.fastq.gz $TMPDIR;
-        kallisto quant --threads 48 --plaintext -i $(basename $(dirname {input.contigs})).kaix -o . *_1.fastq.gz *_2.fastq.gz;
+        kallisto quant --threads {config[cores][kallisto]} --plaintext -i $(basename $(dirname {input.contigs})).kaix -o . *_1.fastq.gz *_2.fastq.gz;
         gzip abundance.tsv;
         mv abundance.tsv.gz $(echo $(basename $folder)_abundance.tsv.gz);
         rm *.fastq.gz;
@@ -116,12 +116,12 @@ rule concoct:
         cp {input.contigs} {input.table} $TMPDIR
         cd $TMPDIR
         gunzip $(basename {input.contigs})
-        cut_up_fasta.py -c 10000 -o 0 -m contigs.fasta > metaspades_c10k.fa
-        concoct --coverage_file {input.table} --composition_file metaspades_c10k.fa -b $(basename $(dirname {output})) -t 48 -c 800
+        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > metaspades_c10k.fa
+        concoct --coverage_file {input.table} --composition_file metaspades_c10k.fa -b $(basename $(dirname {output})) -t {config[cores][concoct]} -c {config[params][concoct]}
         merge_cutup_clustering.py $(basename $(dirname {output}))_clustering_gt1000.csv > $(basename $(dirname {output}))_clustering_merged.csv
         mkdir -p $(basename {output})
         extract_fasta_bins.py contigs.fasta $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
-        checkm lineage_wf -x fa -t 48 --pplacer_threads 48 --file $(basename $(dirname {output})).tab --tab_table $(basename {output}) .
+        checkm lineage_wf -x fa -t {config[cores][concoct]} --pplacer_threads {config[cores][concoct]} --file $(basename $(dirname {output})).tab --tab_table $(basename {output}) .
         mv $(basename {output}) *.log *.txt *.csv *.tab $(dirname {output})
         """
 
@@ -144,11 +144,11 @@ rule metabat:
         mv $(basename {input.assembly}) $(basename $(dirname {input.assembly})).gz
         gunzip $(basename $(dirname {input.assembly})).gz
         bwa index $(basename $(dirname {input.assembly}))
-        bwa mem -t 48 $(basename $(dirname {input.assembly})) $(basename {input.R1}) $(basename {input.R2}) > $(basename $(dirname {input.assembly})).sam
-        samtools view -@ 48 -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
-        samtools sort -@ 48 $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
+        bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) $(basename {input.R1}) $(basename {input.R2}) > $(basename $(dirname {input.assembly})).sam
+        samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
+        samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
         runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
-        checkm lineage_wf -x fa -t 48 --pplacer_threads 48 --file $(basename $(dirname {input.assembly})).tab --tab_table $(basename $(dirname {input.assembly})).metabat-bins .
+        checkm lineage_wf -x fa -t {config[cores][metabat]} --pplacer_threads {config[cores][metabat]} --file $(basename $(dirname {input.assembly})).tab --tab_table $(basename $(dirname {input.assembly})).metabat-bins .
         mv *.txt *.tab $(basename {output}) $(dirname {output})
         """
 
@@ -169,11 +169,11 @@ rule maxbin:
         cp {input.assembly} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
         gunzip contigs.fasta.gz
-        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -reads *_1.fastq.gz -reads2 *_2.fastq.gz -thread 48
+        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -reads *_1.fastq.gz -reads2 *_2.fastq.gz -thread {config[cores][maxbin]}
         rm contigs.fasta *.gz
         mkdir $(basename {output})
         mv *.fasta $(basename {output})
-        checkm lineage_wf -x fasta -t 48 --pplacer_threads 48 --file $(basename $(dirname {input.assembly})).tab --tab_table $(basename {output}) .
+        checkm lineage_wf -x fasta -t {config[cores][maxbin]} --pplacer_threads {config[cores][maxbin]} --file $(basename $(dirname {input.assembly})).tab --tab_table $(basename {output}) .
         mv *.abund1 *.abund2 *.tab $(basename {output}) $(dirname {output})
         """
 
@@ -192,7 +192,7 @@ rule binRefine:
         cp -r {input.concoct} {input.metabat} {input.maxbin} $TMPDIR
         mkdir -p $(dirname {output})
         cd $TMPDIR
-        metaWRAP bin_refinement -o . -A $(basename {input.concoct}) -B $(basename {input.metabat}) -C $(basename {input.maxbin}) -t 48 -m 1600 -c 50 -x 10
+        metaWRAP bin_refinement -o . -A $(basename {input.concoct}) -B $(basename {input.metabat}) -C $(basename {input.maxbin}) -t {config[cores][refine]} -m {config[params][refineMem]} -c {config[params][refineComp]} -x {config[params][refineCont]}
         rm -r $(basename {input.concoct}) $(basename {input.metabat}) $(basename {input.maxbin})
         mkdir -p {output}
         mv * {output}
@@ -213,7 +213,7 @@ rule binReassemble:
         mkdir -p $(dirname {output})
         cp -r {input.refinedBins} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
-        metaWRAP reassemble_bins -o $(basename {output}) -b $(basename {input.refinedBins}) -1 $(basename {input.R1}) -2 $(basename {input.R1}) -t 48 -m 500 -c 50 -x 10
+        metaWRAP reassemble_bins -o $(basename {output}) -b $(basename {input.refinedBins}) -1 $(basename {input.R1}) -2 $(basename {input.R1}) -t {config[cores][reassemble]} -m {config[params][reassembleMem]} -c {config[params][reassembleComp]} -x {config[params][reassembleCont]}
         rm -r $(basename {input.refinedBins})
         rm -r $(basename {output})/work_files
         rm *.fastq.gz 
@@ -236,7 +236,7 @@ rule classifyGenomes:
         cp -r {input.script}/* {input.bins}/* .
         for bin in *.fa; do
         echo "RUNNING BIN $bin"
-        $PWD/classify-genomes $bin -t 2 -o $(echo $bin|sed 's/.fa/.taxonomy/')
+        $PWD/classify-genomes $bin -t {config[cores][classify]} -o $(echo $bin|sed 's/.fa/.taxonomy/')
         echo "DONE" 
         echo " "
         cp *.taxonomy {output}
@@ -274,9 +274,9 @@ rule abundance:
         cp {input.R1} {input.R2} .
         echo "CREATING INDEX FOR BIN CONCATENATION AND MAPPING READS "
         bwa index $(basename {output}).fa
-        bwa mem -t 16 $(basename {output}).fa $(basename {input.R1}) $(basename {input.R2}) > $(basename {output}).sam
-        samtools view -@ 16 -Sb $(basename {output}).sam > $(basename {output}).bam
-        samtools sort -@ 16 $(basename {output}).bam > $(basename {output}).sort
+        bwa mem -t {config[cores][abundance]} $(basename {output}).fa $(basename {input.R1}) $(basename {input.R2}) > $(basename {output}).sam
+        samtools view -@ {config[cores][abundance]} -Sb $(basename {output}).sam > $(basename {output}).bam
+        samtools sort -@ {config[cores][abundance]} $(basename {output}).bam > $(basename {output}).sort
         samtools flagstat $(basename {output}).sort > map.stats
         cp map.stats {output}/$(basename {output})_map.stats
         rm $(basename {output}).fa *.sam *.bam *.sort
@@ -287,9 +287,9 @@ rule abundance:
             cd $(echo "$bin"| sed "s/.fa//")
             echo "INDEXING AND MAPPING BIN $bin "
             bwa index $bin
-            bwa mem -t 16 $bin ../$(basename {input.R1}) ../$(basename {input.R2}) > $(echo "$bin"|sed "s/.fa/.sam/")
-            samtools view -@ 16 -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
-            samtools sort -@ 16 $(echo "$bin"|sed "s/.fa/.bam/") > $(echo "$bin"|sed "s/.fa/.sort/")
+            bwa mem -t {config[cores][abundance]} $bin ../$(basename {input.R1}) ../$(basename {input.R2}) > $(echo "$bin"|sed "s/.fa/.sam/")
+            samtools view -@ {config[cores][abundance]} -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
+            samtools sort -@ {config[cores][abundance]} $(echo "$bin"|sed "s/.fa/.bam/") > $(echo "$bin"|sed "s/.fa/.sort/")
             samtools flagstat $(echo "$bin"|sed "s/.fa/.sort/") > $(echo "$bin"|sed "s/.fa/.map/")
             echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
             less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
@@ -335,7 +335,7 @@ rule carveme:
         mkdir -p $(dirname {output})
         cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
-        carve -g M8 -v --mediadb $(basename {input.media}) --fbc2 --dna $(basename {input.bin}) -o $(echo $(basename {input.bin})|sed 's/.fa/.xml/g')
+        carve -g {config[params][carveMedia]} -v --mediadb $(basename {input.media}) --fbc2 --dna $(basename {input.bin}) -o $(echo $(basename {input.bin})|sed 's/.fa/.xml/g')
         [ -f *.xml ] && mv *.xml $(dirname {output})
         """
 
@@ -354,7 +354,7 @@ rule carveme:
 #        cp {input.bins}/*.fa {input.media} $TMPDIR
 #        cd $TMPDIR
 #        for bin in *.fa;do
-#        carve -g M8 -v --mediadb $(basename {input.media}) --fbc2 --dna $bin -o $(echo $bin| sed 's/.fa/.xml/g')
+#        carve -g {config[params][carveMedia]} -v --mediadb $(basename {input.media}) --fbc2 --dna $bin -o $(echo $bin| sed 's/.fa/.xml/g')
 #        [ -f *.xml ] && mv *.xml {output}
 #        rm $bin
 #        done
@@ -382,7 +382,7 @@ rule smetana:
         mkdir -p {config[path][root]}/{config[folder][SMETANA]}
         cp {config[dbs][carveme]} {input}/*.xml $TMPDIR
         cd $TMPDIR
-        smetana -o $(basename {input}) --flavor fbc2 --mediadb media_db.tsv -m M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16 --detailed --solver CPLEX -v *.xml
+        smetana -o $(basename {input}) --flavor fbc2 --mediadb media_db.tsv -m {config[params][smetanaMedia]} --detailed --solver {config[params][smetanaSolver]} -v *.xml
         cp *.tsv {config[path][root]} #safety measure for backup of results in case rule fails for some reason
         mv *.tsv $(dirname {output})
         """
@@ -440,7 +440,7 @@ rule gridTest:
         cp -r {input.db} {input.sample} $TMPDIR
         cd $TMPDIR
         mkdir out3
-        grid multiplex -r . -e fastq.gz -d MAGdb -p -c 0.2 -o out3 -n 48
+        grid multiplex -r . -e fastq.gz -d MAGdb -p -c 0.2 -o out3 -n {config[cores][grid]}
         mv out3 /home/zorrilla/workspace/tutorial/test/
      	"""
 

@@ -37,3 +37,15 @@ cores:
     smetana: 12
     memote: 4
     grid: 24
+params:
+    cutfasta: 10000
+    concoct: 800
+    refineMem: 1600
+    refineComp: 50
+    refineCont: 10
+    reassembleMem: 1600
+    reassembleComp: 50
+    reassembleCont: 10
+    carveMedia: M8
+    smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
+    smetanaSolver: CPLEX
