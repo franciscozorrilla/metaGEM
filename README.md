@@ -1,5 +1,5 @@
 # metaBAGpipes
-### Snakemake workflow to generate high quality MAGs, reconstruct GEMs, and perform community metabolic interaction simulations
+### A Snakemake-based workflow to generate high quality MAGs, reconstruct GEMs, and perform community metabolic interaction simulations using HPC cluster
 
 ## Use cases:
 
