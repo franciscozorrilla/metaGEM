@@ -70,7 +70,63 @@ pwd
 
 #### Configure config.yaml
 
-Use your favorite text editor to replace the root path (second line) with the absolute path of your working directory in the config.yaml file. Additionally, ensure that the scripts and dbs point to the correct folders/files.
+The config.yaml file should look like this:
+
+```
+path:
+    root: /home/zorrilla/workspace/githubReadmeTutorial
+folder:
+    data: dataset
+    logs: logs
+    assemblies: assemblies
+    scripts: scripts
+    concoctInput: concoct_input
+    concoctOutput: concoct_output
+    maxbin: maxbin_output
+    metabat: metabat_output
+    refined: refined_bins
+    reassembled: reassembled_bins
+    classification: classification
+    abundance: abundance
+    GRiD: GRiD
+    GEMs: GEMs
+    SMETANA: SMETANA
+    memote: memote
+scripts:
+    kallisto2concoct: /home/zorrilla/workspace/tutorial/scripts/kallisto2concoct.py
+    binFilter: /home/zorrilla/workspace/tutorial/scripts/binFilter.py
+dbs:
+    carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
+    toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt
+cores:
+    metaspades: 24
+    kallisto: 24
+    concoct: 24
+    metabat: 24
+    maxbin: 24
+    refine: 24
+    reassemble: 24
+    classify: 2
+    abundance: 16
+    carveme: 4
+    smetana: 12
+    memote: 4
+    grid: 24
+params:
+    cutfasta: 10000
+    concoct: 800
+    refineMem: 1600
+    refineComp: 50
+    refineCont: 10
+    reassembleMem: 1600
+    reassembleComp: 50
+    reassembleCont: 10
+    carveMedia: M8
+    smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
+    smetanaSolver: CPLEX
+```
+
+Use your favorite text editor to replace the root path (line 2) with the absolute path of your working directory in the config.yaml file. Additionally, ensure that the scripts and dbs point to the correct folders/files.
 
 To test that your snakemake installation and snakefile are working properly, run the `createFolders` snakemake rule. These folders can alternatively be generated later on during the execution of each individual rule.
 
