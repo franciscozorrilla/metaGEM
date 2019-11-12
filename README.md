@@ -272,6 +272,37 @@ rule all:
         """
 ```
 
+Note that we omit the `directory()` flag from the `rule concoct` output when we expand wildcards in `rule all`, as it is not necessary for rule inputs.
+
+```
+rule concoct:
+    input:
+        table=config["path"]["root"]+"/"+config["folder"]["concoctInput"]+"/{IDs}_concoct_inputtableR.tsv",
+        contigs=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
+    output:
+        directory(config["path"]["root"]+"/"+config["folder"]["concoctOutput"]+"/{IDs}/{IDs}.concoct-bins")
+    benchmark:
+        config["path"]["root"]+"/"+"benchmarks/{IDs}.concoct.benchmark.txt"
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        mkdir -p $(dirname {output})
+        mkdir -p $(dirname $(dirname {output}))
+        cp {input.contigs} {input.table} $TMPDIR
+        cd $TMPDIR
+        gunzip $(basename {input.contigs})
+        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > metaspades_c10k.fa
+        concoct --coverage_file {input.table} --composition_file metaspades_c10k.fa -b $(basename $(dirname {output})) -t {config[cores][concoct]} -c {config[params][concoct]}
+        merge_cutup_clustering.py $(basename $(dirname {output}))_clustering_gt1000.csv > $(basename $(dirname {output}))_clustering_merged.csv
+        mkdir -p $(basename {output})
+        extract_fasta_bins.py contigs.fasta $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
+        checkm lineage_wf -x fa -t {config[cores][concoct]} --pplacer_threads {config[cores][concoct]} --file $(basename $(dirname {output})).tab --tab_table $(basename {output}) .
+        mv $(basename {output}) *.log *.txt *.csv *.tab $(dirname {output})
+        """
+```        
+
+Make sure to similarly remove the `directory()` flag when expanding wildcards in `rule all` for all future rules.
+
 Edit `cluster_config.json` if necessary and run snakemake using:
 
 ```
@@ -288,19 +319,19 @@ Edit the input of `rule all` to expand the output of `rule maxbin`, edit `cluste
 
 ### 3. Bin refinement
 
-
+Edit the input of `rule all` to expand the output of `rule binRefine`, edit `cluster_config.json` if necessary, and run snakemake.
 
 ### 4. Bin reassembly
 
-
+Edit the input of `rule all` to expand the output of `rule binReassemble`, edit `cluster_config.json` if necessary, and run snakemake.
 
 ### 5. MAG classification
 
-
+Edit the input of `rule all` to expand the output of `rule classifyGenomes`, edit `cluster_config.json` if necessary, and run snakemake.
 
 ### 6. MAG abundance
 
-
+Edit the input of `rule all` to expand the output of `rule abundance`, edit `cluster_config.json` if necessary, and run snakemake.
 
 ### 7. GEM reconstruction
 
