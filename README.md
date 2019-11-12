@@ -126,7 +126,7 @@ params:
     smetanaSolver: CPLEX
 ```
 
-The `folders` section should be left as is. Ensure that the scripts and dbs point to the correct folders/files. The `cores` section can be modified to best suit the architecture of your cluster. Note that these parameters are only used by the Snakefile, so the cluster_config.json file also needs to be modified for each batch of jobs.
+The `folders` section should be left as is. However, ensure that the `scripts` and `dbs` point to the correct folders/files. The `cores` section can be modified to best suit the architecture of your cluster. Note that these parameters are only used by the Snakefile, so the cluster_config.json file also needs to be modified for each batch of jobs.
 
 To test that your snakemake installation and snakefile are working properly, run the `createFolders` snakemake rule. These folders can alternatively be generated later on during the execution of each individual rule.
 
