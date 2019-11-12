@@ -181,7 +181,7 @@ nohup snakemake all -j 200 -k --cluster-config cluster_config.json -c "sbatch -A
 
 Note that the `n` (line 5) and `cpusPerTask` (line 8) should always match. Read the [slurm documentation](https://slurm.schedmd.com/documentation.html) to learn about different possible flags.
 
-#### Rule all
+#### Note: rule all
 
 Since snakemake rules with wildcards cannot be target rules, we use the input of `rule all` to expand our wildcards. For example, to run SMETANA one would do:
 
@@ -247,7 +247,7 @@ rule all:
         """
 ```
 
-Edit `cluster_config.json` if necessary and run run snakemake using:
+Edit `cluster_config.json` if necessary and run snakemake using:
 
 ```
 nohup snakemake all -j 3 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output}" &
@@ -265,7 +265,7 @@ rule all:
         """
 ```
 
-Edit `cluster_config.json` if necessary and run run snakemake using:
+Edit `cluster_config.json` if necessary and run snakemake using:
 
 ```
 nohup snakemake all -j 3 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output}" &
@@ -273,9 +273,11 @@ nohup snakemake all -j 3 -k --cluster-config cluster_config.json -c "sbatch -A {
 
 #### metabat2
 
+Edit the input of `rule all` to expand the output of `rule metabat`, edit `cluster_config.json` if necessary, and run snakemake just as before.
+
 #### maxbin2
 
-
+Edit the input of `rule all` to expand the output of `rule maxbin`, edit `cluster_config.json` if necessary, and run snakemake.
 
 ### 3. Bin refinement
 
