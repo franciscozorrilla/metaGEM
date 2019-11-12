@@ -1,4 +1,5 @@
 # metaBAGpipes
+### Snakemake workflow to generate high quality MAGs, reconstruct GEMs, and perform community metabolic interaction simulations
 
 ## Use cases:
 
