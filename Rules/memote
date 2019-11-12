@@ -1,9 +1,0 @@
-rule memote:
-    input: "carvemeOut/{fasta}.xml"
-    output: "carvemeOut/{fasta}.html"
-    shell:
-        """
-        set +u;source activate concoct_env;set -u
-        memote report snapshot --filename $(echo {input}|sed 's/.xml/.html/') {input} #generate .html report
-        memote run {input}> {input}_summary.txt #generate quick printout of model summary
-        """

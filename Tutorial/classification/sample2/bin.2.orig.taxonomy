@@ -1,0 +1,20 @@
+Fasta sequence: bin.2.orig.fa
+Consensus NCBI ID: 1262882
+Consensus taxonomy: Eubacterium sp. CAG:180
+Consensus mOTUs: ref_mOTU_v25_07675
+Number of detected genes: 10
+Number of mapped genes: 10
+Number of genes that map to -1: 0
+Percentage of agreeing genes: 100.0%
+
+Gene annotation:
+COG0016_1	100.0	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0012_1	99.2	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0172_1	100.0	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0018_1	100.0	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0215_1	100.0	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0495_1	99.3	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0533_1	99.5	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0525_1	100.0	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0541_1	100.0	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675
+COG0552_1	100.0	1262882 Eubacterium sp. CAG:180@ref_mOTU_v25_07675

@@ -1,0 +1,14 @@
+6000098 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 secondary
+98 + 0 supplementary
+0 + 0 duplicates
+209335 + 0 mapped (3.49% : N/A)
+6000000 + 0 paired in sequencing
+3000000 + 0 read1
+3000000 + 0 read2
+193356 + 0 properly paired (3.22% : N/A)
+194704 + 0 with itself and mate mapped
+14533 + 0 singletons (0.24% : N/A)
+1304 + 0 with mate mapped to a different chr
+1273 + 0 with mate mapped to a different chr (mapQ>=5)
+Bin Length = 1644947

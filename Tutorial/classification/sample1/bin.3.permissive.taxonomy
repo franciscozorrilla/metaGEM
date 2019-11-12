@@ -1,0 +1,19 @@
+Fasta sequence: bin.3.permissive.fa
+Consensus NCBI ID: 1262884
+Consensus taxonomy: Eubacterium sp. CAG:202
+Consensus mOTUs: meta_mOTU_v25_12308
+Number of detected genes: 10
+Number of mapped genes: 9
+Number of genes that map to -1: 0
+Percentage of agreeing genes: 100.0%
+
+Gene annotation:
+COG0012_1	100.0	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0016_1	100.0	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0172_1	100.0	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0018_1	99.2	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0215_1	99.7	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0533_1	100.0	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0525_1	100.0	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0541_1	100.0	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308
+COG0552_1	99.9	1262884 Eubacterium sp. CAG:202@meta_mOTU_v25_12308

@@ -1,0 +1,5 @@
+bin	completeness	contamination	GC	lineage	N50	size	binner
+Refined_1	97.31	0.061	0.340	Clostridiales	124004	2225119	binsBC
+Refined_2	79.05	0.671	0.623	Clostridiales	8905	1652954	binsBC
+Refined_3	70.58	2.721	0.558	Bacteria	5407	1859798	binsBC
+Refined_4	70.71	2.492	0.494	Clostridia	6087	1439343	binsBC

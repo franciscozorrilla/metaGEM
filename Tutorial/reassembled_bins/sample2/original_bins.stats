@@ -1,0 +1,9 @@
+bin	completeness	contamination	GC	lineage	N50	size
+bin.1.orig	63.73	4.181	0.383	Clostridiales	1788	1773475
+bin.2.orig	97.98	2.237	0.460	Clostridiales	63743	2669734
+bin.3.orig	68.77	3.236	0.596	Clostridiales	3141	1807313
+bin.5.orig	97.81	1.789	0.415	Clostridiales	15205	2104969
+bin.6.orig	93.75	2.034	0.494	Clostridiales	26488	2004952
+bin.7.orig	56.83	1.711	0.599	Actinobacteria	1876	1196365
+bin.8.orig	99.31	1.590	0.596	Bifidobacteriaceae	29860	2207502
+bin.9.orig	86.82	4.317	0.316	Euryarchaeota	2983	1407026
