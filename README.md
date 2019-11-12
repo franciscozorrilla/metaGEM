@@ -43,6 +43,13 @@ conda env create -f metaBAGpipes_env.yml
 source activate metabagpipes
 ```
 
+Bin refinement (step 3) and bin reassembly (step 4) make use of metaWRAP modules. To avoid package conflicts, set up metaWRAP in its own environment using the provided conda specification file.
+
+```
+conda env create -f metaWRAP_env.yml
+source activate metawrap
+```
+
 ### Singularity
 
 A [Singularity](https://sylabs.io/docs/) recipe files is provided to build an image that can be used with HPC clusters.
