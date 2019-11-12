@@ -329,7 +329,7 @@ rule carveme:
         config["path"]["root"]+"/"+"benchmarks/{binIDs}.carveme.benchmark.txt"
     shell:
         """
-        set +u;source activate carvenv;set -u
+        set +u;source activate {config[envs][metabagpipes]};set -u
         mkdir -p $(dirname {output})
         cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
@@ -376,7 +376,7 @@ rule smetana:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.smetana.benchmark.txt"
     shell:
         """
-        set +u;source activate memotenv;set -u
+        set +u;source activate {config[envs][metabagpipes]};set -u
         mkdir -p {config[path][root]}/{config[folder][SMETANA]}
         cp {config[dbs][carveme]} {input}/*.xml $TMPDIR
         cd $TMPDIR
@@ -394,7 +394,7 @@ rule memote:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.memote.benchmark.txt"
     shell:
         """
-        set +u;source activate memotenv;set -u
+        set +u;source activate {config[envs][metabagpipes]};set -u
         mkdir -p $(dirname {output})
         mkdir -p {output}
         cp {input}/*.xml $TMPDIR
