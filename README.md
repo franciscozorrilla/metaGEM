@@ -100,7 +100,30 @@ IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
 
 #### Configure cluster_config.json
 
-Finally, configure the cluster_config.json file by editing the account field in line 3 of the cluster_config.json file.
+The main body of the cluster_config.json file should look like this:
+
+```
+{
+"__default__" : {
+        "account" : "patil",
+        "time" : "7-00:00:00",
+        "n" : 16,
+        "tasks" : 1,
+        "mem" : 60G,
+        "cpusPerTask" : 16,
+        "name"      : "DL.{rule}",
+        "output"    : "logs/{wildcards}.%N.{rule}.out.log",
+},
+}
+```
+
+Configure the cluster_config.json file by editing the account field in line 3 of the cluster_config.json file. The majority of the pipeline will be run through the cluster using the last line in the cluster_config.json file:
+
+```
+nohup snakemake all -j 200 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output}" &
+```
+
+Note that the `n` (line 5) and `cpusPerTask` (line 8) should always match. Read the [slurm documentation](https://slurm.schedmd.com/documentation.html) to learn about different possible flags.
 
 ### 1. Assembly
 
