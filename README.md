@@ -59,7 +59,7 @@ As a tutorial, and to verify that your metaBAGpipes installation is working corr
 
 ### 0. Setup
 
-Create tutorial directory and move Snakefile, config.yaml, and cluster_config.json to working directory:
+Create tutorial directory and move `Snakefile`, `config.yaml`, and `cluster_config.json` to working directory:
 
 ```
 mkdir -p tutorial
@@ -70,7 +70,7 @@ pwd
 
 #### Configure config.yaml
 
-The config.yaml contains the absolute path of your working directory, folder names, absolute paths to scripts/databases, and cores/parameters used by individual rules in the Snakefile. Most importantly, replace the root path (line 2) with the absolute path of your working directory in the config.yaml file.
+The `config.yaml` contains the absolute path of your working directory, folder names, absolute paths to scripts/databases, and cores/parameters used by individual rules in the Snakefile. Most importantly, replace the root path (line 2) with the absolute path of your working directory in the `config.yaml` file.
 
 ```
 path:
@@ -126,9 +126,9 @@ params:
     smetanaSolver: CPLEX
 ```
 
-The `folders` section should be left as is. However, ensure that the `scripts` and `dbs` point to the correct folders/files. The `cores` section can be modified to best suit the architecture of your cluster. Note that these parameters are only used by the Snakefile, so the cluster_config.json file also needs to be modified for each batch of jobs.
+The `folders` section should be left as is. However, ensure that the `scripts` and `dbs` point to the correct folders/files. The `cores` section can be modified to best suit the architecture of your cluster. Note that these parameters are only used by the `Snakefile`, so the `cluster_config.json` file also needs to be modified for each batch of jobs.
 
-To test that your snakemake installation and snakefile are working properly, run the `createFolders` snakemake rule. These folders can alternatively be generated later on during the execution of each individual rule.
+To test that your snakemake installation and Snakefile are working properly, run the `createFolders` snakemake rule. These folders can alternatively be generated later on during the execution of each individual rule.
 
 ```
 snakemake createFolders
@@ -173,7 +173,7 @@ The main body of the cluster_config.json file should look like this:
 }
 ```
 
-Configure the cluster_config.json file by editing the account field in line 3 of the cluster_config.json file. The majority of the pipeline will be run through the cluster using the last line in the cluster_config.json file:
+Configure the `cluster_config.json` file by editing the account field (line 3). The majority of the pipeline will be run through the cluster using the last line in the `cluster_config.json` file:
 
 ```
 nohup snakemake all -j 200 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output}" &
@@ -181,9 +181,51 @@ nohup snakemake all -j 200 -k --cluster-config cluster_config.json -c "sbatch -A
 
 Note that the `n` (line 5) and `cpusPerTask` (line 8) should always match. Read the [slurm documentation](https://slurm.schedmd.com/documentation.html) to learn about different possible flags.
 
+#### rule all
+
+Since snakemake rules with wildcards cannot be target rules, we use the input of `rule all` to expand our wildcards. For example, to run SMETANA one would do:
+
+```
+rule all:
+    input:
+        expand(config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}_detailed.tsv", IDs = IDs)
+    shell:
+        """
+        echo {input}
+        """
+```
+
 ### 1. Assembly
 
 We use the metaSPAdes assembler which contains its own internal quality control module. If you wish to use another assembler such as [megahit](https://github.com/voutcn/megahit), we recommend pre-processing using [fastp](https://github.com/OpenGene/fastp) or [trimmomatic](https://github.com/timflutre/trimmomatic).
+
+To run the assembly step, copy the output of `rule metaspades`, and insert it into the input for `rule all`:
+
+```
+rule all:
+    input:
+        expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)
+    shell:
+        """
+        echo {input}
+        """
+```
+
+Next, edit the `n` and `cpusPerTask` fields of the `cluster_config.json` file to specify the desired number of cores for the assemblies.
+
+Finally, run the following snippet of code to submit our assembly jobs to the cluster scheduler. Note that the `-j` flag specifies the number of parallel jobs to be submitted. In the toy dataset we have 3 samples, therefore we specify:
+
+```
+nohup snakemake all -j 3 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.cpusPerTask} --output {cluster.output}" &
+```
+
+The snakemake output should be stored to `nohup.out`, while the output for the individual jobs can be found in the `logs` folder. Furthermore, benchmarks containing job-specific metrics are generated in the `benchmarks` folder.
+
+One can easily check the status of running/pending jobs by running:
+
+```
+squeue -u <USER>
+```
 
 ### 2. Binning
 
