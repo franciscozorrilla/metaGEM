@@ -245,7 +245,7 @@ squeue -u <USER>
 
 ### 2. Binning
 
-Run CONCOT, metabat2, and maxbin2 individually. The output of these different tools will later be reconciled using the metaWRAP bin refinement module.
+Run CONCOCT, metabat2, and maxbin2 individually. The output of these different tools will later be reconciled using the metaWRAP bin refinement module.
 
 #### CONCOCT
 
