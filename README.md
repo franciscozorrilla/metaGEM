@@ -227,7 +227,7 @@ rule all:
         """
 ```
 
-Next, edit the `n` and `cpusPerTask` fields of the `cluster_config.json` file to specify the desired number of cores for the assemblies.
+Next, edit the `n` and `cpusPerTask` fields of the `cluster_config.json` file to specify the desired number of cores for the assembly jobs.
 
 Finally, run the following snippet of code to submit our assembly jobs to the cluster scheduler. Note that the `-j` flag specifies the number of parallel jobs to be submitted. In the toy dataset we have 3 samples, therefore we specify:
 
