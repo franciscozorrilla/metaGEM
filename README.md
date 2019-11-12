@@ -21,6 +21,12 @@
 10. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
 
 
+### Toy dataset
+
+
+As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ).
+
+
 ## Installation
 
 ```bash
