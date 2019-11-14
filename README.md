@@ -21,10 +21,6 @@
 9. GEM community simulations using [SMETANA](https://github.com/cdanielmachado/smetana).
 10. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
 
-## Toy dataset
-
-As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ). Expected output can be found in the Tutorial folder.
-
 ## Installation
 
 ```
@@ -67,6 +63,10 @@ A [Singularity](https://sylabs.io/docs/) recipe files is provided to build an im
 ```
 sudo singularity --verbose build metabagpipes.simg Singularity
 ```
+
+## Toy dataset
+
+As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ). Expected output can be found in the Tutorial folder.
 
 ## Tutorial
 
