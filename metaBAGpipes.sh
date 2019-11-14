@@ -3,7 +3,7 @@
 # Helpfile
 
 usage() {
-  echo -n "metaparse.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
+  echo -n "metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
 
 Snakefile wrapper/parser for metaBAGpipes. 
 
