@@ -54,6 +54,21 @@ rule organizeData:
         rm ID_samples.txt
         """
 
+rule rawDataVis:
+    input:
+        config["path"]["root"]+"/"+config["folder"]["data"]
+    shell:
+        """
+        cd {input}
+        for folder in */;do 
+        for file in $folder*.gz;do 
+        echo -n $file|sed 's|^.*/||g'|sed 's/$/ /g' >> dataset.stats;
+        zcat $file | awk '{{if(NR%4==2) print length($1)}}' | sort | uniq -c >> dataset.stats;
+        done;
+        done
+        Rscript 
+        """
+
 rule metaspades: 
     input:
         R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
