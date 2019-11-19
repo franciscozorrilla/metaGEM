@@ -197,10 +197,22 @@ To test that your snakemake installation and Snakefile are working properly, run
 snakemake createFolders
 ```
 
+Or, using the metaBAGpipes.sh parser:
+
+```
+bash metaBAGpipes.sh -t createFolders -j 1 -c 1
+```
+
 Next, download the [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ) into the `dataset` folder. This can be done manually, or more conveniently, using the `downloadToy` snakemake rule.
 
 ```
 snakemake downloadToy
+```
+
+Alternatively, using the metaBAGpipes.sh parser:
+
+```
+bash metaBAGpipes.sh -t downloadToy -j 1 -c 1
 ```
 
 Organize reads into sample specific sub-directories. This is required as metaBAGpipes uses snakemake wildcards based on these subfolders.
@@ -208,6 +220,13 @@ Organize reads into sample specific sub-directories. This is required as metaBAG
 ```
 snakemake organizeData
 ```
+
+Or using the metaBAGpipes.sh parser:
+
+```
+bash metaBAGpipes.sh -t organizeData -j 1 -c 1
+```
+
 
 Ensure that the line 6 of your Snakefile is indeed pointing to the dataset folder with sample specific subfolders. In the case of this tutorial:
 
@@ -257,11 +276,19 @@ rule all:
         """
 ```
 
+The metaBAGpipes.sh parser simplifies the user interaction by automatically editing the `Snakefile` and `cluster_config.json` according to the provided arguments: `-t/--task`, `-j/--nJobs`, `-n/--nCores`.
+
 ### 1. Assembly
 
 We use the metaSPAdes assembler which contains its own internal quality control module. If you wish to use another assembler such as [megahit](https://github.com/voutcn/megahit), we recommend pre-processing using [fastp](https://github.com/OpenGene/fastp) or [trimmomatic](https://github.com/timflutre/trimmomatic).
 
-To run the assembly step, copy the output of `rule metaspades`, and insert it into the input for `rule all`:
+To run the assembly step on the toy dataset using the `metaBAGpipes.sh` parser, simply run:
+
+```
+bash metaBAGpipes.sh -t metaspades -j 3 -c 16
+```
+
+To run the assembly step "manually", copy the output of `rule metaspades`, and insert it into the input for `rule all`:
 
 ```
 rule all:
