@@ -9,24 +9,38 @@ Snakefile wrapper/parser for metaBAGpipes.
 
  Options:
   -t, --task        Specify task to complete:
-                       createFolders
-                       downloadToy
-                       organizeData
-                       metaspades
-                       kallisto
-                       concoct
-                       metabat
-                       maxbin
-                       binRefine
-                       binReassemble
-                       classifyGenomes
-                       abundance
-                       moveBins
-                       carveme
-                       organizeGems
-                       smetana
-                       memote
-                       grid
+
+                        SETUP
+                            createFolders
+                            downloadToy
+                            organizeData
+
+                        WORKFLOW
+                            metaspades
+                            kallisto
+                            concoct
+                            metabat
+                            maxbin
+                            binRefine
+                            binReassemble
+                            classifyGenomes
+                            abundance
+                            moveBins
+                            carveme
+                            organizeGems
+                            smetana
+                            memote   
+                            grid
+
+                        VISUALIZATION (in development)
+                            assemblyVis
+                            binningVis
+                            taxonomyVis
+                            abundanceVis
+                            modelVis
+                            interactionVis
+                            growthVis
+
   -j, --nJobs       Specify number of jobs to run in parallel
   -c, --nCores      Specify number of cores per job
   -h, --help        Display this help and exit
@@ -233,7 +247,6 @@ function parse() {
   else
     echo "Task not recognized."
     usage
-
   fi
 
 }
@@ -243,8 +256,19 @@ function parse() {
 if [ $# -eq 0 ]; then
     echo "No arguments provided ... "
     usage
-
 else
+    # Read in options
+    while [[ $1 = -?* ]]; do
+      case $1 in
+        -h|--help) usage >&2;;
+        -t|--task) shift; task=${1} ;;
+        -j|--nJobs) shift; njobs=${1} ;;
+        -c|--nCores) shift; ncores=${1} ;;
+        --endopts) shift; break ;;
+        *) die "invalid option: '$1'." ;;
+      esac
+      shift
+    done
     parse
 
 fi
