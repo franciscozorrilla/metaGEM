@@ -21,6 +21,54 @@
 9. GEM community simulations using [SMETANA](https://github.com/cdanielmachado/smetana).
 10. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
 
+### Usage
+
+```
+Usage: bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
+
+Snakefile wrapper/parser for metaBAGpipes. 
+
+ Options:
+  -t, --task        Specify task to complete:
+
+                        SETUP
+                            createFolders
+                            downloadToy
+                            organizeData
+
+                        WORKFLOW
+                            metaspades
+                            kallisto
+                            concoct
+                            metabat
+                            maxbin
+                            binRefine
+                            binReassemble
+                            classifyGenomes
+                            abundance
+                            moveBins
+                            carveme
+                            organizeGems
+                            smetana
+                            memote   
+                            grid
+
+                        VISUALIZATION (in development)
+                            assemblyVis
+                            binningVis
+                            taxonomyVis
+                            abundanceVis
+                            modelVis
+                            interactionVis
+                            growthVis
+
+  -j, --nJobs       Specify number of jobs to run in parallel
+  -c, --nCores      Specify number of cores per job
+  -h, --help        Display this help and exit
+
+Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
+```
+
 ## Installation
 
 ```
