@@ -23,19 +23,18 @@
 
 ### Usage
 
+
 ```
-Usage: bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
+bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
 
 Snakefile wrapper/parser for metaBAGpipes. 
 
  Options:
   -t, --task        Specify task to complete:
-
                         SETUP
                             createFolders
                             downloadToy
                             organizeData
-
                         WORKFLOW
                             metaspades
                             kallisto
@@ -52,7 +51,6 @@ Snakefile wrapper/parser for metaBAGpipes.
                             smetana
                             memote   
                             grid
-
                         VISUALIZATION (in development)
                             assemblyVis
                             binningVis
@@ -61,7 +59,6 @@ Snakefile wrapper/parser for metaBAGpipes.
                             modelVis
                             interactionVis
                             growthVis
-
   -j, --nJobs       Specify number of jobs to run in parallel
   -c, --nCores      Specify number of cores per job
   -h, --help        Display this help and exit
