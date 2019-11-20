@@ -80,7 +80,7 @@ rule assemblyVis:
         """
         This may take a long time to run with many samples. Run the lines below to run rule in background of login node instead of through snakemake.
         Raw data: nohup sh -c 'for folder in */;do echo -n "$folder "|sed "s|/||g" >> dataset.stats;zcat "$folder"*_1.fastq.gz | awk "{{if(NR%4==2) print length($1)}}" | sort | uniq -c >> dataset.stats;done' &
-        Assembly data: nohup sh -c 'for folder in */;do for file in $folder*.gz;do N=$(less $file|grep -c ">"); L=$(less $file|grep ">"|cut -d "_" -f4|awk "{{sum+=$1}} END{{print sum}}"); C=$(less $file|grep ">"|cut -d "_" -f6|awk "{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}"); echo $(echo $file|sed "s|/contigs.fasta.gz||g") $N $L $C >> assembly.stats; done;done'
+        Assembly data: nohup sh -c 'for folder in */;do for file in $folder*.gz;do N=$(less $file|grep -c ">"); L=$(less $file|grep ">"|cut -d "_" -f4|awk '"'"'{sum+=$NF} END{print sum}'"'"'); C=$(less $file|grep ">"|cut -d "_" -f6|awk '"'"'{sum+=$NF} END { if (NR > 0) print sum / NR }'"'"'); echo $(echo $file|sed "s|/contigs.fasta.gz||g") $N $L $C >> assembly.stats; done;done'&
         """
     shell:
         """

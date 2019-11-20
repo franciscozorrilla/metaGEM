@@ -68,7 +68,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this batch of jobs?" yn
+        read -p "Do you wish to submit this job?" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -82,7 +82,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this batch of jobs?" yn
+        read -p "Do you wish to submit this job?" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -96,7 +96,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this batch of jobs?" yn
+        read -p "Do you wish to submit this job?" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -115,6 +115,20 @@ function parse() {
         read -p "Do you wish to submit this batch of jobs?" yn
         case $yn in
             [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}" &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+    elif [ $task == "assemblyVis" ]; then
+    echo "No need to parse Snakefile for rule $task."
+    echo "Running snakemake on login node."
+    snakemake --unlock
+    snakemake $task -n
+    while true; do
+        read -p "Do you wish to submit this job?" yn
+        case $yn in
+            [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
             * ) echo "Please answer yes or no.";;
         esac
