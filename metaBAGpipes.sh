@@ -36,7 +36,6 @@ Snakefile wrapper/parser for metaBAGpipes.
                             assemblyVis
                             binningVis
                             taxonomyVis
-                            abundanceVis
                             modelVis
                             interactionVis
                             growthVis
@@ -68,7 +67,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this job?" yn
+        read -p "Do you wish to submit this job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -82,7 +81,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this job?" yn
+        read -p "Do you wish to submit this job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -96,7 +95,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this job?" yn
+        read -p "Do you wish to submit this job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -112,9 +111,9 @@ function parse() {
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
     while true; do
-        read -p "Do you wish to submit this batch of jobs?" yn
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
         case $yn in
-            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}" &"|bash; break;;
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
             [Nn]* ) exit;;
             * ) echo "Please answer yes or no.";;
         esac
@@ -126,7 +125,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this job?" yn
+        read -p "Do you wish to submit this job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -141,6 +140,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "concoct" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["concoctOutput"]+"/{IDs}/{IDs}.concoct-bins", IDs = IDs)'
@@ -149,6 +156,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "metabat" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["metabat"]+"/{IDs}/{IDs}.metabat-bins", IDs = IDs)'
@@ -157,6 +172,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs?" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "maxbin" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins", IDs = IDs)'
@@ -165,6 +188,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "binRefine" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["refined"]+"/{IDs}", IDs = IDs)'
@@ -173,6 +204,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "binReassemble" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}", IDs = IDs)'
@@ -181,6 +220,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
     elif [ $task == "binningVis" ]; then
     echo "No need to parse Snakefile for rule $task."
@@ -188,7 +235,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this job?" yn
+        read -p "Do you wish to submit this job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -203,6 +250,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "abundance" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["abundance"]+"/{IDs}", IDs = IDs)'
@@ -211,6 +266,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "moveBins" ]; then
     echo "No need to parse Snakefile for rule $task."
@@ -218,7 +281,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this batch of jobs?" yn
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -233,6 +296,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "organizeGems" ]; then
     echo "No need to parse Snakefile for rule $task."
@@ -240,7 +311,7 @@ function parse() {
     snakemake --unlock
     snakemake $task -n
     while true; do
-        read -p "Do you wish to submit this batch of jobs?" yn
+        read -p "Do you wish to submit this job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -255,6 +326,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "memote" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["memote"]+"/{IDs}", IDs = IDs)'
@@ -263,6 +342,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   elif [ $task == "grid" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["GRiD"]+"/{IDs}", IDs = IDs)'
@@ -271,6 +358,14 @@ function parse() {
     echo "Submitting $njobs jobs with $ncores cores each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+        while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 
   else
     echo "Task not recognized."

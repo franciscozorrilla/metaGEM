@@ -43,14 +43,17 @@ rule downloadToy:
 
 rule organizeData:
     input:
-        config["path"]["root"]+"/"+config["folder"]["data"]
+        config["path"]["root"]
     message:
-        "Assuming all samples are downloaded to the same directory, sorting paired end raw reads into sample specific sub folders within the 'dataset' folder"
+        """
+        Assuming all samples are downloaded to the same directory, sorting paired end raw reads into sample specific sub folders within the 'dataset' folder.
+        Note: Use with caution, may malfunction in corner cases.
+        """
     shell:
         """
         cd {input}
-        for file in *.gz;do echo $file;done|sed 's/_.*$//g'|uniq > ID_samples.txt
-        while read line;do mkdir -p $line;mv $line*.gz $line;done < ID_samples.txt
+        for file in *.gz;do echo $file;done|sed 's/_.*$//g'|sed 's/.fastq.gz//g'|uniq > ID_samples.txt
+        while read line;do mkdir -p {config[folder][data]}/$line;mv $line*.gz {config[folder][data]}/$line;done < ID_samples.txt
         rm ID_samples.txt
         """
 
@@ -364,6 +367,24 @@ rule abundance:
         done
         cat *.abund > $(basename {output}).abund
         mv $(basename {output}).abund {output}
+        """
+
+rule taxonomyVis:
+    shell:
+        """
+        for folder in */;do 
+        for file in $folder*.taxonomy;do 
+        fasta=$(echo $file|sed 's|/|.|'|sed 's/.taxonomy//g'|sed 's/.orig//g'|sed 's/.permissive//g'|sed 's/.strict//g'); 
+        NCBI=$(less $file|grep NCBI|cut -d ' ' -f4);
+        tax=$(less $file|grep tax|sed 's/Consensus taxonomy: //g');
+        motu=$(less $file|grep mOTUs|sed 's/Consensus mOTUs: //g');
+        detect=$(less $file|grep detected|sed 's/Number of detected genes: //g');
+        percent=$(less $file|grep agreeing|sed 's/Percentage of agreeing genes: //g'|sed 's/%//g');
+        map=$(less $file|grep mapped|sed 's/Number of mapped genes: //g');
+        cog=$(less $file|grep COG|cut -d$'\t' -f1|tr '\n' ','|sed 's/,$//g');
+        echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog">>classification.stats;
+        done;
+        done
         """
 
 rule moveBins:
