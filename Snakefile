@@ -100,7 +100,7 @@ rule assemblyVis:
         echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $C >> assembly.stats;
         done;
         done
-        Rscript ../scripts/assemblyVis.R
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
         """
 
 rule kallisto:
@@ -245,6 +245,33 @@ rule binReassemble:
         rm -r $(basename {output})/work_files
         rm *.fastq.gz 
         mv * $(dirname {output})
+        """
+
+rule binningVis:
+    input:
+        config["path"]["root"]
+    message:
+        """
+        Generate bar plot with number of bins and density plot of bin contigs, total length, completeness, and contamination across different tools.
+        """
+    shell:
+        """
+        set +u;source activate memotenv;set -u;
+        cd {input}/{config[folder][refined]}
+        for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*concoct-bins.stats|tail -n +2|sed "s/^/$var.bin./g";done >> concoct.checkm
+        for folder in */;do for bin in $folder*work_files/binsA/*.fa;do name=$(echo $bin|sed 's|/work_files/binsA/|\.bin\.|g'|sed 's/.fa//g'); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> concoct_bins.stats;done;done
+        for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*metabat-bins.stats|tail -n +2|sed "s/^/$var./g";done >> metabat.checkm
+        for folder in */;do samp=$(echo $folder|sed 's|/||'); for bin in $folder*work_files/binsB/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g"); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> metabat_bins.stats;done;done
+        for folder in */;do paste $folder*maxbin-bins.stats|tail -n +2;done >> maxbin.checkm
+        for folder in */;do for bin in $folder*work_files/binsC/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> maxbin_bins.stats;done;done
+        for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*etawrap_50_10_bins.stats|tail -n +2|sed "s/^/$var./g";done >> refined.checkm
+        for folder in */;do samp=$(echo $folder|sed 's|/||');for bin in $folder*metawrap_50_10_bins/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g"); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> refined_bins.stats;done;done
+        mv *.stats *.checkm {input}/{config[folder][reassembled]}
+        cd {input}/{config[folder][reassembled]}
+        for folder in */;do samp=$(echo $folder|sed 's|/||');for bin in $folder*reassembled_bins/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g"); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> reassembled_bins.stats;done;done
+        for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*reassembled_bins.stats|tail -n +2|sed "s/^/$var./g";done >> reassembled.checkm
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][binningVis]}
+        rm Rplots.pdf
         """
 
 rule classifyGenomes: 

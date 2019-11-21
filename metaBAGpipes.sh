@@ -182,6 +182,20 @@ function parse() {
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
 
+    elif [ $task == "binningVis" ]; then
+    echo "No need to parse Snakefile for rule $task."
+    echo "Running snakemake on login node."
+    snakemake --unlock
+    snakemake $task -n
+    while true; do
+        read -p "Do you wish to submit this job?" yn
+        case $yn in
+            [Yy]* ) snakemake $task ; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
   elif [ $task == "classifyGenomes" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["classification"]+"/{IDs}", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile

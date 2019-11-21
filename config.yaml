@@ -1,5 +1,5 @@
 path:
-    root: /home/zorrilla/workspace/githubReadmeTutorial
+    root: /home/zorrilla/workspace/tutorial
 folder:
     data: dataset
     logs: logs
@@ -18,8 +18,10 @@ folder:
     SMETANA: SMETANA
     memote: memote
 scripts:
-    kallisto2concoct: /home/zorrilla/workspace/tutorial/scripts/kallisto2concoct.py
-    binFilter: /home/zorrilla/workspace/tutorial/scripts/binFilter.py
+    kallisto2concoct: kallisto2concoct.py
+    binFilter: binFilter.py
+    assemblyVis: assemblyVis.R
+    binningVis: binningVis.R
 dbs:
     carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
     toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt

@@ -1,5 +1,6 @@
-library(ggplot2)
 library(gridExtra)
+library(dplyr)
+library(ggplot2)
 
 concoctCheckm = read.delim("concoct.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(concoctCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
@@ -107,4 +108,9 @@ gcplot = ggplot() +
 
 densities1= grid.arrange(compplot,lengthplot,covplot,nrow=3,ncol=1)
 densities2=grid.arrange(contplot,contigplot,gcplot,nrow=3,ncol=1)
+
 grid.arrange(binplot,densities1,densities2,nrow=1,ncol=3)
+
+plot=grid.arrange(binplot,arrangeGrob(compplot,lengthplot,covplot,nrow=3,ncol=1),arrangeGrob(contplot,contigplot,gcplot,nrow=3,ncol=1),nrow=1,ncol=3,heights=c(60),widths=c(30,30,30))
+
+ggsave("binningVis.pdf",plot=plot, height = 8, width = 12)
