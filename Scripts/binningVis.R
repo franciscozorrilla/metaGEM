@@ -19,6 +19,8 @@ colnames(maxbinCheckm) = c("bin","completeness","contamination","GC","lineage","
 maxbinBins= read.delim("maxbin_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
 colnames(maxbinBins) = c("bin","contigs","coverage")
 maxbin = left_join(maxbinCheckm,maxbinBins,by="bin") %>% filter(contamination<=10,completeness>=50)
+maxbin$contigs = as.numeric(maxbin$contigs)
+maxbin$coverage = as.numeric(maxbin$coverage)
 
 refinedCheckm = read.delim("refined.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(refinedCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")

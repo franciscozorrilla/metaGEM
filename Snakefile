@@ -3,16 +3,16 @@ configfile: "config.yaml"
 import os
 import glob
 
-IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
+IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('raw/*'))])
 IDs = [os.path.basename(val) for val in IDs] #grab just sample ID
 
 #Make sure that final_bins/ folder contains all bins in single folder for binIDs wildcard to work. Use moveBins rule or perform manually.
-binIDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('final_bins/*'))])
+binIDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('final_bins/*.faa'))])
 binIDs = [os.path.basename(val) for val in binIDs] #grab just bin ID
 
 rule all:
     input:
-        expand(config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}.tsv", IDs = IDs)
+        expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)
     shell:
         """
         echo {input}
@@ -51,9 +51,9 @@ rule organizeData:
         """
     shell:
         """
-        cd {input}
+        cd {input}/{config[folder][data]}
         for file in *.gz;do echo $file;done|sed 's/_.*$//g'|sed 's/.fastq.gz//g'|uniq > ID_samples.txt
-        while read line;do mkdir -p {config[folder][data]}/$line;mv $line*.gz {config[folder][data]}/$line;done < ID_samples.txt
+        while read line;do mkdir -p $line;mv $line*.gz $line;done < ID_samples.txt
         rm ID_samples.txt
         """
 
@@ -75,6 +75,26 @@ rule metaspades:
         mkdir -p $(dirname {output})
         mv -v contigs.fasta.gz spades.log $(dirname {output})
         """
+
+#rule megahit: 
+#    input:
+#        R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
+#        R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz" 
+#    output:
+#        config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
+#    benchmark:
+#        config["path"]["root"]+"/"+"benchmarks/{IDs}.megahit.benchmark.txt"
+#    shell:
+#        """
+#        set +u;source activate {config[envs][metabagpipes]};set -u;
+#        mkdir -p $(dirname {output})
+#        cd $TMPDIR
+#        cp {input.R1} {input.R2} $TMPDIR   
+#        megahit -t 24 --presets meta-large --verbose -1 $(basename {input.R1}) -2 $(basename {input.R2}) -o tmp
+#        mv tmp/final.contigs.fa contigs.fasta
+#        gzip contigs.fasta
+#        mv contigs.fasta.gz $(dirname {output})
+#        """
 
 rule assemblyVis:
     input:
@@ -260,13 +280,19 @@ rule binningVis:
     shell:
         """
         set +u;source activate memotenv;set -u;
+        cd {input}/{config[folder][concoctOutput]}
+        for folder in */;do var=$(echo $folder|sed 's|/||g'); for bin in $folder*concoct-bins/*.fa;do name=$(echo $bin|sed "s|^.*/|$var.bin.|g"|sed 's/.fa//g'); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> concoct_bins.stats;done;done
+        mv *.stats {input}/{config[folder][reassembled]}
+        cd {input}/{config[folder][metabat]}
+        for folder in */;do var=$(echo $folder|sed 's|/||'); for bin in $folder*metabat-bins/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$var./g"); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> metabat_bins.stats;done;done
+        mv *.stats {input}/{config[folder][reassembled]}
+        cd {input}/{config[folder][maxbin]}
+        for folder in */;do for bin in $folder*maxbin-bins/*.fasta;do name=$(echo $bin|sed 's/.fasta//g'|sed 's|^.*/||g'); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> maxbin_bins.stats;done;done
+        mv *.stats {input}/{config[folder][reassembled]}
         cd {input}/{config[folder][refined]}
         for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*concoct-bins.stats|tail -n +2|sed "s/^/$var.bin./g";done >> concoct.checkm
-        for folder in */;do for bin in $folder*work_files/binsA/*.fa;do name=$(echo $bin|sed 's|/work_files/binsA/|\.bin\.|g'|sed 's/.fa//g'); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> concoct_bins.stats;done;done
         for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*metabat-bins.stats|tail -n +2|sed "s/^/$var./g";done >> metabat.checkm
-        for folder in */;do samp=$(echo $folder|sed 's|/||'); for bin in $folder*work_files/binsB/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g"); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> metabat_bins.stats;done;done
         for folder in */;do paste $folder*maxbin-bins.stats|tail -n +2;done >> maxbin.checkm
-        for folder in */;do for bin in $folder*work_files/binsC/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> maxbin_bins.stats;done;done
         for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*etawrap_50_10_bins.stats|tail -n +2|sed "s/^/$var./g";done >> refined.checkm
         for folder in */;do samp=$(echo $folder|sed 's|/||');for bin in $folder*metawrap_50_10_bins/*.fa;do name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g"); N=$(less $bin|grep -c ">");C=$(less $bin|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');echo $name $N $C >> refined_bins.stats;done;done
         mv *.stats *.checkm {input}/{config[folder][reassembled]}
@@ -317,9 +343,9 @@ rule abundance:
 
         binAbundanceFraction = (L * X / Y / Z) * 100
 
-        X = # of reads mapped to bin_i by mapping reads to bin_i using samtools.
-        Y = length of bin_i.
-        Z = total # of reads mapped to all bins in sample_k
+        X = # of reads mapped to bin_i from sample_k
+        Y = length of bin_i
+        Z = # of reads mapped to all bins in sample_k
         L = length of reads (100 bp)
         """
     shell:
@@ -334,10 +360,10 @@ rule abundance:
         bwa index $(basename {output}).fa
         bwa mem -t {config[cores][abundance]} $(basename {output}).fa $(basename {input.R1}) $(basename {input.R2}) > $(basename {output}).sam
         samtools view -@ {config[cores][abundance]} -Sb $(basename {output}).sam > $(basename {output}).bam
-        samtools sort -@ {config[cores][abundance]} $(basename {output}).bam > $(basename {output}).sort
-        samtools flagstat $(basename {output}).sort > map.stats
+        samtools sort -@ {config[cores][abundance]} $(basename {output}).bam $(basename {output}).sort
+        samtools flagstat $(basename {output}).sort.bam > map.stats
         cp map.stats {output}/$(basename {output})_map.stats
-        rm $(basename {output}).fa *.sam *.bam *.sort
+        rm $(basename {output}).fa
         echo "DONE MAPPING READS TO BIN CONCATENATION, BEGIN MAPPING READS TO EACH BIN "
         for bin in *.fa;do
             mkdir -p $(echo "$bin"| sed "s/.fa//")
@@ -347,8 +373,8 @@ rule abundance:
             bwa index $bin
             bwa mem -t {config[cores][abundance]} $bin ../$(basename {input.R1}) ../$(basename {input.R2}) > $(echo "$bin"|sed "s/.fa/.sam/")
             samtools view -@ {config[cores][abundance]} -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
-            samtools sort -@ {config[cores][abundance]} $(echo "$bin"|sed "s/.fa/.bam/") > $(echo "$bin"|sed "s/.fa/.sort/")
-            samtools flagstat $(echo "$bin"|sed "s/.fa/.sort/") > $(echo "$bin"|sed "s/.fa/.map/")
+            samtools sort -@ {config[cores][abundance]} $(echo "$bin"|sed "s/.fa/.bam/") $(echo "$bin"|sed "s/.fa/.sort/")
+            samtools flagstat $(echo "$bin"|sed "s/.fa/.sort.bam/") > $(echo "$bin"|sed "s/.fa/.map/")
             echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
             less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
             echo "FINISHED MAPPING READS TO BIN $bin "
@@ -364,6 +390,7 @@ rule abundance:
             cp $(echo "$bin"|sed "s/.fa/.map/") {output}
             mv $(echo "$bin"|sed "s/.fa/.abund/") ../
             cd ..
+            rm -r $(echo "$bin"| sed "s/.fa//")
         done
         cat *.abund > $(basename {output}).abund
         mv $(basename {output}).abund {output}
@@ -372,77 +399,113 @@ rule abundance:
 rule taxonomyVis:
     shell:
         """
+        cd {config[path][root]}/{config[folder][classification]}
         for folder in */;do 
-        for file in $folder*.taxonomy;do 
-        fasta=$(echo $file|sed 's|/|.|'|sed 's/.taxonomy//g'|sed 's/.orig//g'|sed 's/.permissive//g'|sed 's/.strict//g'); 
-        NCBI=$(less $file|grep NCBI|cut -d ' ' -f4);
-        tax=$(less $file|grep tax|sed 's/Consensus taxonomy: //g');
-        motu=$(less $file|grep mOTUs|sed 's/Consensus mOTUs: //g');
-        detect=$(less $file|grep detected|sed 's/Number of detected genes: //g');
-        percent=$(less $file|grep agreeing|sed 's/Percentage of agreeing genes: //g'|sed 's/%//g');
-        map=$(less $file|grep mapped|sed 's/Number of mapped genes: //g');
-        cog=$(less $file|grep COG|cut -d$'\t' -f1|tr '\n' ','|sed 's/,$//g');
-        echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog">>classification.stats;
+            for file in $folder*.taxonomy;do 
+                fasta=$(echo $file|sed 's|^.*/||'|sed 's/.taxonomy//g'|sed 's/.orig//g'|sed 's/.permissive//g'|sed 's/.strict//g'); 
+                NCBI=$(less $file|grep NCBI|cut -d ' ' -f4);
+                tax=$(less $file|grep tax|sed 's/Consensus taxonomy: //g');
+                motu=$(less $file|grep mOTUs|sed 's/Consensus mOTUs: //g');
+                detect=$(less $file|grep detected|sed 's/Number of detected genes: //g');
+                percent=$(less $file|grep agreeing|sed 's/Percentage of agreeing genes: //g'|sed 's/%//g');
+                map=$(less $file|grep mapped|sed 's/Number of mapped genes: //g');
+                cog=$(less $file|grep COG|cut -d$'\t' -f1|tr '\n' ','|sed 's/,$//g');
+                echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog">>classification.stats;
+            done;
+        done
+        cd {config[path][root]}/{config[folder][abundance]}
+        for folder in */;do 
+            for file in $folder*.map;do 
+                SAMP=$(paste $file|sed -n '1p'|cut -d ' ' -f1);
+                BIN=$(paste $file|sed -n '3p'|cut -d ' ' -f1);
+                LEN=$(paste $file|sed -n '12p'|cut -d ' ' -f4);
+                MAG=$(paste $folder*_map.stats|sed -n '3p'|cut -d ' ' -f1);
+                name=$(echo $file|sed 's/.map//g'|sed 's|^.*/||g');
+                echo -n "$name ";
+                awk -v samp="$SAMP" -v bin="$BIN" -v len="$LEN" 'BEGIN{printf bin/samp/len}';
+                echo -n " "; 
+                awk -v mag="$MAG" -v bin="$BIN" -v len="$LEN" 'BEGIN{print bin/mag/ len}';
+            done;
+        done > abundance.stats
+
+        """
+
+rule extractProteinBins:
+    message:
+        "Extract ORF annotated protein fasta files for each bin from reassembly checkm files."
+    shell:
+        """
+        cd {config[path][root]}
+        for folder in reassembled_bins/*/;do 
+        for bin in $folder*reassembled_bins.checkm/bins/*;do 
+        var=$(echo $bin/genes.faa|sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
+        cp $bin/*.faa /home/zorrilla/workspace/european/final_bins/$var;
         done;
         done
         """
 
-rule moveBins:
-    message:
-        "Moves and renames all bins from reassembled_bins/{sampleID}/ subfolders to single folder final_bins/. Need all bins in one folder to run rules with {binIDs} wildcard."
-    shell:
-        """
-        cd {config[path][root]}
-        mkdir -p final_bins
-        for folder in reassembled_bins/*/;do for bin in $folder/reassembled_bins/*.fa;do mv $bin final_bins/$(echo $bin|sed 's|reassembled_bins/||g'|sed 's|/|_|g'|sed 's/strict/s/g'|sed 's/orig/o/g'|sed 's/permissive/p/g');done;done
-        """
+#rule moveBins:
+#    message:
+#        "Moves and renames all bins from reassembled_bins/{sampleID}/ subfolders to single folder final_bins/. Need all bins in one folder to run rules with {binIDs} wildcard."
+#    shell:
+#        """
+#        cd {config[path][root]}
+#        mkdir -p final_bins
+#        
+#        """
 
 rule carveme:
     input:
-        bin=config["path"]["root"]+"/"+"final_bins/{binIDs}.fa",
+        bin=config["path"]["root"]+"/"+"final_bins/{binIDs}.faa",
         media=config["dbs"]["carveme"]
     output:
         config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{binIDs}.xml"
     benchmark:
         config["path"]["root"]+"/"+"benchmarks/{binIDs}.carveme.benchmark.txt"
+    message:
+        "Make sure that the input files are ORF annotated and preferably protein fasta. Will not work properly with raw genome fasta files."
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u
         mkdir -p $(dirname {output})
         cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
-        carve -g {config[params][carveMedia]} -v --mediadb $(basename {input.media}) --fbc2 --dna $(basename {input.bin}) -o $(echo $(basename {input.bin})|sed 's/.fa/.xml/g')
+        carve -g {config[params][carveMedia]} -v --mediadb $(basename {input.media}) --fbc2 -o $(echo $(basename {input.bin})|sed 's/.faa/.xml/g') $(basename {input.bin})
         [ -f *.xml ] && mv *.xml $(dirname {output})
         """
 
-#rule carvemeSample:
-#    input:
-#        bins=config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}/reassembled_bins",
-#        media=config["dbs"]["carveme"]
-#    output:
-#        directory(config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{IDs}")
-#    benchmark:
-#        config["path"]["root"]+"/"+"benchmarks/{IDs}.carveme.benchmark.txt"
-#    shell:
-#        """
-#        set +u;source activate carvenv;set -u
-#        mkdir -p {output}
-#        cp {input.bins}/*.fa {input.media} $TMPDIR
-#        cd $TMPDIR
-#        for bin in *.fa;do
-#        carve -g {config[params][carveMedia]} -v --mediadb $(basename {input.media}) --fbc2 --dna $bin -o $(echo $bin| sed 's/.fa/.xml/g')
-#        [ -f *.xml ] && mv *.xml {output}
-#        rm $bin
-#        done
-#        """
+rule modelVis:
+    input:
+        config["path"]["root"]+"/"+config["folder"]["GEMs"]
+    shell:
+        """
+        set +u;source activate memotenv;set -u;
+        cd {input}
+        for folder in ERR*;do 
+        for model in $folder/*.xml;do 
+        id=$(echo $model|sed 's|^.*/||g'|sed 's/.xml//g'); 
+        mets=$(less $model| grep "species id="|cut -d ' ' -f 8|sed 's/..$//g'|sort|uniq|wc -l);
+        rxns=$(less $model|grep -c 'reaction id=');
+        genes=$(less $model|grep -c 'fbc:geneProduct fbc:id=');
+        echo "$id $mets $rxns $genes" >> GEMs.stats;
+        done;
+        done
+        Rscript {config[scripts][modelVis]}
+        """
 
 rule organizeGEMs:
     message:
-        "Organizes GEMs into sample specific subfolders. Necessary to run smetana per sample using the {IDs} wildcard."
+        """
+        Organizes GEMs into sample specific subfolders. Necessary to run smetana per sample using the {IDs} wildcard.
+        One liner (run from refined bins folder): for folder in */;do mkdir -p ../GEMs/$folder;mv ../GEMs/$(echo $folder|sed 's|/||')_*.xml ../GEMs/$folder;done
+        """
     shell:
         """
         cd {config[path][refined]}
-        for folder in */;do mkdir -p ../{config[path][GEMs]}; mv ../{config[path][GEMs]}/$(echo $folder|sed 's|/||')_*.xml ../{config[path][GEMs]}/$folder;done
+        for folder in */;do 
+        mkdir -p ../{config[path][GEMs]}; 
+        mv ../{config[path][GEMs]}/$(echo $folder|sed 's|/||')_*.xml ../{config[path][GEMs]}/$folder;
+        done
         """
 
 rule smetana:
@@ -461,6 +524,19 @@ rule smetana:
         smetana -o $(basename {input}) --flavor fbc2 --mediadb media_db.tsv -m {config[params][smetanaMedia]} --detailed --solver {config[params][smetanaSolver]} -v *.xml
         cp *.tsv {config[path][root]} #safety measure for backup of results in case rule fails for some reason
         mv *.tsv $(dirname {output})
+        """
+
+rule interactionVis:
+    input: 
+        config["path"]["root"]+"/"+config["folder"]["SMETANA"]
+    shell:
+        """
+        cd {input}
+        mv media_db.tsv ../scripts/
+        cat *.tsv|sed '/community/d' > smetana.all
+        less smetana.all |cut -f2|sort|uniq > media.txt
+        ll|grep tsv|awk '{print $NF}'|sed 's/_.*$//g'>samples.txt
+        while read sample;do echo -n "$sample ";while read media;do var=$(less smetana.all|grep $sample|grep -c $media); echo -n "$var " ;done < media.txt; echo "";done < samples.txt > sampleMedia.stats
         """
 
 rule memote:
@@ -499,7 +575,13 @@ rule grid:
         set +u;source activate {config[envs][metabagpipes]};set -u
         cp -r {input.bins} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
-        mkdir MAGdb
+        cat *.gz > $(basename $(dirname {input.bins})).fastq.gz
+        rm $(basename {input.R1}) $(basename {input.R2})
+        mkdir MAGdb out
         update_database -d MAGdb -g $(basename {input.bins}) -p MAGdb
      	rm -r $(basename {input.bins})
+        grid multiplex -r . -e fastq.gz -d MAGdb -p -c 0.2 -o out -n {config[cores][grid]}
+        rm $(basename $(dirname {input.bins})).fastq.gz
+        mkdir {output}
+        mv out/* {output}
         """

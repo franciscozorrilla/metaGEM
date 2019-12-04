@@ -3,7 +3,7 @@
 # Helpfile function
 
 usage() {
-  echo -n "Usage: bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
+  echo -n "Usage: bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES] [-m MEMORY]
 
 Snakefile wrapper/parser for metaBAGpipes. 
 
@@ -107,13 +107,15 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    sed -i "7s/:.*$/: $(echo $mem)G,/" cluster_config.json
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
+    echo "Note: Errors in snakemake submission of jobs may likely be due to wildcard missassignment caused by any non-sample ID folder/file in the dataset folder."
     snakemake --unlock
-    snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+    snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
     while true; do
         read -p "Do you wish to submit this batch of jobs? (y/n)" yn
         case $yn in
-            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
             [Nn]* ) exit;;
             * ) echo "Please answer yes or no.";;
         esac
@@ -137,7 +139,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["concoctInput"]+"/{IDs}_concoct_inputtableR.tsv", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -153,7 +155,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["concoctOutput"]+"/{IDs}/{IDs}.concoct-bins", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -169,7 +171,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["metabat"]+"/{IDs}/{IDs}.metabat-bins", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -185,7 +187,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -201,7 +203,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["refined"]+"/{IDs}", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -247,7 +249,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["classification"]+"/{IDs}", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -263,7 +265,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["abundance"]+"/{IDs}", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -293,7 +295,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{binIDs}.xml", binIDs = binIDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -319,11 +321,25 @@ function parse() {
         esac
     done
 
+    elif [ $task == "modelVis" ]; then
+    echo "No need to parse Snakefile for rule $task."
+    echo "Running snakemake on login node."
+    snakemake --unlock
+    snakemake $task -n
+    while true; do
+        read -p "Do you wish to submit this job? (y/n)" yn
+        case $yn in
+            [Yy]* ) snakemake $task ; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
   elif [ $task == "smetana" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}_detailed.tsv", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -339,7 +355,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["memote"]+"/{IDs}", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -355,7 +371,7 @@ function parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["GRiD"]+"/{IDs}", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    echo "Submitting $njobs jobs with $ncores cores each."
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     snakemake --unlock
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
         while true; do
@@ -387,6 +403,7 @@ else
         -t|--task) shift; task=${1} ;;
         -j|--nJobs) shift; njobs=${1} ;;
         -c|--nCores) shift; ncores=${1} ;;
+        -m|--mem) shift; mem=${1} ;;
         --endopts) shift; break ;;
         *) die "invalid option: '$1'." ;;
       esac

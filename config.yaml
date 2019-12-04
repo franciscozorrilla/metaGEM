@@ -22,6 +22,7 @@ scripts:
     binFilter: binFilter.py
     assemblyVis: assemblyVis.R
     binningVis: binningVis.R
+    modelVis: modelVis.R
 dbs:
     carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
     toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt
