@@ -16,6 +16,7 @@ Snakefile wrapper/parser for metaBAGpipes.
                             organizeData
 
                         WORKFLOW
+                            fastp
                             metaspades
                             kallisto
                             concoct
@@ -98,6 +99,24 @@ function parse() {
         read -p "Do you wish to submit this job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+  elif [ $task == "fastp" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)'
+    sed  -i "15s~^.*$~        $string~" Snakefile
+    sed -i "5s/:.*$/: $ncores,/" cluster_config.json
+    sed -i "7s/:.*$/: $(echo $mem)G,/" cluster_config.json
+    echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
+    echo "Note: Errors in snakemake submission of jobs may likely be due to wildcard missassignment caused by any non-sample ID folder/file in the dataset folder."
+    snakemake --unlock
+    snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+    while true; do
+        read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
             [Nn]* ) exit;;
             * ) echo "Please answer yes or no.";;
         esac

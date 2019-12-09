@@ -3,7 +3,7 @@ configfile: "config.yaml"
 import os
 import glob
 
-IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('raw/*'))])
+IDs = sorted([os.path.splitext(val)[0] for val in (glob.glob('dataset/*'))])
 IDs = [os.path.basename(val) for val in IDs] #grab just sample ID
 
 #Make sure that final_bins/ folder contains all bins in single folder for binIDs wildcard to work. Use moveBins rule or perform manually.
@@ -12,7 +12,7 @@ binIDs = [os.path.basename(val) for val in binIDs] #grab just bin ID
 
 rule all:
     input:
-        expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)
+        expand(config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", IDs = IDs)
     shell:
         """
         echo {input}
@@ -26,7 +26,7 @@ rule createFolders:
     shell:
         """
         cd {input}
-        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 16 > folders.txt
+        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 17 > folders.txt
         while read line;do mkdir -p $line;done < folders.txt
         rm folders.txt
         """      
@@ -57,10 +57,25 @@ rule organizeData:
         rm ID_samples.txt
         """
 
-rule metaspades: 
+rule qfilter: 
     input:
         R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
         R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz" 
+    output:
+        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        mkdir -p $(dirname $(dirname {output.R1}))
+        mkdir -p $(dirname {output.R1})
+        fastp --thread {config[cores][fastp]} -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
+        """
+
+rule metaspades: 
+    input:
+        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
     output:
         config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
     benchmark:
@@ -73,13 +88,14 @@ rule metaspades:
         metaspades.py -1 $(basename {input.R1}) -2 $(basename {input.R2}) -t {config[cores][metaspades]} -o .
         gzip contigs.fasta
         mkdir -p $(dirname {output})
-        mv -v contigs.fasta.gz spades.log $(dirname {output})
+        rm $(basename {input.R1}) $(basename {input.R2})
+        mv -v * $(dirname {output})
         """
 
 #rule megahit: 
 #    input:
-#        R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
-#        R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz" 
+#        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+#        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
 #    output:
 #        config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
 #    benchmark:
@@ -118,9 +134,10 @@ rule assemblyVis:
         for folder in */;do 
         for file in $folder*.gz;do 
         N=$(less $file|grep -c ">"); 
-        L=$(less $file|grep ">"|cut -d '_' -f4|awk '{{sum+=$1}} END{{print sum}}'); 
+        L=$(less $file|grep ">"|cut -d '_' -f4|awk '{{sum+=$1}} END{{print sum}}');
+        A=$(awk -v n="$N" -v l="$L" 'BEGIN{{ if (n>0) print l / n}}') 
         C=$(less $file|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}'); 
-        echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $C >> assembly.stats;
+        echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $A $C >> assembly.stats;
         done;
         done
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
@@ -129,7 +146,7 @@ rule assemblyVis:
 rule kallisto:
     input:
         contigs=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
-        reads=config["path"]["root"]+"/"+config["folder"]["data"]+"/"
+        reads=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/"
     output:
         config["path"]["root"]+"/"+config["folder"]["concoctInput"]+"/{IDs}_concoct_inputtableR.tsv"
     benchmark:
@@ -180,8 +197,8 @@ rule concoct:
 rule metabat:
     input:
         assembly=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
-        R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
     output:
         directory(config["path"]["root"]+"/"+config["folder"]["metabat"]+"/{IDs}/{IDs}.metabat-bins")
     benchmark:
@@ -206,8 +223,8 @@ rule metabat:
 rule maxbin:
     input:
         assembly=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
-        R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
     output:
         directory(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins")
     benchmark:
@@ -250,8 +267,8 @@ rule binRefine:
 
 rule binReassemble:
     input:
-        R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz",
+        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz",
         refinedBins=config["path"]["root"]+"/"+config["folder"]["refined"]+"/{IDs}/metawrap_50_10_bins"
     output:
         directory(config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}")
@@ -331,8 +348,8 @@ rule classifyGenomes:
 rule abundance:
     input:
         bins=config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}/reassembled_bins",
-        R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
     output:
         directory(config["path"]["root"]+"/"+config["folder"]["abundance"]+"/{IDs}")
     benchmark:
@@ -564,8 +581,8 @@ rule memote:
 rule grid:
     input:
         bins=config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}/reassembled_bins",
-        R1=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["data"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
     output:
         directory(config["path"]["root"]+"/"+config["folder"]["GRiD"]+"/{IDs}")
     benchmark:

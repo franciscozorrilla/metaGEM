@@ -1,5 +1,5 @@
 path:
-    root: /home/zorrilla/workspace/tutorial
+    root: /home/zorrilla/workspace/straya
 folder:
     data: dataset
     logs: logs
@@ -17,6 +17,7 @@ folder:
     GEMs: GEMs
     SMETANA: SMETANA
     memote: memote
+    qfiltered: qfiltered
 scripts:
     kallisto2concoct: kallisto2concoct.py
     binFilter: binFilter.py
@@ -27,7 +28,8 @@ dbs:
     carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
     toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt
 cores:
-    metaspades: 24
+    fastp: 8
+    metaspades: 48
     kallisto: 24
     concoct: 24
     metabat: 24
@@ -53,6 +55,6 @@ params:
     smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
     smetanaSolver: CPLEX
 envs:
-    metabagpipes: metabagpipes
+    metabagpipes: binenv
     metawrap: metawrap
     
