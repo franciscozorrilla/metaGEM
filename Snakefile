@@ -11,7 +11,7 @@ def get_ids_from_path_pattern(path_pattern):
 # Make sure that final_bins/ folder contains all bins in single folder for binIDs
 # wildcard to work. Use moveBins rule or perform manually.
 binIDs = get_ids_from_path_pattern('final_bins/*.faa')
-IDs = get_ids_from_path_pattern('raw/*')
+IDs = get_ids_from_path_pattern('dataset/*')
 
 DATA_READS_1 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_1.fastq.gz'
 DATA_READS_2 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_2.fastq.gz'
@@ -78,8 +78,8 @@ rule qfilter:
         R1 = DATA_READS_1,
         R2 = DATA_READS_2
     output:
-        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        R1 = config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+        R2 = config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
@@ -90,8 +90,8 @@ rule qfilter:
 
 rule megahit:
     input:
-        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        R1 = rules.qfilter.output.R1, 
+        R2 = rules.qfilter.output.R2
     output:
         config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
     benchmark:
@@ -215,8 +215,8 @@ rule concoct:
 rule metabat:
     input:
         assembly = rules.metaspades.output,
-        R1 = DATA_READS_1,
-        R2 = DATA_READS_2
+        R1 = rules.qfilter.output.R1, 
+        R2 = rules.qfilter.output.R2
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
     benchmark:
@@ -246,8 +246,8 @@ rule metabat:
 rule maxbin:
     input:
         assembly = rules.metaspades.output,
-        R1 = DATA_READS_1,
-        R2 = DATA_READS_2
+        R1 = rules.qfilter.output.R1, 
+        R2 = rules.qfilter.output.R2
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
     benchmark:
@@ -305,8 +305,8 @@ rule binRefine:
 
 rule binReassemble:
     input:
-        R1 = DATA_READS_1,
-        R2 = DATA_READS_2,
+        R1 = rules.qfilter.output.R1, 
+        R2 = rules.qfilter.output.R2,
         refinedBins = f'{config["path"]["root"]}/{config["folder"]["refined"]}/{{IDs}}/metawrap_50_10_bins'
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}')
@@ -442,8 +442,8 @@ rule classifyGenomes:
 rule abundance:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        R1 = DATA_READS_1,
-        R2 = DATA_READS_2
+        R1 = rules.qfilter.output.R1, 
+        R2 = rules.qfilter.output.R2
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["abundance"]}/{{IDs}}')
     benchmark:
@@ -690,8 +690,8 @@ rule memote:
 rule grid:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        R1 = DATA_READS_1,
-        R2 = DATA_READS_2
+        R1 = rules.qfilter.output.R1, 
+        R2 = rules.qfilter.output.R2
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["GRiD"]}/{{IDs}}')
     benchmark:
