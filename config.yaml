@@ -29,7 +29,7 @@ dbs:
     toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt
 cores:
     fastp: 8
-    metaspades: 48
+    megahit: 48
     kallisto: 24
     concoct: 24
     metabat: 24

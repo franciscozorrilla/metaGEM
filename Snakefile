@@ -88,46 +88,25 @@ rule qfilter:
         fastp --thread {config[cores][fastp]} -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
         """
 
-rule metaspades: 
+rule megahit:
     input:
         R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
         R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
     output:
-        f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{IDs}}/contigs.fasta.gz'
+        config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.metaspades.benchmark.txt'
+        config["path"]["root"]+"/"+"benchmarks/{IDs}.megahit.benchmark.txt"
     shell:
         """
-        set +u; source activate {config[envs][metabagpipes]}; set -u;
-        cp {input.R1} {input.R2} $TMPDIR    
-        cd $TMPDIR
-        metaspades.py -1 $(basename {input.R1}) -2 $(basename {input.R2}) -t {config[cores][metaspades]} -o .
-        gzip contigs.fasta
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname {output})
-        rm $(basename {input.R1}) $(basename {input.R2})
-        mv -v * $(dirname {output})
+        cd $TMPDIR
+        cp {input.R1} {input.R2} $TMPDIR
+        megahit -t {config[cores][megahit]} --presets meta-large --verbose -1 $(basename {input.R1}) -2 $(basename {input.R2}) -o tmp
+        mv tmp/final.contigs.fa contigs.fasta
+        gzip contigs.fasta
+        mv contigs.fasta.gz $(dirname {output})
         """
-
-
-#rule megahit:
-#    input:
-#        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
-#        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
-#    output:
-#        config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
-#    benchmark:
-#        config["path"]["root"]+"/"+"benchmarks/{IDs}.megahit.benchmark.txt"
-#    shell:
-#        """
-#        set +u;source activate {config[envs][metabagpipes]};set -u;
-#        mkdir -p $(dirname {output})
-#        cd $TMPDIR
-#        cp {input.R1} {input.R2} $TMPDIR
-#        megahit -t 24 --presets meta-large --verbose -1 $(basename {input.R1}) -2 $(basename {input.R2}) -o tmp
-#        mv tmp/final.contigs.fa contigs.fasta
-#        gzip contigs.fasta
-#        mv contigs.fasta.gz $(dirname {output})
-#        """
 
 
 rule assemblyVis:

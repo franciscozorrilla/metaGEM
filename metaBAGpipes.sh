@@ -17,7 +17,7 @@ Snakefile wrapper/parser for metaBAGpipes.
 
                         WORKFLOW
                             fastp
-                            metaspades
+                            megahit
                             kallisto
                             concoct
                             metabat
@@ -43,6 +43,7 @@ Snakefile wrapper/parser for metaBAGpipes.
 
   -j, --nJobs       Specify number of jobs to run in parallel
   -c, --nCores      Specify number of cores per job
+  -m, --mem         Specify memory in GB required for job
   -h, --help        Display this help and exit
 
 Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
@@ -105,24 +106,23 @@ function parse() {
     done
 
   elif [ $task == "fastp" ]; then
-    string='expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)'
+    string='expand(config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
-    sed -i "7s/:.*$/: $(echo $mem)G,/" cluster_config.json
     echo "Submitting $njobs jobs with $ncores cores and $mem memory each."
     echo "Note: Errors in snakemake submission of jobs may likely be due to wildcard missassignment caused by any non-sample ID folder/file in the dataset folder."
     snakemake --unlock
-    snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+    snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
     while true; do
         read -p "Do you wish to submit this batch of jobs? (y/n)" yn
         case $yn in
-            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+            [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
             [Nn]* ) exit;;
             * ) echo "Please answer yes or no.";;
         esac
     done
 
-  elif [ $task == "metaspades" ]; then
+  elif [ $task == "megahit" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)'
     sed  -i "15s~^.*$~        $string~" Snakefile
     sed -i "5s/:.*$/: $ncores,/" cluster_config.json
