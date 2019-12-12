@@ -16,16 +16,16 @@ Snakefile wrapper/parser for metaBAGpipes.
                             organizeData
 
                         WORKFLOW
-                            fastp
-                            megahit
-                            kallisto
-                            concoct
-                            metabat
-                            maxbin
-                            binRefine
-                            binReassemble
-                            classifyGenomes
-                            abundance
+                            fastp (Read QC)
+                            megahit (Assembly)
+                            kallisto (Mapping for CONCOCT)
+                            concoct (Binning)
+                            metabat (Binning)
+                            maxbin (Binning)
+                            binRefine (Bin refinement)
+                            binReassemble (Bin reassembly)
+                            classifyGenomes (Bin classification)
+                            abundance (Bin quantification)
                             moveBins
                             carveme
                             organizeGems
@@ -34,6 +34,7 @@ Snakefile wrapper/parser for metaBAGpipes.
                             grid
 
                         VISUALIZATION (in development)
+                            qcVis
                             assemblyVis
                             binningVis
                             taxonomyVis

@@ -109,16 +109,13 @@ rule megahit:
         """
 
 
-rule assemblyVis:
+rule assemblyVisMetaspades:
     input:
         config["path"]["root"]
     message:
         """
-        This may take a long time to run with many samples. 
-        Run the lines below to run rule in background of login node instead of through snakemake.
-        
+        This may take a long time to run with many samples. Run the lines below to run rule in background of login node instead of through snakemake.
         Raw data: nohup sh -c 'for folder in */;do echo -n "$folder "|sed "s|/||g" >> dataset.stats;zcat "$folder"*_1.fastq.gz | awk "{{if(NR%4==2) print length($1)}}" | sort | uniq -c >> dataset.stats;done' &
-        
         Assembly data: nohup sh -c 'for folder in */;do for file in $folder*.gz;do N=$(less $file|grep -c ">"); L=$(less $file|grep ">"|cut -d "_" -f4|awk '"'"'{sum+=$NF} END{print sum}'"'"'); C=$(less $file|grep ">"|cut -d "_" -f6|awk '"'"'{sum+=$NF} END { if (NR > 0) print sum / NR }'"'"'); echo $(echo $file|sed "s|/contigs.fasta.gz||g") $N $L $C >> assembly.stats; done;done'&
         """
     shell:
@@ -143,6 +140,21 @@ rule assemblyVis:
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
         """
 
+rule assemblyVisMegahit:
+    shell:
+        """
+        for folder in */;do 
+            for file in $folder*.gz;do 
+                N=$(less $file|grep -c ">"); 
+                L=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
+                A=$(awk -v n="$N" -v l="$L" 'BEGIN{{ if (n>0) print l / n}}'); 
+                M=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|sort -n | awk 'NF{{a[NR]=$1;c++}}END{{print (c%2==0)?((a[c/2]+a[c/2+1])/2):a[c/2+1]}}');
+                T=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000{c++} END{print c+0}');
+                S=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000'|awk '{{sum+=$1}}END{{print sum}}')
+                echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $A $M $T $S>> assembly.stats;
+            done;
+        done
+        """
 
 rule kallisto:
     input:
@@ -241,7 +253,6 @@ rule metabat:
         runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
         mv *.txt *.tab $(basename {output}) $(dirname {output})
         """
-
 
 rule maxbin:
     input:
