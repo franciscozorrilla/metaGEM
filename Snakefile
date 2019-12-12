@@ -126,7 +126,7 @@ rule assemblyVis:
 
 rule kallisto:
     input:
-        contigs = rules.metaspades.output,
+        contigs = rules.megahit.output,
         reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/'
     output:
         f'{config["path"]["root"]}/{config["folder"]["concoctInput"]}/{{IDs}}_concoct_inputtableR.tsv'
@@ -138,9 +138,9 @@ rule kallisto:
         cp {input.contigs} $TMPDIR
         cd $TMPDIR
         gunzip $(basename {input.contigs})
-        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > metaspades_c10k.fa
+        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > assembly_c10k.fa
         
-        kallisto index metaspades_c10k.fa -i $(basename $(dirname {input.contigs})).kaix
+        kallisto index assembly_c10k.fa -i $(basename $(dirname {input.contigs})).kaix
         
         for folder in {input.reads}*;do
         cp $folder/*.fastq.gz $TMPDIR;
@@ -164,7 +164,7 @@ rule kallisto:
 rule concoct:
     input:
         table = rules.kallisto.output,
-        contigs = rules.metaspades.output
+        contigs = rules.megahit.output
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["concoctOutput"]}/{{IDs}}/{{IDs}}.concoct-bins')
     benchmark:
@@ -177,9 +177,9 @@ rule concoct:
         cp {input.contigs} {input.table} $TMPDIR
         cd $TMPDIR
         gunzip $(basename {input.contigs})
-        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > metaspades_c10k.fa
+        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > assembly_c10k.fa
         
-        concoct --coverage_file {input.table} --composition_file metaspades_c10k.fa \
+        concoct --coverage_file {input.table} --composition_file assembly_c10k.fa \
             -b $(basename $(dirname {output})) \
             -t {config[cores][concoct]} \
             -c {config[params][concoct]}
@@ -194,7 +194,7 @@ rule concoct:
 
 rule metabat:
     input:
-        assembly = rules.metaspades.output,
+        assembly = rules.megahit.output,
         R1 = rules.qfilter.output.R1, 
         R2 = rules.qfilter.output.R2
     output:
@@ -224,7 +224,7 @@ rule metabat:
 
 rule maxbin:
     input:
-        assembly = rules.metaspades.output,
+        assembly = rules.megahit.output,
         R1 = rules.qfilter.output.R1, 
         R2 = rules.qfilter.output.R2
     output:
