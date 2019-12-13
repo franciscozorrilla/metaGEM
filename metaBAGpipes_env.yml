@@ -223,7 +223,7 @@ dependencies:
     - configparser==4.0.2
     - cplex==12.9.0.0
     - docloud==1.0.257
-    - docplex==2.9.133
+    - docplex
     - framed==0.5.2
     - future==0.18.2
     - futures==3.1.1
