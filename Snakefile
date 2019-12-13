@@ -684,7 +684,7 @@ rule grid:
         rm $(basename {input.R1}) $(basename {input.R2})
         mkdir MAGdb out
         update_database -d MAGdb -g $(basename {input.bins}) -p MAGdb
-     	rm -r $(basename {input.bins})
+        rm -r $(basename {input.bins})
         grid multiplex -r . -e fastq.gz -d MAGdb -p -c 0.2 -o out -n {config[cores][grid]}
         rm $(basename $(dirname {input.bins})).fastq.gz
         mkdir {output}
