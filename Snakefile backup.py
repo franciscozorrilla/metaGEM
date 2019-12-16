@@ -135,38 +135,7 @@ rule megahit:
         mv contigs.fasta.gz $(dirname {output})
         """
 
-rule assemblyVisMetaspades:
-    input:
-        config["path"]["root"]
-    message:
-        """
-        This may take a long time to run with many samples. Run the lines below to run rule in background of login node instead of through snakemake.
-        Raw data: nohup sh -c 'for folder in */;do echo -n "$folder "|sed "s|/||g" >> dataset.stats;zcat "$folder"*_1.fastq.gz | awk "{{if(NR%4==2) print length($1)}}" | sort | uniq -c >> dataset.stats;done' &
-        Assembly data: nohup sh -c 'for folder in */;do for file in $folder*.gz;do N=$(less $file|grep -c ">"); L=$(less $file|grep ">"|cut -d "_" -f4|awk '"'"'{sum+=$NF} END{print sum}'"'"'); C=$(less $file|grep ">"|cut -d "_" -f6|awk '"'"'{sum+=$NF} END { if (NR > 0) print sum / NR }'"'"'); echo $(echo $file|sed "s|/contigs.fasta.gz||g") $N $L $C >> assembly.stats; done;done'&
-        """
-    shell:
-        """
-        set +u;source activate memotenv;set -u;
-        cd {input}/{config[folder][data]}
-        for folder in */;do 
-        echo -n "$folder "|sed "s|/||g" >> dataset.stats;
-        zcat "$folder"*_1.fastq.gz | awk '{{if(NR%4==2) print length($1)}}' | sort | uniq -c >> dataset.stats;
-        done
-        mv dataset.stats {input}/{config[folder][assemblies]}
-        cd {input}/{config[folder][assemblies]}
-        for folder in */;do 
-        for file in $folder*.gz;do 
-        N=$(less $file|grep -c ">"); 
-        L=$(less $file|grep ">"|cut -d '_' -f4|awk '{{sum+=$1}} END{{print sum}}');
-        A=$(awk -v n="$N" -v l="$L" 'BEGIN{{ if (n>0) print l / n}}') 
-        C=$(less $file|grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}'); 
-        echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $A $C >> assembly.stats;
-        done;
-        done
-        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
-        """
-
-rule assemblyVisMegahit:
+rule assemblyVis:
     shell:
         """
         for folder in */;do 
@@ -174,7 +143,7 @@ rule assemblyVisMegahit:
                 N=$(less $file|grep -c ">"); 
                 L=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
                 A=$(awk -v n="$N" -v l="$L" 'BEGIN{{ if (n>0) print l / n}}'); 
-                M=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|sort -n | awk 'NF{{a[NR]=$1;c++}}END{{print (c%2==0)?((a[c/2]+a[c/2+1])/2):a[c/2+1]}}');
+                M=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk 'BEGIN{a=   0}{if ($1>0+a) a=$1} END{print a}');
                 T=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000{c++} END{print c+0}');
                 S=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000'|awk '{{sum+=$1}}END{{print sum}}')
                 echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $A $M $T $S>> assembly.stats;
@@ -185,7 +154,8 @@ rule assemblyVisMegahit:
 rule kallisto:
     input:
         contigs=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
-        reads=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/"
+        reads=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/",
+        script=config["path"]["root"]+"/"+config["folder"]["scripts"]+"/"+config["scripts"]["kallisto2concoct"]
     output:
         config["path"]["root"]+"/"+config["folder"]["concoctInput"]+"/{IDs}_concoct_inputtableR.tsv"
     benchmark:
@@ -193,7 +163,7 @@ rule kallisto:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        cp {input.contigs} $TMPDIR
+        cp {input.contigs} {input.script} $TMPDIR
         cd $TMPDIR
         gunzip $(basename {input.contigs})
         cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > metaspades_c10k.fa
@@ -236,8 +206,7 @@ rule concoct:
 rule metabat:
     input:
         assembly=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
-        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        reads=config["path"]["root"]+"/"+config["folder"]["qfiltered"]
     output:
         directory(config["path"]["root"]+"/"+config["folder"]["metabat"]+"/{IDs}/{IDs}.metabat-bins")
     benchmark:
@@ -247,23 +216,54 @@ rule metabat:
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
         mkdir -p $(dirname {output})
-        cp {input.assembly} {input.R1} {input.R2} $TMPDIR
+        cp {input.assembly} $TMPDIR
         cd $TMPDIR
         mv $(basename {input.assembly}) $(basename $(dirname {input.assembly})).gz
         gunzip $(basename $(dirname {input.assembly})).gz
         bwa index $(basename $(dirname {input.assembly}))
-        bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) $(basename {input.R1}) $(basename {input.R2}) > $(basename $(dirname {input.assembly})).sam
-        samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
-        samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
-        runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
+
+        for sample in {input.reads}/*;do
+            ID=$(basename $sample);
+            bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) $sample/*_1.fastq.gz $sample/*_2.fastq.gz > $ID.sam
+            samtools view -@ {config[cores][metabat]} -Sb $ID.sam > $ID.bam
+            samtools sort -@ {config[cores][metabat]} $ID.bam > $ID.sort
+            rm $ID.bam $ID.sam
+        done
+
+        runMetaBat.sh $(basename $(dirname {input.assembly})) *.sort
         mv *.txt *.tab $(basename {output}) $(dirname {output})
         """
+
+#rule metabatOLD:
+#    input:
+#        assembly=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
+#        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+#        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+#    output:
+#        directory(config["path"]["root"]+"/"+config["folder"]["metabat"]+"/{IDs}/{IDs}.metabat-bins")
+#    benchmark:
+#        config["path"]["root"]+"/"+"benchmarks/{IDs}.metabat.benchmark.txt"
+#    shell:
+#        """
+#        set +u;source activate {config[envs][metabagpipes]};set -u;
+#        mkdir -p $(dirname $(dirname {output}))
+#        mkdir -p $(dirname {output})
+#        cp {input.assembly} {input.R1} {input.R2} $TMPDIR
+#        cd $TMPDIR
+#        mv $(basename {input.assembly}) $(basename $(dirname {input.assembly})).gz
+#        gunzip $(basename $(dirname {input.assembly})).gz
+#        bwa index $(basename $(dirname {input.assembly}))
+#        bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) $(basename {input.R1}) $(basename {input.R2}) > $(basename $(dirname {input.assembly})).sam
+#        samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
+#        samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
+#        runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
+#        mv *.txt *.tab $(basename {output}) $(dirname {output})
+#        """
 
 rule maxbin:
     input:
         assembly=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
-        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        reads=config["path"]["root"]+"/"+config["folder"]["qfiltered"]
     output:
         directory(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins")
     benchmark:
@@ -273,15 +273,38 @@ rule maxbin:
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
         mkdir -p $(dirname {output})
-        cp {input.assembly} {input.R1} {input.R2} $TMPDIR
+        cp {input.assembly} $TMPDIR
         cd $TMPDIR
         gunzip contigs.fasta.gz
-        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -reads *_1.fastq.gz -reads2 *_2.fastq.gz -thread {config[cores][maxbin]}
-        rm contigs.fasta *.gz
+        find {input.reads} -name "*.gz" > reads_list.txt  
+        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -reads_list reads_list.txt -thread {config[cores][maxbin]}
+        rm -r $(basename {input.reads}) contigs.fasta
         mkdir $(basename {output})
         mv *.fasta $(basename {output})
-        mv *.abund1 *.abund2 *.tab $(basename {output}) $(dirname {output})
+        mv $(basename {output}) $(dirname {output})
         """
+
+#rule maxbinOLD:
+#    input:
+#        assembly=config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz",
+#        R1=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
+#        R2=config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+#    benchmark:
+#        config["path"]["root"]+"/"+"benchmarks/{IDs}.maxbin.benchmark.txt"
+#    shell:
+#        """
+#        set +u;source activate {config[envs][metabagpipes]};set -u;
+#        mkdir -p $(dirname $(dirname {output}))
+#        mkdir -p $(dirname {output})
+#        cp {input.assembly} {input.R1} {input.R2} $TMPDIR
+#        cd $TMPDIR
+#        gunzip contigs.fasta.gz
+#        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -reads *_1.fastq.gz -reads2 *_2.fastq.gz -thread {config[cores][maxbin]}
+#        rm contigs.fasta *.gz
+#        mkdir $(basename {output})
+#        mv *.fasta $(basename {output})
+#        mv *.abund1 *.abund2 *.tab $(basename {output}) $(dirname {output})
+#        """
 
 rule binRefine:
     input:
