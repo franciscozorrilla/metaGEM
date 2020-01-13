@@ -1,5 +1,5 @@
 path:
-    root: /home/zorrilla/workspace/straya
+    root: /path/to/workspace
 folder:
     data: dataset
     logs: logs
@@ -25,15 +25,15 @@ scripts:
     binningVis: binningVis.R
     modelVis: modelVis.R
 dbs:
-    carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
-    toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt
+    carveme: /path/to/scripts/media_db.tsv
+    toy: /path/to/scripts/download_toydata.txt
 cores:
-    fastp: 8
-    megahit: 48
+    fastp: 4
+    metaspades: 48
     kallisto: 24
     concoct: 24
     metabat: 24
-    maxbin: 24
+    maxbin: 48
     refine: 24
     reassemble: 24
     classify: 2
@@ -44,6 +44,7 @@ cores:
     grid: 24
 params:
     cutfasta: 10000
+    assemblyPreset: meta-sensitive
     concoct: 800
     refineMem: 1600
     refineComp: 50

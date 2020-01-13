@@ -123,9 +123,16 @@ rule megahit:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname {output})
+
         cd $TMPDIR
         cp {input.R1} {input.R2} $TMPDIR
-        megahit -t {config[cores][megahit]} --presets meta-large --verbose -1 $(basename {input.R1}) -2 $(basename {input.R2}) -o tmp
+
+        megahit -t {config[cores][megahit]} \
+            --presets {config[params][assemblyPreset]} \
+            --verbose \
+            -1 $(basename {input.R1}) -2 $(basename {input.R2}) \
+            -o tmp;
+
         mv tmp/final.contigs.fa contigs.fasta
         gzip contigs.fasta
         mv contigs.fasta.gz $(dirname {output})
