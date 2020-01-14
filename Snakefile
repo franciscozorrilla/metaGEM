@@ -145,11 +145,9 @@ rule assemblyVis:
             for file in $folder*.gz;do 
                 N=$(less $file|grep -c ">"); 
                 L=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
-                A=$(awk -v n="$N" -v l="$L" 'BEGIN{{ if (n>0) print l / n}}'); 
-                M=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|sort -n | awk 'NF{{a[NR]=$1;c++}}END{{print (c%2==0)?((a[c/2]+a[c/2+1])/2):a[c/2+1]}}');
                 T=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000{c++} END{print c+0}');
                 S=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000'|awk '{{sum+=$1}}END{{print sum}}')
-                echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $A $M $T $S>> assembly.stats;
+                echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $T $S>> assembly.stats;
             done;
         done
         """

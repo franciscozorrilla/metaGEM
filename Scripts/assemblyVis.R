@@ -1,34 +1,47 @@
 library(ggplot2)
 library(gridExtra)
 
-data = read.delim("dataset.stats",stringsAsFactors = FALSE,header = FALSE,sep = " ")
-colnames(data) = c("sample","reads","length")
-
-readsplot= ggplot() + 
-  geom_density(data=data,aes(reads)) + 
-  geom_vline(aes(xintercept=mean(data$reads)), linetype ="dashed",color = "red") + 
-  geom_vline(aes(xintercept=median(data$reads)), linetype ="dashed",color = "blue") + 
-  ggtitle("Reads across samples")
-
 assembly = read.delim("assembly.stats",stringsAsFactors = FALSE,header = FALSE,sep = " ")
-colnames(assembly) = c("sample","contigs","length","coverage")
+colnames(assembly) = c("sample","contigs","length_total","ave_contig","gt1000","gt1000_total")
 
-assemblyplotC= ggplot() + 
-  geom_density(data=assembly,aes(contigs)) + 
-  geom_vline(aes(xintercept=mean(assembly$contigs)), linetype ="dashed",color = "red") + 
-  geom_vline(aes(xintercept=median(assembly$contigs)), linetype ="dashed",color = "blue") + 
-  ggtitle("Contigs across assemblies")
+contplot = ggplot(data=assembly) +
+  geom_density(aes(x=contigs,fill="Total contigs")) +
+  geom_density(aes(x=gt1000,fill="Contigs >= 1000")) +
+  ggtitle("Contigs across samples") +
+  theme(legend.title = element_blank()) + 
+  scale_x_log10()
 
-assemblyplotL= ggplot() + 
-  geom_density(data=assembly,aes(length)) + 
-  geom_vline(aes(xintercept=mean(assembly$length)), linetype ="dashed",color = "red") + 
-  geom_vline(aes(xintercept=median(assembly$length)), linetype ="dashed",color = "blue") + 
-  ggtitle("Length across assemblies")
+contplot2 = ggplot(data=assembly) +
+  geom_point(aes(x=contigs,y=gt1000)) +
+  xlab("Total contigs") + 
+  ylab("Contigs >= 1000bp") +
+  ggtitle("Total contigs vs >=1000bp across samples") +
+  geom_abline(slope = 1,intercept=0) +
+  expand_limits(x = 0, y = 0)
 
-assemblyplotCov= ggplot() + 
-  geom_density(data=assembly,aes(coverage)) + 
-  geom_vline(aes(xintercept=mean(assembly$coverage)), linetype ="dashed",color = "red") + 
-  geom_vline(aes(xintercept=median(assembly$coverage)), linetype ="dashed",color = "blue") + 
-  ggtitle("Ave. cov. across assemblies")
+lenplot = ggplot(data=assembly) +
+  geom_density(aes(x=length_total,fill="Total length")) +
+  geom_density(aes(x=gt1000_total,fill="Length >= 1000")) +
+  xlab("Length")
+  ggtitle("Length across samples") +
+  theme(legend.title = element_blank()) + 
+  scale_x_log10()
 
-grid.arrange(readsplot,assemblyplotC,assemblyplotL,assemblyplotCov,ncol=2,nrow=2)
+lenplot2= ggplot(data=assembly) +
+  geom_point(aes(x=length_total,y=gt1000_total)) +
+  ggtitle("Total length vs >= 1000bp across samples")+
+  xlab("Total length") +
+  ylab("Length of contigs >= 1000 bp") +
+  geom_abline(slope = 1,intercept=0) +
+  expand_limits(x = 0, y = 0)
+
+fracplot = ggplot(data=assembly) +
+  geom_density(aes(100*gt1000/contigs,fill="Contigs")) +
+  geom_density(aes(100*gt1000_total/length_total,fill="Length")) +
+  ggtitle("Percent of information represented by contigs >= 1000 bp") + 
+  xlab("% Information") +
+  theme(legend.title = element_blank())
+
+assemblyplot=grid.arrange(fracplot,arrangeGrob(contplot2,contplot,lenplot2,lenplot,nrow=2,ncol=2),ncol=2,nrow=1)
+
+ggsave("assemblyVis.pdf",plot= assemblyplot,device = "pdf",dpi = 300)
