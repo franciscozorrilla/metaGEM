@@ -1,5 +1,5 @@
 path:
-    root: /home/zorrilla/workspace/githubReadmeTutorial
+    root: /path/to/workspace
 folder:
     data: dataset
     logs: logs
@@ -17,14 +17,19 @@ folder:
     GEMs: GEMs
     SMETANA: SMETANA
     memote: memote
+    qfiltered: qfiltered
 scripts:
-    kallisto2concoct: /home/zorrilla/workspace/tutorial/scripts/kallisto2concoct.py
-    binFilter: /home/zorrilla/workspace/tutorial/scripts/binFilter.py
+    kallisto2concoct: kallisto2concoct.py
+    binFilter: binFilter.py
+    assemblyVis: assemblyVis.R
+    binningVis: binningVis.R
+    modelVis: modelVis.R
 dbs:
-    carveme: /home/zorrilla/workspace/tutorial/scripts/media_db.tsv
-    toy: /home/zorrilla/workspace/tutorial/scripts/download_toydata.txt
+    carveme: /path/to/scripts/media_db.tsv
+    toy: /path/to/scripts/download_toydata.txt
 cores:
-    metaspades: 24
+    fastp: 4
+    megahit: 24
     kallisto: 24
     concoct: 24
     metabat: 24
@@ -39,6 +44,7 @@ cores:
     grid: 24
 params:
     cutfasta: 10000
+    assemblyPreset: meta-sensitive
     concoct: 800
     refineMem: 1600
     refineComp: 50
