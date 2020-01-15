@@ -26,9 +26,8 @@ metaBAGpipes integrates an array of existing bioinformatics and metabolic modeli
 
 ### Usage
 
+bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
 
-```bash
-./metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
 
 Snakefile wrapper/parser for metaBAGpipes. 
 
@@ -66,7 +65,8 @@ Snakefile wrapper/parser for metaBAGpipes.
   -c, --nCores      Specify number of cores per job
   -h, --help        Display this help and exit
 
-Example: ./metaBAGpipes.sh -t createFolders -j 1 -c 1
+Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
+
 ```
 
 ## Installation
