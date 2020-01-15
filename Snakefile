@@ -88,6 +88,7 @@ rule qfilter:
         fastp --thread {config[cores][fastp]} -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
         """
 
+
 rule qfilterVis:
     input: 
         config["path"]["root"]+"/"+config["folder"]["qfiltered"]
@@ -105,11 +106,12 @@ rule qfilterVis:
                 q20AF=$(head -n 25 $file|grep q20_rate|cut -d ':' -f2|sed 's/,//g'|tail -n 1)
                 q30BF=$(head -n 25 $file|grep q30_rate|cut -d ':' -f2|sed 's/,//g'|head -n 1)
                 q30AF=$(head -n 25 $file|grep q30_rate|cut -d ':' -f2|sed 's/,//g'|tail -n 1)
-                percent=$(awk -v RBF="$readsBF" -v RAF="$readsAF" 'BEGIN{print RAF/RBF}' )
+                percent=$(awk -v RBF="$readsBF" -v RAF="$readsAF" 'BEGIN{{print RAF/RBF}}' )
                 echo "$ID $readsBF $readsAF $basesBF $basesAF $percent $q20BF $q20AF $q30BF $q30AF" >> qfilter.stats
             done
         done
         """
+
 
 rule megahit:
     input:
@@ -122,7 +124,6 @@ rule megahit:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        mkdir -p $(dirname {output})
 
         cd $TMPDIR
         cp {input.R1} {input.R2} $TMPDIR
@@ -133,24 +134,30 @@ rule megahit:
             -1 $(basename {input.R1}) -2 $(basename {input.R2}) \
             -o tmp;
 
+        mkdir -p $(dirname {output})
         mv tmp/final.contigs.fa contigs.fasta
         gzip contigs.fasta
         mv contigs.fasta.gz $(dirname {output})
         """
 
+
 rule assemblyVis:
     shell:
         """
-        for folder in */;do 
-            for file in $folder*.gz;do 
-                N=$(less $file|grep -c ">"); 
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        cd {config[path][root]}/{config[folder][assemblies]}
+        for folder in */;do
+            for file in $folder*.gz;do
+                N=$(less $file|grep -c ">");
                 L=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
-                T=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000{c++} END{print c+0}');
-                S=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000'|awk '{{sum+=$1}}END{{print sum}}')
+                T=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000{{c++}} END{{print c+0}}');
+                S=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000'|awk '{{sum+=$1}}END{{print sum}}');
                 echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $T $S>> assembly.stats;
             done;
         done
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
         """
+
 
 rule kallisto:
     input:
@@ -182,7 +189,7 @@ rule kallisto:
         rm *.fastq.gz;
         done
         
-        python {config[scripts][kallisto2concoct]} \
+        python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
             --samplenames <(for s in *abundance.tsv.gz; do echo $s | sed 's/_abundance.tsv.gz//'g; done) *abundance.tsv.gz > $(basename {output})
         
         mv $(basename {output}) $(dirname {output})
@@ -216,7 +223,7 @@ rule concoct:
         
         mkdir -p $(basename {output})
         extract_fasta_bins.py contigs.fasta $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
-        mv $(basename {output}) *.log *.txt *.csv *.tab $(dirname {output})
+        mv $(basename {output}) *.log *.txt *.csv $(dirname {output})
         """
 
 
@@ -247,8 +254,9 @@ rule metabat:
         samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
         samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
         runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
-        mv *.txt *.tab $(basename {output}) $(dirname {output})
+        mv *.txt $(basename {output}) $(dirname {output})
         """
+
 
 rule maxbin:
     input:
@@ -275,7 +283,7 @@ rule maxbin:
         rm contigs.fasta *.gz
         mkdir $(basename {output})
         mv *.fasta $(basename {output})
-        mv *.abund1 *.abund2 *.tab $(basename {output}) $(dirname {output})
+        mv *.abund1 *.abund2 $(basename {output}) $(dirname {output})
         """
 
 
@@ -516,6 +524,7 @@ rule abundance:
         mv $(basename {output}).abund {output}
         """
 
+
 rule taxonomyVis:
     shell:
         """
@@ -542,9 +551,9 @@ rule taxonomyVis:
                 MAG=$(paste $folder*_map.stats | sed -n '3p' | cut -d ' ' -f1);
                 name=$(echo $file | sed 's/.map//g' | sed 's|^.*/||g');
                 echo -n "$name ";
-                awk -v samp="$SAMP" -v bin="$BIN" -v len="$LEN" 'BEGIN{printf bin/samp/len}';
+                awk -v samp="$SAMP" -v bin="$BIN" -v len="$LEN" 'BEGIN{{printf bin/samp/len}}';
                 echo -n " "; 
-                awk -v mag="$MAG" -v bin="$BIN" -v len="$LEN" 'BEGIN{print bin/mag/ len}';
+                awk -v mag="$MAG" -v bin="$BIN" -v len="$LEN" 'BEGIN{{print bin/mag/ len}}';
             done;
         done > abundance.stats
 
@@ -564,6 +573,7 @@ rule extractProteinBins:
         done;
         done
         """
+
 
 rule carveme:
     input:
@@ -717,3 +727,4 @@ rule grid:
         mkdir {output}
         mv out/* {output}
         """
+

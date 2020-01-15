@@ -29,11 +29,11 @@ dbs:
     toy: /path/to/scripts/download_toydata.txt
 cores:
     fastp: 4
-    metaspades: 48
+    megahit: 24
     kallisto: 24
     concoct: 24
     metabat: 24
-    maxbin: 48
+    maxbin: 24
     refine: 24
     reassemble: 24
     classify: 2
@@ -56,6 +56,6 @@ params:
     smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
     smetanaSolver: CPLEX
 envs:
-    metabagpipes: binenv
+    metabagpipes: metabagpipes
     metawrap: metawrap
     
