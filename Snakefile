@@ -223,7 +223,7 @@ rule concoct:
         
         mkdir -p $(basename {output})
         extract_fasta_bins.py contigs.fasta $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
-        mv $(basename {output}) *.log *.txt *.csv $(dirname {output})
+        mv $(basename {output}) *.txt *.csv $(dirname {output})
         """
 
 
@@ -322,7 +322,7 @@ rule binReassemble:
     input:
         R1 = rules.qfilter.output.R1, 
         R2 = rules.qfilter.output.R2,
-        refinedBins = f'{config["path"]["root"]}/{config["folder"]["refined"]}/{{IDs}}/metawrap_50_10_bins'
+        refinedBins = rules.binRefine.output
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}')
     benchmark:
@@ -331,7 +331,7 @@ rule binReassemble:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
         mkdir -p $(dirname {output})
-        cp -r {input.refinedBins} {input.R1} {input.R2} $TMPDIR
+        cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
         
         metaWRAP reassemble_bins -o $(basename {output}) \
@@ -343,7 +343,7 @@ rule binReassemble:
             -c {config[params][reassembleComp]} \
             -x {config[params][reassembleCont]}
         
-        rm -r $(basename {input.refinedBins})
+        rm -r metawrap_*_bins
         rm -r $(basename {output})/work_files
         rm *.fastq.gz 
         mv * $(dirname {output})
