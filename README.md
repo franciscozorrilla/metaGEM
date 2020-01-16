@@ -6,7 +6,7 @@ metaBAGpipes integrates an array of existing bioinformatics and metabolic modeli
 
 ## Use cases:
 
-1. Assembly using [metaSPAdes](https://github.com/ablab/spades).
+1. Assembly using [megahit](https://github.com/voutcn/megahit).
 2. Binning using:
       * [CONCOCT](https://github.com/BinPro/CONCOCT).
       * [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/).
