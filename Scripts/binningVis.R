@@ -5,33 +5,33 @@ library(ggplot2)
 concoctCheckm = read.delim("concoct.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(concoctCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 concoctBins= read.delim("concoct_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
-colnames(concoctBins) = c("bin","contigs","coverage")
+colnames(concoctBins) = c("bin","contigs","length")
 concoct = left_join(concoctCheckm,concoctBins,by="bin") %>% filter(contamination<=10,completeness>=50)
 
 metabatCheckm = read.delim("metabat.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(metabatCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 metabatBins= read.delim("metabat_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
-colnames(metabatBins) = c("bin","contigs","coverage")
+colnames(metabatBins) = c("bin","contigs","length")
 metabat = left_join(metabatCheckm,metabatBins,by="bin") %>% filter(contamination<=10,completeness>=50)
 
 maxbinCheckm = read.delim("maxbin.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(maxbinCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 maxbinBins= read.delim("maxbin_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
-colnames(maxbinBins) = c("bin","contigs","coverage")
+colnames(maxbinBins) = c("bin","contigs","length")
 maxbin = left_join(maxbinCheckm,maxbinBins,by="bin") %>% filter(contamination<=10,completeness>=50)
 maxbin$contigs = as.numeric(maxbin$contigs)
-maxbin$coverage = as.numeric(maxbin$coverage)
+maxbin$length = as.numeric(maxbin$length)
 
 refinedCheckm = read.delim("refined.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(refinedCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 refinedBins= read.delim("refined_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
-colnames(refinedBins) = c("bin","contigs","coverage")
+colnames(refinedBins) = c("bin","contigs","length")
 refined = left_join(refinedCheckm,refinedBins,by="bin") %>% filter(contamination<=10,completeness>=50)
 
 reassembledCheckm = read.delim("reassembled.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(reassembledCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size")
 reassembledBins= read.delim("reassembled_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
-colnames(reassembledBins) = c("bin","contigs","coverage")
+colnames(reassembledBins) = c("bin","contigs","length")
 reassembled = left_join(reassembledCheckm,reassembledBins,by="bin") %>% filter(contamination<=10,completeness>=50)
 
 bins <- as.data.frame(matrix(0,nrow = 5,ncol=2))
@@ -89,12 +89,12 @@ contigplot = ggplot() +
   theme(axis.text.y=element_blank())
 
 covplot = ggplot() + 
-  geom_density(data=concoct,aes(coverage,color="CONCOCT")) +
-  geom_density(data=maxbin,aes(coverage,color="maxbin2")) +
-  geom_density(data=metabat,aes(coverage,color="metabat2")) + 
-  geom_density(data=refined,aes(coverage,color="refined")) + 
-  geom_density(data=reassembled,aes(coverage,color="reassembled")) +
-  ggtitle("Coverage") + 
+  geom_density(data=concoct,aes(legnth,color="CONCOCT")) +
+  geom_density(data=maxbin,aes(legnth,color="maxbin2")) +
+  geom_density(data=metabat,aes(legnth,color="metabat2")) + 
+  geom_density(data=refined,aes(legnth,color="refined")) + 
+  geom_density(data=reassembled,aes(legnth,color="reassembled")) +
+  ggtitle("legnth") + 
   theme(legend.position = "none") +
   theme(axis.text.y=element_blank())
 

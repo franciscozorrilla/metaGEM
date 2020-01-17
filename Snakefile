@@ -312,7 +312,7 @@ rule binRefine:
             -c {config[params][refineComp]} \
             -x {config[params][refineCont]}
  
-        rm -r $(basename {input.concoct}) $(basename {input.metabat}) $(basename {input.maxbin})
+        rm -r $(basename {input.concoct}) $(basename {input.metabat}) $(basename {input.maxbin}) work_files
         mkdir -p {output}
         mv * {output}
         """
@@ -335,7 +335,7 @@ rule binReassemble:
         cd $TMPDIR
         
         metaWRAP reassemble_bins -o $(basename {output}) \
-            -b $(basename {input.refinedBins}) \
+            -b metawrap_*_bins \
             -1 $(basename {input.R1}) \
             -2 $(basename {input.R1}) \
             -t {config[cores][reassemble]} \
@@ -360,15 +360,15 @@ rule binningVis:
         """
     shell:
         """
-        set +u;source activate memotenv;set -u;
+        set +u;source activate {config[envs][metawrap]};set -u;
         cd {input}/{config[folder][concoctOutput]}
         for folder in */;do 
             var=$(echo $folder|sed 's|/||g'); 
             for bin in $folder*concoct-bins/*.fa;do 
                 name=$(echo $bin | sed "s|^.*/|$var.bin.|g" | sed 's/.fa//g'); 
                 N=$(less $bin | grep -c ">");
-                C=$(less $bin | grep ">" | cut -d '_' -f6 | awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');
-                echo $name $N $C >> concoct_bins.stats;
+                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo $name $N $L >> concoct_bins.stats;
             done;
         done
         mv *.stats {input}/{config[folder][reassembled]}
@@ -378,8 +378,8 @@ rule binningVis:
             for bin in $folder*metabat-bins/*.fa;do 
                 name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$var./g"); 
                 N=$(less $bin | grep -c ">");
-                C=$(less $bin | grep ">" | cut -d '_' -f6 | awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');
-                echo $name $N $C >> metabat_bins.stats;
+                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo $name $N $L >> metabat_bins.stats;
             done;
         done
         mv *.stats {input}/{config[folder][reassembled]}
@@ -388,8 +388,8 @@ rule binningVis:
             for bin in $folder*maxbin-bins/*.fasta;do 
                 name=$(echo $bin | sed 's/.fasta//g' | sed 's|^.*/||g');
                 N=$(less $bin | grep -c ">");
-                C=$(less $bin | grep ">"|cut -d '_' -f6 | awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');
-                echo $name $N $C >> maxbin_bins.stats;
+                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo $name $N $L >> maxbin_bins.stats;
             done;
         done
         mv *.stats {input}/{config[folder][reassembled]}
@@ -407,8 +407,8 @@ rule binningVis:
             for bin in $folder*metawrap_50_10_bins/*.fa;do 
                 name=$(echo $bin | sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g");
                 N=$(less $bin | grep -c ">");
-                C=$(less $bin | grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');
-                echo $name $N $C >> refined_bins.stats;
+                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo $name $N $L >> refined_bins.stats;
             done;
         done
         mv *.stats *.checkm {input}/{config[folder][reassembled]}
@@ -418,8 +418,8 @@ rule binningVis:
             for bin in $folder*reassembled_bins/*.fa;do 
                 name=$(echo $bin | sed 's/.fa//g' | sed 's|^.*/||g' | sed "s/^/$samp./g");
                 N=$(less $bin | grep -c ">");
-                C=$(less $bin | grep ">"|cut -d '_' -f6|awk '{{sum+=$1}} END {{ if (NR > 0) print sum / NR }}');
-                echo $name $N $C >> reassembled_bins.stats;
+                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo $name $N $L >> reassembled_bins.stats;
             done;
         done
         for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*reassembled_bins.stats|tail -n +2|sed "s/^/$var./g";done >> reassembled.checkm
@@ -608,7 +608,7 @@ rule modelVis:
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}'
     shell:
         """
-        set +u;source activate memotenv;set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         cd {input}
         for folder in ERR*;do 
         for model in $folder/*.xml;do 

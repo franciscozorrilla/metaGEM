@@ -116,10 +116,14 @@ snakePrep() {
 # Submit login node function
 submitLogin() {
 
-    snakePrep
+    echo "No need to parse Snakefile for target rule: $task ... "
+
+    echo -e "\nUnlocking snakemake ... "
+    snakemake --unlock
+    echo -e "\n"
 
     while true; do
-        read -p "Do you wish to submit this job? (y/n)" yn
+        read -p "Do you wish to submit this $task job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -149,7 +153,7 @@ submitCluster() {
 
         # Parse cluster_config.json cores (line 5) to match number requested cores stored in "$ncores". Note: Hardcoded line number.
 
-        echo "Parsing cluster_config.json to match requested number of cores: $ncores."
+        echo "Parsing cluster_config.json to match requested number of cores: $ncores ... "
         sed -i "5s/:.*$/: $ncores,/" cluster_config.json
 
     fi 
@@ -173,7 +177,7 @@ submitCluster() {
         snakePrep
 
         while true; do
-            read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+            read -p "Do you wish to submit this batch of $task jobs? (y/n)" yn
             case $yn in
                 [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
                 [Nn]* ) exit;;
@@ -184,7 +188,7 @@ submitCluster() {
     else
 
         # Memory flag was provided, parse cluster_config.json memory (line 7) to match number requested memory stored in "$mem". Note: Hardcoded line number.
-        echo "Parsing cluster_config.json to match requested memory: $mem."
+        echo "Parsing cluster_config.json to match requested memory: $mem ... "
         sed -i "7s/:.*$/: $(echo $mem)G,/" cluster_config.json
 
         snakePrep
