@@ -6,7 +6,7 @@ metaBAGpipes integrates an array of existing bioinformatics and metabolic modeli
 
 ## Use cases:
 
-1. Raw read QC/trimming using [fastp](https://github.com/OpenGene/fastp)
+1. Raw read QC/trimming using [fastp](https://github.com/OpenGene/fastp).
 2. Assembly using [megahit](https://github.com/voutcn/megahit).
 3. Binning using:
       * [CONCOCT](https://github.com/BinPro/CONCOCT).
@@ -40,6 +40,7 @@ Snakefile wrapper/parser for metaBAGpipes.
                             downloadToy
                             organizeData
                         WORKFLOW
+                            fastp
                             megahit
                             kallisto
                             concoct
