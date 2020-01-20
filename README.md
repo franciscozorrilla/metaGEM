@@ -6,28 +6,30 @@ metaBAGpipes integrates an array of existing bioinformatics and metabolic modeli
 
 ## Use cases:
 
-1. Assembly using [megahit](https://github.com/voutcn/megahit).
-2. Binning using:
+1. Raw read QC/trimming using [fastp](https://github.com/OpenGene/fastp)
+2. Assembly using [megahit](https://github.com/voutcn/megahit).
+3. Binning using:
       * [CONCOCT](https://github.com/BinPro/CONCOCT).
       * [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/).
       * [maxbin2](https://sourceforge.net/projects/maxbin2/).
-3. Bin refinement using [metaWRAP](https://github.com/bxlab/metaWRAP):
+4. Bin refinement using [metaWRAP](https://github.com/bxlab/metaWRAP):
       * reconciles binning output from different tools using [CheckM](https://github.com/Ecogenomics/CheckM) and [binning_refiner](https://github.com/songweizhi/Binning_refiner).
-4. Bin reassembly using [metaWRAP](https://github.com/bxlab/metaWRAP):
+5. Bin reassembly using [metaWRAP](https://github.com/bxlab/metaWRAP):
       * extracts reads corresponding to bins from each sample and re-assembles using [SPAdes](https://github.com/ablab/spades).
-5. MAG classification using [classify genomes](https://github.com/AlessioMilanese/classify-genomes) based on mOTUs2.
-6. MAG abundance:
+6. MAG classification using [classify genomes](https://github.com/AlessioMilanese/classify-genomes) based on mOTUs2.
+7. MAG abundance:
    * using [mOTUs2](https://github.com/motu-tool/mOTUs_v2).
    * based on MAG-sample mapping using [bwa](https://github.com/lh3/bwa).
-7. GEM reconstruction using [CarveMe](https://github.com/cdanielmachado/carveme).
-8. GEM QC using [memote](https://github.com/opencobra/memote).
-9. GEM community simulations using [SMETANA](https://github.com/cdanielmachado/smetana).
-10. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
+8. GEM reconstruction using [CarveMe](https://github.com/cdanielmachado/carveme).
+9. GEM QC using [memote](https://github.com/opencobra/memote).
+10. GEM community simulations using [SMETANA](https://github.com/cdanielmachado/smetana).
+11. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
 
 ### Usage
 
 bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
 
+```
 
 Snakefile wrapper/parser for metaBAGpipes. 
 
@@ -38,7 +40,7 @@ Snakefile wrapper/parser for metaBAGpipes.
                             downloadToy
                             organizeData
                         WORKFLOW
-                            metaspades
+                            megahit
                             kallisto
                             concoct
                             metabat
