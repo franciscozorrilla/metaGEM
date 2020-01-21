@@ -6,33 +6,32 @@ concoctCheckm = read.delim("concoct.checkm",stringsAsFactors = FALSE,header = FA
 colnames(concoctCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 concoctBins= read.delim("concoct_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
 colnames(concoctBins) = c("bin","contigs","length")
-concoct = left_join(concoctCheckm,concoctBins,by="bin") %>% filter(contamination<=10,completeness>=50)
+concoct = left_join(concoctCheckm,concoctBins%>%select(-length),by="bin") %>% filter(contamination<=10,completeness>=50) %>% distinct()
 
 metabatCheckm = read.delim("metabat.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(metabatCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 metabatBins= read.delim("metabat_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
 colnames(metabatBins) = c("bin","contigs","length")
-metabat = left_join(metabatCheckm,metabatBins,by="bin") %>% filter(contamination<=10,completeness>=50)
+metabat = left_join(metabatCheckm,metabatBins%>%select(-length),by="bin") %>% filter(contamination<=10,completeness>=50)%>% distinct()
 
 maxbinCheckm = read.delim("maxbin.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(maxbinCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 maxbinBins= read.delim("maxbin_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
 colnames(maxbinBins) = c("bin","contigs","length")
-maxbin = left_join(maxbinCheckm,maxbinBins,by="bin") %>% filter(contamination<=10,completeness>=50)
+maxbin = left_join(maxbinCheckm,maxbinBins%>%select(-length),by="bin") %>% filter(contamination<=10,completeness>=50)%>% distinct()
 maxbin$contigs = as.numeric(maxbin$contigs)
-maxbin$length = as.numeric(maxbin$length)
 
 refinedCheckm = read.delim("refined.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(refinedCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size","set")
 refinedBins= read.delim("refined_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
 colnames(refinedBins) = c("bin","contigs","length")
-refined = left_join(refinedCheckm,refinedBins,by="bin") %>% filter(contamination<=10,completeness>=50)
+refined = left_join(refinedCheckm,refinedBins%>%select(-length),by="bin") %>% filter(contamination<=10,completeness>=50)%>% distinct()
 
 reassembledCheckm = read.delim("reassembled.checkm",stringsAsFactors = FALSE,header = FALSE)
 colnames(reassembledCheckm) = c("bin","completeness","contamination","GC","lineage","N50","size")
 reassembledBins= read.delim("reassembled_bins.stats",stringsAsFactors = FALSE,header = FALSE, sep = " ")
 colnames(reassembledBins) = c("bin","contigs","length")
-reassembled = left_join(reassembledCheckm,reassembledBins,by="bin") %>% filter(contamination<=10,completeness>=50)
+reassembled = left_join(reassembledCheckm,reassembledBins%>%select(-length),by="bin") %>% filter(contamination<=10,completeness>=50)%>% distinct()
 
 bins <- as.data.frame(matrix(0,nrow = 5,ncol=2))
 colnames(bins) = c("variable","value")
@@ -88,31 +87,9 @@ contigplot = ggplot() +
   theme(legend.position = "none") +
   theme(axis.text.y=element_blank())
 
-covplot = ggplot() + 
-  geom_density(data=concoct,aes(legnth,color="CONCOCT")) +
-  geom_density(data=maxbin,aes(legnth,color="maxbin2")) +
-  geom_density(data=metabat,aes(legnth,color="metabat2")) + 
-  geom_density(data=refined,aes(legnth,color="refined")) + 
-  geom_density(data=reassembled,aes(legnth,color="reassembled")) +
-  ggtitle("legnth") + 
-  theme(legend.position = "none") +
-  theme(axis.text.y=element_blank())
+densities1= grid.arrange(compplot,lengthplot,nrow=2,ncol=1)
+densities2=grid.arrange(contplot,contigplot,nrow=2,ncol=1)
 
-gcplot = ggplot() + 
-  geom_density(data=concoct,aes(GC,color="CONCOCT")) +
-  geom_density(data=maxbin,aes(GC,color="maxbin2")) +
-  geom_density(data=metabat,aes(GC,color="metabat2")) + 
-  geom_density(data=refined,aes(GC,color="refined")) + 
-  geom_density(data=reassembled,aes(GC,color="reassembled")) +
-  ggtitle("GC content") + 
-  theme(legend.position = "none") +
-  theme(axis.text.y=element_blank())
-
-densities1= grid.arrange(compplot,lengthplot,covplot,nrow=3,ncol=1)
-densities2=grid.arrange(contplot,contigplot,gcplot,nrow=3,ncol=1)
-
-grid.arrange(binplot,densities1,densities2,nrow=1,ncol=3)
-
-plot=grid.arrange(binplot,arrangeGrob(compplot,lengthplot,covplot,nrow=3,ncol=1),arrangeGrob(contplot,contigplot,gcplot,nrow=3,ncol=1),nrow=1,ncol=3,heights=c(60),widths=c(30,30,30))
+plot=grid.arrange(binplot,densities1,densities2,nrow=1,ncol=3)
 
 ggsave("binningVis.pdf",plot=plot, height = 8, width = 12)

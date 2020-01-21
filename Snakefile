@@ -136,6 +136,7 @@ rule megahit:
 
         mkdir -p $(dirname {output})
         mv tmp/final.contigs.fa contigs.fasta
+        sed -i 's/ /-/g' contigs.fasta
         gzip contigs.fasta
         mv contigs.fasta.gz $(dirname {output})
         """
@@ -191,6 +192,8 @@ rule kallisto:
         
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
             --samplenames <(for s in *abundance.tsv.gz; do echo $s | sed 's/_abundance.tsv.gz//'g; done) *abundance.tsv.gz > $(basename {output})
+
+        sed -i 's/kallisto_coverage_//g' (basename {output})
         
         mv $(basename {output}) $(dirname {output})
         """
@@ -337,7 +340,7 @@ rule binReassemble:
         metaWRAP reassemble_bins -o $(basename {output}) \
             -b metawrap_*_bins \
             -1 $(basename {input.R1}) \
-            -2 $(basename {input.R1}) \
+            -2 $(basename {input.R2}) \
             -t {config[cores][reassemble]} \
             -m {config[params][reassembleMem]} \
             -c {config[params][reassembleComp]} \
