@@ -193,7 +193,7 @@ rule kallisto:
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
             --samplenames <(for s in *abundance.tsv.gz; do echo $s | sed 's/_abundance.tsv.gz//'g; done) *abundance.tsv.gz > $(basename {output})
 
-        sed -i 's/kallisto_coverage_//g' (basename {output})
+        sed -i 's/kallisto_coverage_//g' $(basename {output})
         
         mv $(basename {output}) $(dirname {output})
         """
@@ -210,7 +210,7 @@ rule concoct:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        mkdir -p $(dirname {output})
+        
         mkdir -p $(dirname $(dirname {output}))
         cp {input.contigs} {input.table} $TMPDIR
         cd $TMPDIR
@@ -226,6 +226,8 @@ rule concoct:
         
         mkdir -p $(basename {output})
         extract_fasta_bins.py contigs.fasta $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
+        
+        mkdir -p $(dirname {output})
         mv $(basename {output}) *.txt *.csv $(dirname {output})
         """
 
@@ -243,11 +245,13 @@ rule metabat:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
-        mkdir -p $(dirname {output})
+
         cp {input.assembly} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
+
         mv $(basename {input.assembly}) $(basename $(dirname {input.assembly})).gz
         gunzip $(basename $(dirname {input.assembly})).gz
+
         bwa index $(basename $(dirname {input.assembly}))
         
         bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) \
@@ -256,7 +260,10 @@ rule metabat:
          
         samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
         samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
+        
         runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
+        
+        mkdir -p $(dirname {output})
         mv *.txt $(basename {output}) $(dirname {output})
         """
 
@@ -274,7 +281,7 @@ rule maxbin:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
-        mkdir -p $(dirname {output})
+
         cp {input.assembly} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
         gunzip contigs.fasta.gz
@@ -284,7 +291,10 @@ rule maxbin:
             -thread {config[cores][maxbin]}
         
         rm contigs.fasta *.gz
+
         mkdir $(basename {output})
+        mkdir -p $(dirname {output})
+
         mv *.fasta $(basename {output})
         mv *.abund1 *.abund2 $(basename {output}) $(dirname {output})
         """
