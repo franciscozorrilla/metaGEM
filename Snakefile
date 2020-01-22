@@ -9,7 +9,7 @@ def get_ids_from_path_pattern(path_pattern):
     return ids
 
 # Make sure that final_bins/ folder contains all bins in single folder for binIDs
-# wildcard to work. Use moveBins rule or perform manually.
+# wildcard to work. Use extractProteinBins rule or perform manually.
 binIDs = get_ids_from_path_pattern('final_bins/*.faa')
 IDs = get_ids_from_path_pattern('dataset/*')
 
@@ -20,6 +20,12 @@ DATA_READS_2 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{I
 rule all:
     input:
         expand(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins', IDs=IDs)
+    message:
+        """
+        WARNING: Be very careful when adding/removing any lines above this message.
+        The metaBAGpipes.sh parser is presently hardcoded to edit line 22 of this Snakefile to expand target rules accordingly,
+        therefore adding/removing any lines before this message will likely result in parser malfunction.
+        """
     shell:
         """
         echo {input}
@@ -31,44 +37,106 @@ rule createFolders:
         config["path"]["root"]
     message:
         """
-        Not strictly necessary, as we could create individual folders within rules, 
-        but doing this at the beginning may give the user a better idea of what 
-        output/intermediate files to expect
+        Very simple rule to check that the metaBAGpipes.sh parser, Snakefile, and config.yaml file are set up correctly. 
+        Generates folders from config.yaml config file, not strictly necessary to run this rule.
         """
     shell:
         """
         cd {input}
-        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 17 > folders.txt
-        while read line;do mkdir -p $line;done < folders.txt
+        echo -e "Setting up result folders in the following work directory: $(echo {input}) \n"
+
+        # Generate folders.txt by extracting folder names from config.yaml file
+        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 19|sed '/^$/d' > folders.txt # NOTE: hardcoded number (19) for folder names, increase number if new folders are introduced.
+        
+        while read line;do 
+            echo "Creating $line folder ... "
+            mkdir -p $line;
+        done < folders.txt
+        
+        echo -e "\nDone creating folders. \n"
+
         rm folders.txt
         """
 
 
 rule downloadToy:
     input:
-        config["dbs"]["toy"]
+        f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["toy"]}'
+    message:
+        """
+        Downloads toy dataset into config.yaml data folder and organizes into sample-specific sub-folders.
+        Requires download_toydata.txt to be present in scripts folder.
+        """
     shell:
         """
         cd {config[path][root]}/{config[folder][data]}
-        while read line;do wget $line;done < {input}
-        for file in *;do mv $file ./$(echo $file|sed 's/?download=1//g');done
+
+        # Download each link in download_toydata.txt
+        echo -e "\nBegin downloading toy dataset ... \n"
+        while read line;do 
+            wget $line;
+        done < {input}
+        echo -e "\nDone donwloading dataset.\n"
+        
+        # Rename downloaded files
+        echo -ne "\nRenaming downloaded files ... "
+        for file in *;do 
+            mv $file ./$(echo $file|sed 's/?download=1//g');
+        done
+        echo -e " done. \n"
+
+        # Organize data into sample specific sub-folders
+
+        echo -ne "\nGenerating list of unique sample IDs ... "
+        for file in *.gz; do 
+            echo $file; 
+        done | sed 's/_.*$//g' | sed 's/.fastq.gz//g' | uniq > ID_samples.txt
+        echo -e " done.\n $(less ID_samples.txt|wc -l) samples identified.\n"
+
+        echo -ne "\nOrganizing downloaded files into sample specific sub-folders ... "
+        while read line; do 
+            mkdir -p $line; 
+            mv $line*.gz $line; 
+        done < ID_samples.txt
+        echo -e " done. \n"
+        
+        rm ID_samples.txt
         """
 
 
 rule organizeData:
     input:
-        config["path"]["root"]
+        f'{config["path"]["root"]}/{config["folder"]["data"]}'
     message:
         """
-        Assuming all samples are downloaded to the same directory, 
-        sorting paired end raw reads into sample specific sub folders within the 'dataset' folder.
-        Note: Use with caution, may malfunction in corner cases.
+        Sorts paired end raw reads into sample specific sub folders within the dataset folder specified in the config.yaml file.
+        Assumes all samples are present in abovementioned dataset folder.
+        
+        Note: This rule is meant to be run on real datasets. 
+        Do not run for toy dataset, as downloadToy rule above sorts the downloaded data already.
         """
     shell:
         """
-        cd {input}/{config[folder][data]}
-        for file in *.gz; do echo $file; done | sed 's/_.*$//g' | sed 's/.fastq.gz//g' | uniq > ID_samples.txt
-        while read line; do mkdir -p $line; mv $line*.gz $line; done < ID_samples.txt
+        cd {input}
+    
+        echo -ne "\nGenerating list of unique sample IDs ... "
+
+        # Create list of unique sample IDs
+        for file in *.gz; do 
+            echo $file; 
+        done | sed 's/_.*$//g' | sed 's/.fastq.gz//g' | uniq > ID_samples.txt
+
+        echo -e " done.\n $(less ID_samples.txt|wc -l) samples identified.\n"
+
+        # Create folder and move corresponding files for each sample
+
+        echo -ne "\nOrganizing dataset into sample specific sub-folders ... "
+        while read line; do 
+            mkdir -p $line; 
+            mv $line*.gz $line; 
+        done < ID_samples.txt
+        echo -e " done. \n"
+        
         rm ID_samples.txt
         """
 
@@ -78,23 +146,33 @@ rule qfilter:
         R1 = DATA_READS_1,
         R2 = DATA_READS_2
     output:
-        R1 = config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", 
-        R2 = config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_2.fastq.gz" 
+        R1 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_1.fastq.gz', 
+        R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_2.fastq.gz' 
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
+
         mkdir -p $(dirname $(dirname {output.R1}))
         mkdir -p $(dirname {output.R1})
-        fastp --thread {config[cores][fastp]} -i {input.R1} -I {input.R2} -o {output.R1} -O {output.R2} -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
+
+        fastp --thread {config[cores][fastp]} \
+            -i {input.R1} \
+            -I {input.R2} \
+            -o {output.R1} \
+            -O {output.R2} \
+            -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json \
+            -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
+
         """
 
 
 rule qfilterVis:
     input: 
-        config["path"]["root"]+"/"+config["folder"]["qfiltered"]
+        f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     shell:
         """
         cd {input}
+        echo -e "\nGenerating quality filtering results file qfilter.stats: ... "
         for folder in */;do
             for file in $folder*json;do
                 ID=$(echo $file|sed 's|/.*$||g')
@@ -108,6 +186,7 @@ rule qfilterVis:
                 q30AF=$(head -n 25 $file|grep q30_rate|cut -d ':' -f2|sed 's/,//g'|tail -n 1)
                 percent=$(awk -v RBF="$readsBF" -v RAF="$readsAF" 'BEGIN{{print RAF/RBF}}' )
                 echo "$ID $readsBF $readsAF $basesBF $basesAF $percent $q20BF $q20AF $q30BF $q30AF" >> qfilter.stats
+                echo "Sample: $ID retained $percent % of total information after filtering. "
             done
         done
         """
@@ -118,9 +197,9 @@ rule megahit:
         R1 = rules.qfilter.output.R1, 
         R2 = rules.qfilter.output.R2
     output:
-        config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz"
+        f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{IDs}}/contigs.fasta.gz'
     benchmark:
-        config["path"]["root"]+"/"+"benchmarks/{IDs}.megahit.benchmark.txt"
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.megahit.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
@@ -163,7 +242,7 @@ rule assemblyVis:
 rule kallisto:
     input:
         contigs = rules.megahit.output,
-        reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/'
+        reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output:
         f'{config["path"]["root"]}/{config["folder"]["concoctInput"]}/{{IDs}}_concoct_inputtableR.tsv'
     benchmark:
@@ -178,16 +257,16 @@ rule kallisto:
         
         kallisto index assembly_c10k.fa -i $(basename $(dirname {input.contigs})).kaix
         
-        for folder in {input.reads}*;do
-        cp $folder/*.fastq.gz $TMPDIR;
-        
-        kallisto quant --threads {config[cores][kallisto]} --plaintext \
-            -i $(basename $(dirname {input.contigs})).kaix \
-            -o . *_1.fastq.gz *_2.fastq.gz;
-        
-        gzip abundance.tsv;
-        mv abundance.tsv.gz $(echo $(basename $folder)_abundance.tsv.gz);
-        rm *.fastq.gz;
+        for folder in {input.reads}*; do
+            cp $folder/*.fastq.gz $TMPDIR;
+            
+            kallisto quant --threads {config[cores][kallisto]} --plaintext \
+                -i $(basename $(dirname {input.contigs})).kaix \
+                -o . *_1.fastq.gz *_2.fastq.gz;
+            
+            gzip abundance.tsv;
+            mv abundance.tsv.gz $(echo $(basename $folder)_abundance.tsv.gz);
+            rm *.fastq.gz;
         done
         
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
@@ -374,70 +453,114 @@ rule binningVis:
     shell:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
+        
+        # READ CONCOCT BINS
+
+        echo "Generating concoct_bins.stats file containing bin ID, number of contigs, and length ... "
         cd {input}/{config[folder][concoctOutput]}
         for folder in */;do 
-            var=$(echo $folder|sed 's|/||g'); 
+            var=$(echo $folder|sed 's|/||g'); # Define sample name
             for bin in $folder*concoct-bins/*.fa;do 
-                name=$(echo $bin | sed "s|^.*/|$var.bin.|g" | sed 's/.fa//g'); 
+                name=$(echo $bin | sed "s|^.*/|$var.bin.|g" | sed 's/.fa//g'); # Define bin name
                 N=$(less $bin | grep -c ">");
-                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
                 echo $name $N $L >> concoct_bins.stats;
             done;
         done
         mv *.stats {input}/{config[folder][reassembled]}
+        echo "Done reading CONCOCT bins, moving concoct_bins.stats file to $(echo {input}/{config[folder][reassembled]}) ."
+
+        # READ METABAT2 BINS
+
+        echo "Generating metabat_bins.stats file containing bin ID, number of contigs, and length ... "
         cd {input}/{config[folder][metabat]}
         for folder in */;do 
-            var=$(echo $folder | sed 's|/||'); 
+            var=$(echo $folder | sed 's|/||'); # Define sample name
             for bin in $folder*metabat-bins/*.fa;do 
-                name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$var./g"); 
+                name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$var./g"); # Define bin name
                 N=$(less $bin | grep -c ">");
-                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
                 echo $name $N $L >> metabat_bins.stats;
             done;
         done
         mv *.stats {input}/{config[folder][reassembled]}
+        echo "Done reading metabat2 bins, moving metabat_bins.stats file to $(echo {input}/{config[folder][reassembled]}) ."
+
+        # READ MAXBIN2 BINS
+
+        echo "Generating maxbin_bins.stats file containing bin ID, number of contigs, and length ... "
         cd {input}/{config[folder][maxbin]}
         for folder in */;do
             for bin in $folder*maxbin-bins/*.fasta;do 
-                name=$(echo $bin | sed 's/.fasta//g' | sed 's|^.*/||g');
+                name=$(echo $bin | sed 's/.fasta//g' | sed 's|^.*/||g');  # Define bin name
                 N=$(less $bin | grep -c ">");
-                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
                 echo $name $N $L >> maxbin_bins.stats;
             done;
         done
         mv *.stats {input}/{config[folder][reassembled]}
+        echo "Done reading maxbin2 bins, moving maxbin_bins.stats file to $(echo {input}/{config[folder][reassembled]}) ."
+
+        # READ METAWRAP REFINED BINS
+
+        echo "Generating refined_bins.stats file containing bin ID, number of contigs, and length ... "
         cd {input}/{config[folder][refined]}
-        for folder in */;do
-            var=$(echo $folder | sed 's|/||g');paste $folder*concoct-bins.stats|tail -n +2 | sed "s/^/$var.bin./g";
-        done >> concoct.checkm
         for folder in */;do 
-            var=$(echo $folder | sed 's|/||g');paste $folder*metabat-bins.stats|tail -n +2 | sed "s/^/$var./g";
-        done >> metabat.checkm
-        for folder in */;do paste $folder*maxbin-bins.stats|tail -n +2;done >> maxbin.checkm
-        for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*etawrap_50_10_bins.stats|tail -n +2|sed "s/^/$var./g";done >> refined.checkm
-        for folder in */;do 
-            samp=$(echo $folder | sed 's|/||');
-            for bin in $folder*metawrap_50_10_bins/*.fa;do 
-                name=$(echo $bin | sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g");
+            samp=$(echo $folder | sed 's|/||'); # Define sample name 
+            for bin in $folder*metawrap_*_bins/*.fa;do 
+                name=$(echo $bin | sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g"); # Define bin name
                 N=$(less $bin | grep -c ">");
                 L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
                 echo $name $N $L >> refined_bins.stats;
             done;
         done
+        echo "Done reading metawrap refined bins ... "
+
+        # READ METAWRAP REFINED CHECKM OUTPUT        
+        
+        echo "Generating CheckM summary files across samples: concoct.checkm, metabat.checkm, maxbin.checkm, and refined.checkm ... "
+        for folder in */;do 
+            var=$(echo $folder|sed 's|/||g'); # Define sample name
+            paste $folder*concoct-bins.stats|tail -n +2 | sed "s/^/$var.bin./g" >> concoct.checkm
+            paste $folder*metabat-bins.stats|tail -n +2 | sed "s/^/$var./g" >> metabat.checkm
+            paste $folder*maxbin-bins.stats|tail -n +2 >> maxbin.checkm
+            paste $folder*metawrap_*_bins.stats|tail -n +2|sed "s/^/$var./g" >> refined.checkm
+        done 
+        echo "Done reading metawrap refined output, moving refined_bins.stats, concoct.checkm, metabat.checkm, maxbin.checkm, and refined.checkm files to $(echo {input}/{config[folder][reassembled]}) ."
         mv *.stats *.checkm {input}/{config[folder][reassembled]}
+
+        # READ METAWRAP REASSEMBLED BINS
+
+        echo "Generating reassembled_bins.stats file containing bin ID, number of contigs, and length ... "
         cd {input}/{config[folder][reassembled]}
         for folder in */;do 
-            samp=$(echo $folder | sed 's|/||');
+            samp=$(echo $folder | sed 's|/||'); # Define sample name 
             for bin in $folder*reassembled_bins/*.fa;do 
-                name=$(echo $bin | sed 's/.fa//g' | sed 's|^.*/||g' | sed "s/^/$samp./g");
+                name=$(echo $bin | sed 's/.fa//g' | sed 's|^.*/||g' | sed "s/^/$samp./g"); # Define bin name
                 N=$(less $bin | grep -c ">");
-                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
                 echo $name $N $L >> reassembled_bins.stats;
             done;
         done
-        for folder in */;do var=$(echo $folder|sed 's|/||g');paste $folder*reassembled_bins.stats|tail -n +2|sed "s/^/$var./g";done >> reassembled.checkm
+        echo "Done reading metawrap reassembled bins ... "
+
+        # READ METAWRAP REFINED CHECKM OUTPUT  
+
+        echo "Generating CheckM summary file reassembled.checkm across samples for reassembled bins ... "
+        for folder in */;do 
+            var=$(echo $folder|sed 's|/||g');
+            paste $folder*reassembled_bins.stats|tail -n +2|sed "s/^/$var./g";
+        done >> reassembled.checkm
+
+        # RUN PLOTTING R SCRIPT
+
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][binningVis]}
-        rm Rplots.pdf
+        rm Rplots.pdf # Delete redundant pdf file
         """
 
 
@@ -591,7 +714,7 @@ rule extractProteinBins:
 rule carveme:
     input:
         bin = f'{config["path"]["root"]}/final_bins/{{binIDs}}.faa',
-        media = config["dbs"]["carveme"]
+        media = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["carveme"]}'
     output:
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{binIDs}}.xml'
     benchmark:
@@ -608,8 +731,10 @@ rule carveme:
         cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
         
-        carve -g {config[params][carveMedia]} -v \
-            --mediadb $(basename {input.media}) --fbc2 \
+        carve -g {config[params][carveMedia]} \
+            -v \
+            --mediadb $(basename {input.media}) \
+            --fbc2 \
             -o $(echo $(basename {input.bin}) | sed 's/.faa/.xml/g') $(basename {input.bin})
         
         [ -f *.xml ] && mv *.xml $(dirname {output})
@@ -703,15 +828,18 @@ rule memote:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u
+
         mkdir -p $(dirname {output})
         mkdir -p {output}
+        
         cp {input}/*.xml $TMPDIR
         cd $TMPDIR
+        
         for model in *.xml;do
-        memote report snapshot --filename $(echo $model|sed 's/.xml/.html/') $model
-        memote run $model > $(echo $model|sed 's/.xml/-summary.txt/')
-        mv *.txt *.html {output}
-        rm $model
+            memote report snapshot --filename $(echo $model|sed 's/.xml/.html/') $model
+            memote run $model > $(echo $model|sed 's/.xml/-summary.txt/')
+            mv *.txt *.html {output}
+            rm $model
         done
         """
 
@@ -728,14 +856,19 @@ rule grid:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u
+
         cp -r {input.bins} {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
+
         cat *.gz > $(basename $(dirname {input.bins})).fastq.gz
         rm $(basename {input.R1}) $(basename {input.R2})
+
         mkdir MAGdb out
         update_database -d MAGdb -g $(basename {input.bins}) -p MAGdb
         rm -r $(basename {input.bins})
+
         grid multiplex -r . -e fastq.gz -d MAGdb -p -c 0.2 -o out -n {config[cores][grid]}
+
         rm $(basename $(dirname {input.bins})).fastq.gz
         mkdir {output}
         mv out/* {output}
