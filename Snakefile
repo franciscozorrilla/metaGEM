@@ -169,9 +169,15 @@ rule qfilter:
 rule qfilterVis:
     input: 
         f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
+    output: 
+        text=f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilter.stats',
+        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilterVis.pdf',
     shell:
         """
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        mkdir -p $(dirname {output.text})
         cd {input}
+
         echo -e "\nGenerating quality filtering results file qfilter.stats: ... "
         for folder in */;do
             for file in $folder*json;do
@@ -186,9 +192,17 @@ rule qfilterVis:
                 q30AF=$(head -n 25 $file|grep q30_rate|cut -d ':' -f2|sed 's/,//g'|tail -n 1)
                 percent=$(awk -v RBF="$readsBF" -v RAF="$readsAF" 'BEGIN{{print RAF/RBF}}' )
                 echo "$ID $readsBF $readsAF $basesBF $basesAF $percent $q20BF $q20AF $q30BF $q30AF" >> qfilter.stats
-                echo "Sample: $ID retained $percent % of total information after filtering. "
+                echo "Sample $ID retained $percent * 100 % of reads ... "
             done
         done
+
+        echo "Done summarizing quality filtering results ... \nMoving to /stats/ folder and running plotting script ... "
+        mv qfilter.stats {config[path][root]}/{config[folder][stats]}
+        cd {config[path][root]}/{config[folder][stats]}
+
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][qfilterVis]}
+        echo "Done. "
+        rm Rplots.pdf
         """
 
 
@@ -203,39 +217,68 @@ rule megahit:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-
         cd $TMPDIR
-        cp {input.R1} {input.R2} $TMPDIR
 
+        echo -n "Copying qfiltered reads to $TMPDIR ... "
+        cp {input.R1} {input.R2} $TMPDIR
+        echo "done. "
+
+        echo -n "Running megahit ... "
         megahit -t {config[cores][megahit]} \
             --presets {config[params][assemblyPreset]} \
             --verbose \
-            -1 $(basename {input.R1}) -2 $(basename {input.R2}) \
+            -1 $(basename {input.R1}) \
+            -2 $(basename {input.R2}) \
             -o tmp;
+        echo "done. "
 
-        mkdir -p $(dirname {output})
+        echo "Renaming assembly ... "
         mv tmp/final.contigs.fa contigs.fasta
+        
+        echo "Fixing contig header names: replacing spaces with hyphens ... "
         sed -i 's/ /-/g' contigs.fasta
+
+        echo "Zipping on moving assembly ... "
         gzip contigs.fasta
+        mkdir -p $(dirname {output})
         mv contigs.fasta.gz $(dirname {output})
+        echo "Done. "
         """
 
 
 rule assemblyVis:
+    input: 
+        f'{config["path"]["root"]}/{config["folder"]["assemblies"]}'
+    output: 
+        text=f'{config["path"]["root"]}/{config["folder"]["stats"]}/assembly.stats',
+        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/assemblyVis.pdf',
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        cd {config[path][root]}/{config[folder][assemblies]}
+        mkdir -p $(dirname {output.text})
+        cd {input}
+    
+        echo -e "\nGenerating assembly results file assembly.stats: ... "
         for folder in */;do
             for file in $folder*.gz;do
+                ID=$(echo $file|sed 's|/contigs.fasta.gz||g')
                 N=$(less $file|grep -c ">");
-                L=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
-                T=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000{{c++}} END{{print c+0}}');
-                S=$(less $file|grep ">"|cut -d ' ' -f4|sed 's/len=//'|awk '$1>=1000'|awk '{{sum+=$1}}END{{print sum}}');
-                echo $(echo $file|sed 's|/contigs.fasta.gz||g') $N $L $T $S>> assembly.stats;
+                L=$(less $file|grep ">"|cut -d '-' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
+                T=$(less $file|grep ">"|cut -d '-' -f4|sed 's/len=//'|awk '$1>=1000{{c++}} END{{print c+0}}');
+                S=$(less $file|grep ">"|cut -d '-' -f4|sed 's/len=//'|awk '$1>=1000'|awk '{{sum+=$1}}END{{print sum}}');
+                echo $ID $N $L $T $S>> assembly.stats;
+                echo -e "Sample $ID has a total of $L bp across $N contigs, with $S bp present in $T contigs >= 1000 bp ... "
             done;
         done
+
+
+        echo "Done summarizing assembly results ... \nMoving to /stats/ folder and running plotting script ... "
+        mv assembly.stats {config[path][root]}/{config[folder][stats]}
+        cd {config[path][root]}/{config[folder][stats]}
+
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
+        echo "Done. "
+        rm Rplots.pdf
         """
 
 
@@ -391,20 +434,28 @@ rule binRefine:
     shell:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
-        cp -r {input.concoct} {input.metabat} {input.maxbin} $TMPDIR
         mkdir -p $(dirname {output})
         cd $TMPDIR
+
+        echo "Copying bins from CONCOCT, metabat2, and maxbin2 to tmpdir ... "
+        cp -r {input.concoct} {input.metabat} {input.maxbin} $TMPDIR
+
+        echo "Renaming bin folders to avoid errors with metaWRAP ... "
+        mv $(basename {input.concoct}) $(echo $(basename {input.concoct})|sed 's/-bins//g')
+        mv $(basename {input.metabat}) $(echo $(basename {input.metabat})|sed 's/-bins//g')
+        mv $(basename {input.maxbin}) $(echo $(basename {input.maxbin})|sed 's/-bins//g')
         
+        echo "Running metaWRAP bin refinement module ... "
         metaWRAP bin_refinement -o . \
-            -A $(basename {input.concoct}) \
-            -B $(basename {input.metabat}) \
-            -C $(basename {input.maxbin}) \
+            -A $(echo $(basename {input.concoct})|sed 's/-bins//g') \
+            -B $(echo $(basename {input.metabat})|sed 's/-bins//g') \
+            -C $(echo $(basename {input.maxbin})|sed 's/-bins//g') \
             -t {config[cores][refine]} \
             -m {config[params][refineMem]} \
             -c {config[params][refineComp]} \
             -x {config[params][refineCont]}
  
-        rm -r $(basename {input.concoct}) $(basename {input.metabat}) $(basename {input.maxbin}) work_files
+        rm -r $(echo $(basename {input.concoct})|sed 's/-bins//g') $(echo $(basename {input.metabat})|sed 's/-bins//g') $(echo $(basename {input.maxbin})|sed 's/-bins//g') work_files
         mkdir -p {output}
         mv * {output}
         """
@@ -464,7 +515,7 @@ rule binningVis:
                 name=$(echo $bin | sed "s|^.*/|$var.bin.|g" | sed 's/.fa//g'); # Define bin name
                 N=$(less $bin | grep -c ">");
                 L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
-                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
+                echo "Reading bin $bin ... Contigs: $N , Length: $L "
                 echo $name $N $L >> concoct_bins.stats;
             done;
         done
@@ -481,7 +532,7 @@ rule binningVis:
                 name=$(echo $bin|sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$var./g"); # Define bin name
                 N=$(less $bin | grep -c ">");
                 L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
-                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
+                echo "Reading bin $bin ... Contigs: $N , Length: $L "
                 echo $name $N $L >> metabat_bins.stats;
             done;
         done
@@ -497,7 +548,7 @@ rule binningVis:
                 name=$(echo $bin | sed 's/.fasta//g' | sed 's|^.*/||g');  # Define bin name
                 N=$(less $bin | grep -c ">");
                 L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
-                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
+                echo "Reading bin $bin ... Contigs: $N , Length: $L "
                 echo $name $N $L >> maxbin_bins.stats;
             done;
         done
@@ -513,8 +564,8 @@ rule binningVis:
             for bin in $folder*metawrap_*_bins/*.fa;do 
                 name=$(echo $bin | sed 's/.fa//g'|sed 's|^.*/||g'|sed "s/^/$samp./g"); # Define bin name
                 N=$(less $bin | grep -c ">");
-                L=$(less $bin |grep ">"|cut -d ' ' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
-                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
+                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len_//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo "Reading bin $bin ... Contigs: $N , Length: $L "
                 echo $name $N $L >> refined_bins.stats;
             done;
         done
@@ -525,9 +576,9 @@ rule binningVis:
         echo "Generating CheckM summary files across samples: concoct.checkm, metabat.checkm, maxbin.checkm, and refined.checkm ... "
         for folder in */;do 
             var=$(echo $folder|sed 's|/||g'); # Define sample name
-            paste $folder*concoct-bins.stats|tail -n +2 | sed "s/^/$var.bin./g" >> concoct.checkm
-            paste $folder*metabat-bins.stats|tail -n +2 | sed "s/^/$var./g" >> metabat.checkm
-            paste $folder*maxbin-bins.stats|tail -n +2 >> maxbin.checkm
+            paste $folder*concoct.stats|tail -n +2 | sed "s/^/$var.bin./g" >> concoct.checkm
+            paste $folder*metabat.stats|tail -n +2 | sed "s/^/$var./g" >> metabat.checkm
+            paste $folder*maxbin.stats|tail -n +2 >> maxbin.checkm
             paste $folder*metawrap_*_bins.stats|tail -n +2|sed "s/^/$var./g" >> refined.checkm
         done 
         echo "Done reading metawrap refined output, moving refined_bins.stats, concoct.checkm, metabat.checkm, maxbin.checkm, and refined.checkm files to $(echo {input}/{config[folder][reassembled]}) ."
@@ -542,8 +593,8 @@ rule binningVis:
             for bin in $folder*reassembled_bins/*.fa;do 
                 name=$(echo $bin | sed 's/.fa//g' | sed 's|^.*/||g' | sed "s/^/$samp./g"); # Define bin name
                 N=$(less $bin | grep -c ">");
-                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len=//g'|awk '{{sum+=$1}}END{{print sum}}')
-                echo "Reading bin $bin ... Contigs: $N , Length: $L ."
+                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len_//g'|awk '{{sum+=$1}}END{{print sum}}')
+                echo "Reading bin $bin ... Contigs: $N , Length: $L "
                 echo $name $N $L >> reassembled_bins.stats;
             done;
         done
@@ -556,11 +607,13 @@ rule binningVis:
             var=$(echo $folder|sed 's|/||g');
             paste $folder*reassembled_bins.stats|tail -n +2|sed "s/^/$var./g";
         done >> reassembled.checkm
+        echo "Done generating all statistics files for binning results ... running plotting script ... "
 
         # RUN PLOTTING R SCRIPT
 
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][binningVis]}
         rm Rplots.pdf # Delete redundant pdf file
+        echo "Done. "
         """
 
 
