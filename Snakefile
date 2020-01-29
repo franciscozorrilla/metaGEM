@@ -295,23 +295,39 @@ rule kallisto:
         set +u;source activate {config[envs][metabagpipes]};set -u;
         cp {input.contigs} $TMPDIR
         cd $TMPDIR
+
+        echo "Unzipping assembly ... "
         gunzip $(basename {input.contigs})
+
+        echo -e "Done. \nCutting up contigs (default 10kbp chunks) ... "
         cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > assembly_c10k.fa
         
+
+        echo -e "Done. \nIndexing assembly with kallisto ... "
         kallisto index assembly_c10k.fa -i $(basename $(dirname {input.contigs})).kaix
         
+
+        echo -e "Done. \nPreparing to map against other samples ... "
         for folder in {input.reads}*; do
+
+            echo -e "\nCopying filtered reads to tmpdir ... "
             cp $folder/*.fastq.gz $TMPDIR;
             
+            echo -e "\nBegin mapping against focal sample with kallisto ... "
             kallisto quant --threads {config[cores][kallisto]} --plaintext \
                 -i $(basename $(dirname {input.contigs})).kaix \
                 -o . *_1.fastq.gz *_2.fastq.gz;
             
+            echo -e "\nZipping abundance.tsv file ... "
             gzip abundance.tsv;
+
+            echo -e "\nCleaning up ... "
             mv abundance.tsv.gz $(echo $(basename $folder)_abundance.tsv.gz);
             rm *.fastq.gz;
         done
         
+
+        echo -e "\nDone with all mapping steps ... \nGenerating CONCOCT input table from kallisto abundances ... "
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
             --samplenames <(for s in *abundance.tsv.gz; do echo $s | sed 's/_abundance.tsv.gz//'g; done) *abundance.tsv.gz > $(basename {output})
 
@@ -332,20 +348,26 @@ rule concoct:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        
         mkdir -p $(dirname $(dirname {output}))
-        cp {input.contigs} {input.table} $TMPDIR
         cd $TMPDIR
+        cp {input.contigs} {input.table} $TMPDIR
+
+        echo "Unzipping assembly ... "
         gunzip $(basename {input.contigs})
+
+        echo -e "Done. \nCutting up contigs (default 10kbp chunks) ... "
         cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > assembly_c10k.fa
         
+        echo -e "\nRunning CONCOCT ... "
         concoct --coverage_file {input.table} --composition_file assembly_c10k.fa \
             -b $(basename $(dirname {output})) \
             -t {config[cores][concoct]} \
             -c {config[params][concoct]}
             
+        echo -e "\nMerging clustering results into original contigs ... "
         merge_cutup_clustering.py $(basename $(dirname {output}))_clustering_gt1000.csv > $(basename $(dirname {output}))_clustering_merged.csv
         
+        echo -e "\nExtracting bins ... "
         mkdir -p $(basename {output})
         extract_fasta_bins.py contigs.fasta $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
         
@@ -593,7 +615,14 @@ rule binningVis:
             for bin in $folder*reassembled_bins/*.fa;do 
                 name=$(echo $bin | sed 's/.fa//g' | sed 's|^.*/||g' | sed "s/^/$samp./g"); # Define bin name
                 N=$(less $bin | grep -c ">");
-                L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len_//g'|awk '{{sum+=$1}}END{{print sum}}')
+
+                # Need to check if bins are original (megahit-assembled) or strict/permissive (metaspades-assembled)
+                if [[ $name == *.strict ]] || [[ $name == *.permissive ]];then
+                    L=$(less $bin |grep ">"|cut -d '_' -f4|awk '{{sum+=$1}}END{{print sum}}')
+                else
+                    L=$(less $bin |grep ">"|cut -d '-' -f4|sed 's/len_//g'|awk '{{sum+=$1}}END{{print sum}}')
+                fi
+
                 echo "Reading bin $bin ... Contigs: $N , Length: $L "
                 echo $name $N $L >> reassembled_bins.stats;
             done;
