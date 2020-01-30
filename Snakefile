@@ -271,7 +271,6 @@ rule assemblyVis:
             done;
         done
 
-
         echo "Done summarizing assembly results ... \nMoving to /stats/ folder and running plotting script ... "
         mv assembly.stats {config[path][root]}/{config[folder][stats]}
         cd {config[path][root]}/{config[folder][stats]}
@@ -302,10 +301,8 @@ rule kallisto:
         echo -e "Done. \nCutting up contigs (default 10kbp chunks) ... "
         cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > assembly_c10k.fa
         
-
         echo -e "Done. \nIndexing assembly with kallisto ... "
         kallisto index assembly_c10k.fa -i $(basename $(dirname {input.contigs})).kaix
-        
 
         echo -e "Done. \nPreparing to map against other samples ... "
         for folder in {input.reads}*; do
@@ -326,7 +323,6 @@ rule kallisto:
             rm *.fastq.gz;
         done
         
-
         echo -e "\nDone with all mapping steps ... \nGenerating CONCOCT input table from kallisto abundances ... "
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
             --samplenames <(for s in *abundance.tsv.gz; do echo $s | sed 's/_abundance.tsv.gz//'g; done) *abundance.tsv.gz > $(basename {output})
@@ -388,23 +384,29 @@ rule metabat:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        mkdir -p $(dirname $(dirname {output}))
-
         cp {input.assembly} {input.R1} {input.R2} $TMPDIR
+        mkdir -p $(dirname $(dirname {output}))
         cd $TMPDIR
 
+        echo "Renaming and unizzping assembly ... "
         mv $(basename {input.assembly}) $(basename $(dirname {input.assembly})).gz
         gunzip $(basename $(dirname {input.assembly})).gz
 
+        echo -e "\nIndexing assembly ... "
         bwa index $(basename $(dirname {input.assembly}))
         
+        echo -e "\nMapping sample to assemlby ... "
         bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) \
             $(basename {input.R1}) \
             $(basename {input.R2}) > $(basename $(dirname {input.assembly})).sam
-         
+        
+        echo -e "\nConverting sam to bam with samtools view ... " 
         samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
+
+        echo -e "\nSorting sam file with samtools sort ... " 
         samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
         
+        echo -e "\nRunning metabat2 ... "
         runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
         
         mkdir -p $(dirname {output})
@@ -424,12 +426,14 @@ rule maxbin:
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        mkdir -p $(dirname $(dirname {output}))
-
         cp {input.assembly} {input.R1} {input.R2} $TMPDIR
+        mkdir -p $(dirname $(dirname {output}))
         cd $TMPDIR
+
+        echo "Unzipping assembly ... "
         gunzip contigs.fasta.gz
         
+        echo -e "\nRunning maxbin2 ... "
         run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) \
             -reads *_1.fastq.gz -reads2 *_2.fastq.gz \
             -thread {config[cores][maxbin]}
@@ -499,6 +503,7 @@ rule binReassemble:
         cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} $TMPDIR
         cd $TMPDIR
         
+        echo "Running metaWRAP bin reassembly ... "
         metaWRAP reassemble_bins -o $(basename {output}) \
             -b metawrap_*_bins \
             -1 $(basename {input.R1}) \
@@ -660,15 +665,16 @@ rule classifyGenomes:
         mkdir -p {output}
         cd $TMPDIR
         cp -r {input.script}/* {input.bins}/* .
+
+        echo "Begin classifying bins ... "
         for bin in *.fa; do
-        echo "RUNNING BIN $bin"
-        $PWD/classify-genomes $bin -t {config[cores][classify]} -o $(echo $bin|sed 's/.fa/.taxonomy/')
-        echo "DONE" 
-        echo " "
-        cp *.taxonomy {output}
-        rm *.taxonomy
-        rm $bin 
+            echo -e "\nClassifying $bin ... "
+            $PWD/classify-genomes $bin -t {config[cores][classify]} -o $(echo $bin|sed 's/.fa/.taxonomy/')
+            cp *.taxonomy {output}
+            rm *.taxonomy
+            rm $bin 
         done
+        echo "Done classifying bins. "
         """
 
 
@@ -784,18 +790,22 @@ rule extractProteinBins:
     shell:
         """
         cd {config[path][root]}
+        mkdir -p {config[folder][finalBins]}
+
+        echo -e "Begin moving and renaming ORF annotated protein fasta bins from reassembled_bins/ to final_bins/ ... \n"
         for folder in reassembled_bins/*/;do 
-        for bin in $folder*reassembled_bins.checkm/bins/*;do 
-        var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
-        cp $bin/*.faa /home/zorrilla/workspace/european/final_bins/$var;
-        done;
+            echo "Moving bins from sample $(echo $(basename $folder)) ... "
+            for bin in $folder*reassembled_bins.checkm/bins/*;do 
+            var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
+            mv $bin/*.faa {config[path][root]}/{config[folder][finalBins]}/$var;
+            done;
         done
         """
 
 
 rule carveme:
     input:
-        bin = f'{config["path"]["root"]}/final_bins/{{binIDs}}.faa',
+        bin = f'{config["path"]["root"]}/{config["folder"]["finalBins"]}/{{binIDs}}.faa',
         media = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["carveme"]}'
     output:
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{binIDs}}.xml'
@@ -813,6 +823,7 @@ rule carveme:
         cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
         
+        echo "Begin carving GEM ... "
         carve -g {config[params][carveMedia]} \
             -v \
             --mediadb $(basename {input.media}) \
