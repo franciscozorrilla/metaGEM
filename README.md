@@ -92,7 +92,7 @@ source activate metabagpipes
 
 ##### CPLEX
 
-GEM reconstruction (step 7) and GEM community simulations (step 9) require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting.
+GEM reconstruction (step 7) and GEM community simulations (step 9) require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
 
 #### metaWRAP
 
