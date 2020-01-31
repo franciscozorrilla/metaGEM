@@ -91,6 +91,20 @@ Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
 "
 }
 
+# Prompt user to confirm input parameters/options
+checkParams() {
+
+    while true; do
+        read -p "Do you wish to continue with these parameters? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "Proceeding with $task job(s) ... " ; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+}
+
 # Display config.yaml function for user inspection
 snakeConfig() {
 
@@ -147,6 +161,8 @@ submitLogin() {
 
     echo "No need to parse Snakefile for target rule: $task ... "
 
+    checkParams
+
     snakeConfig
 
     echo -e "\nUnlocking snakemake ... "
@@ -200,6 +216,8 @@ submitCluster() {
         # No memory flag provided.
         echo "WARNING: User is requesting to submit cluster job without specifying the memory flag (-m) ... "
 
+        checkParams
+
         snakePrep
 
         while true; do
@@ -216,6 +234,8 @@ submitCluster() {
         # Memory flag was provided, parse cluster_config.json memory (line 7) to match number requested memory stored in "$mem". Note: Hardcoded line number.
         echo "Parsing cluster_config.json to match requested memory: $mem ... "
         sed -i "7s/:.*$/: $(echo $mem)G,/" cluster_config.json
+
+        checkParams
 
         snakePrep
 
