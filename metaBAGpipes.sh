@@ -54,7 +54,7 @@ Snakefile wrapper/parser for metaBAGpipes.
                             extractProteinBins
                             carveme
                             memote
-                            organizeGems
+                            organizeGEMs
                             smetana
 
                             classifyGenomes
@@ -94,6 +94,7 @@ Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
 # Prompt user to confirm input parameters/options
 checkParams() {
 
+    echo " "
     while true; do
         read -p "Do you wish to continue with these parameters? (y/n)" yn
         case $yn in
@@ -129,7 +130,7 @@ clusterConfig() {
     # Show cluster_config.json params
     echo -e "Please verify parameters set in the cluster_config.json file: \n"
     paste cluster_config.json
-    echo -e "\n"
+    echo " "
 
     while true; do
         read -p "Do you wish to proceed with this cluster_config.json file? (y/n)" yn
@@ -149,7 +150,7 @@ snakePrep() {
 
     clusterConfig
 
-    echo -e "\nUnlocking snakemake ... "
+    echo "Unlocking snakemake ... "
     snakemake --unlock
 
     echo -e "\nDry-running snakemake jobs ... "
@@ -165,9 +166,9 @@ submitLogin() {
 
     snakeConfig
 
-    echo -e "\nUnlocking snakemake ... "
+    echo "Unlocking snakemake ... "
     snakemake --unlock
-    echo -e "\n"
+    echo " "
 
     while true; do
         read -p "Do you wish to submit this $task job? (y/n)" yn
@@ -262,7 +263,7 @@ parse() {
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
   # No need to parse snakefile for login node jobs, submit the following locally
-  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] ||  [ $task == "extractProteinBins" ] || [ $task == "organizeGems" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ]; then
+  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] ||  [ $task == "extractProteinBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ]; then
     submitLogin
 
  # Parse snakefile for cluster jobs

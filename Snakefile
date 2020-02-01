@@ -66,6 +66,7 @@ rule downloadToy:
         """
         Downloads toy dataset into config.yaml data folder and organizes into sample-specific sub-folders.
         Requires download_toydata.txt to be present in scripts folder.
+        Modify this rule to download a real dataset by replacing the links in the download_toydata.txt file with links to files from your dataset of intertest.
         """
     shell:
         """
@@ -841,34 +842,38 @@ rule modelVis:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         cd {input}
-        for folder in ERR*;do 
-        for model in $folder/*.xml;do 
-        id=$(echo $model|sed 's|^.*/||g'|sed 's/.xml//g'); 
-        mets=$(less $model| grep "species id="|cut -d ' ' -f 8|sed 's/..$//g'|sort|uniq|wc -l);
-        rxns=$(less $model|grep -c 'reaction id=');
-        genes=$(less $model|grep -c 'fbc:geneProduct fbc:id=');
-        echo "$id $mets $rxns $genes" >> GEMs.stats;
-        done;
+
+        echo "Begin reading models ... "
+        for model in *.xml;do 
+            id=$(echo $model|sed 's/.xml//g'); 
+            mets=$(less $model| grep "species id="|cut -d ' ' -f 8|sed 's/..$//g'|sort|uniq|wc -l);
+            rxns=$(less $model|grep -c 'reaction id=');
+            genes=$(less $model|grep -c 'fbc:geneProduct fbc:id=');
+            echo "Model: $id has $mets mets, $rxns reactions, and $genes genes ... "
+            echo "$id $mets $rxns $genes" >> GEMs.stats;
         done
         
-        Rscript {config[scripts][modelVis]}
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][modelVis]}
         """
 
 
 rule organizeGEMs:
+    input:
+        f'{config["path"]["root"]}/{config["folder"]["refined"]}'
     message:
         """
         Organizes GEMs into sample specific subfolders. 
-        Necessary to run smetana per sample using the {IDs} wildcard.
-        One liner (run from refined bins folder): 
-        for folder in */;do mkdir -p ../GEMs/$folder;mv ../GEMs/$(echo $folder|sed 's|/||')_*.xml ../GEMs/$folder;done
+        Necessary to run smetana per sample using the IDs wildcard.
         """
     shell:
         """
-        cd {config[path][refined]}
-        for folder in */;do 
-        mkdir -p ../{config[path][GEMs]}; 
-        mv ../{config[path][GEMs]}/$(echo $folder|sed 's|/||')_*.xml ../{config[path][GEMs]}/$folder;
+        cd {input}
+        for folder in */;do
+            echo "Creating GEM subfolder for sample $folder ... "
+            mkdir -p ../{config[folder][GEMs]}/$folder;
+            echo -n "moving GEMs ... "
+            mv ../{config[folder][GEMs]}/$(echo $folder|sed 's|/||')_*.xml ../{config[folder][GEMs]}/$folder;
+            echo "done. "
         done
         """
 
