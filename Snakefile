@@ -825,8 +825,12 @@ rule carveme:
         """
     shell:
         """
+        echo "Activating {config[envs][metabagpipes]} conda environment ... "
         set +u;source activate {config[envs][metabagpipes]};set -u
+        
         mkdir -p $(dirname {output})
+        mkdir -p logs
+
         cp {input.bin} {input.media} $TMPDIR
         cd $TMPDIR
         
@@ -837,6 +841,7 @@ rule carveme:
             --fbc2 \
             -o $(echo $(basename {input.bin}) | sed 's/.faa/.xml/g') $(basename {input.bin})
         
+        echo "Done carving GEM. "
         [ -f *.xml ] && mv *.xml $(dirname {output})
         """
 
