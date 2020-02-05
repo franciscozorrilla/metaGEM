@@ -79,7 +79,7 @@ rule downloadToy:
         done < {input}
         echo -e "\nDone donwloading dataset.\n"
         
-        # Rename downloaded files
+        # Rename downloaded files, this is only necessary for toy dataset (will cause error if used for real dataset)
         echo -ne "\nRenaming downloaded files ... "
         for file in *;do 
             mv $file ./$(echo $file|sed 's/?download=1//g');
@@ -239,7 +239,7 @@ rule megahit:
         echo "Fixing contig header names: replacing spaces with hyphens ... "
         sed -i 's/ /-/g' contigs.fasta
 
-        echo "Zipping on moving assembly ... "
+        echo "Zipping and moving assembly ... "
         gzip contigs.fasta
         mkdir -p $(dirname {output})
         mv contigs.fasta.gz $(dirname {output})
@@ -306,7 +306,7 @@ rule kallisto:
         kallisto index assembly_c10k.fa -i $(basename $(dirname {input.contigs})).kaix
 
         echo -e "Done. \nPreparing to map against other samples ... "
-        for folder in {input.reads}*; do
+        for folder in {input.reads}/*; do
 
             echo -e "\nCopying filtered reads to tmpdir ... "
             cp $folder/*.fastq.gz $TMPDIR;
@@ -462,6 +462,7 @@ rule binRefine:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
         mkdir -p $(dirname {output})
+        mkdir -p {output}
         cd $TMPDIR
 
         echo "Copying bins from CONCOCT, metabat2, and maxbin2 to tmpdir ... "
@@ -483,7 +484,6 @@ rule binRefine:
             -x {config[params][refineCont]}
  
         rm -r $(echo $(basename {input.concoct})|sed 's/-bins//g') $(echo $(basename {input.metabat})|sed 's/-bins//g') $(echo $(basename {input.maxbin})|sed 's/-bins//g') work_files
-        mkdir -p {output}
         mv * {output}
         """
 
@@ -531,7 +531,7 @@ rule binningVis:
         """
     shell:
         """
-        set +u;source activate {config[envs][metawrap]};set -u;
+        set +u;source activate {config[envs][metabagpipes]};set -u;
         
         # READ CONCOCT BINS
 
@@ -645,6 +645,9 @@ rule binningVis:
         echo "Done generating all statistics files for binning results ... running plotting script ... "
 
         # RUN PLOTTING R SCRIPT
+
+        mv *.stats *.checkm {config[path][root]}/{config[folder][stats]}
+        cd {config[path][root]}/{config[folder][stats]}
 
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][binningVis]}
         rm Rplots.pdf # Delete redundant pdf file
@@ -853,6 +856,8 @@ rule modelVis:
             echo "$id $mets $rxns $genes" >> GEMs.stats;
         done
         
+        mv GEMs.stats {config[path][root]}/{config[folder][stats]}
+        cd {config[path][root]}/{config[folder][stats]}
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][modelVis]}
         """
 

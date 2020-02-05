@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Logo
-
 printLogo() {
 
   echo '
