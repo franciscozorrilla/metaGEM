@@ -172,7 +172,7 @@ rule qfilterVis:
         f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output: 
         text=f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilter.stats',
-        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilterVis.pdf',
+        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilterVis.pdf'
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
@@ -522,8 +522,11 @@ rule binReassemble:
 
 
 rule binningVis:
-    input:
-        config["path"]["root"]
+    input: 
+        f'{config["path"]["root"]}'
+    output: 
+        text=f'{config["path"]["root"]}/{config["folder"]["stats"]}/reassembled_bins.stats',
+        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/binningVis.pdf'
     message:
         """
         Generate bar plot with number of bins and density plot of bin contigs, 
