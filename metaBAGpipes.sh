@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Logo
-
 printLogo() {
 
   echo '
@@ -41,21 +40,24 @@ Snakefile wrapper/parser for metaBAGpipes.
                             organizeData
 
                         WORKFLOW
-                            fastp (Read QC)
-                            megahit (Assembly)
-                            kallisto (Mapping for CONCOCT)
-                            concoct (Binning)
-                            metabat (Binning)
-                            maxbin (Binning)
-                            binRefine (Bin refinement)
-                            binReassemble (Bin reassembly)
-                            classifyGenomes (Bin classification)
-                            abundance (Bin quantification)
+                            fastp 
+                            megahit 
+
+                            kallisto 
+                            concoct 
+                            metabat
+                            maxbin 
+                            binRefine 
+                            binReassemble 
+
                             extractProteinBins
                             carveme
-                            organizeGems
+                            memote
+                            organizeGEMs
                             smetana
-                            memote   
+
+                            classifyGenomes
+                            abundance 
                             grid
 
                         VISUALIZATION (in development)
@@ -71,55 +73,104 @@ Snakefile wrapper/parser for metaBAGpipes.
   -c, --nCores      Specify number of cores per job
   -m, --mem         Specify memory in GB required for job
 
+Suggested workflow:
+    1. QC of raw data (fastp)
+    2. Assembly into contigs (megahit)
+    3. Binning into MAGs (kallisto, concoct, metabat, maxbin, binRefine, binReassemble)
+    4. CarveMe setup (extractProteinBins)
+    5. Generation of GEMs (carveme, memote)
+    6. SMETANA setup (organizeGems)
+    7. Microbial community simulation (smetana)
+    8. MAG taxonomoic classification (classifyGenomes)
+    9. MAG abundance calculation (abundance)
+    10. MAG growth rate estimation (grid)
+
 Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
 
 "
 }
 
-# Prepare to submit jobs function: unlock, dryrun, and display config files
+# Prompt user to confirm input parameters/options
+checkParams() {
+
+    echo " "
+    while true; do
+        read -p "Do you wish to continue with these parameters? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "Proceeding with $task job(s) ... " ; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+}
+
+# Display config.yaml function for user inspection
+snakeConfig() {
+
+    # Show config.yaml params
+    echo -e "\nPlease verify parameters set in the config.yaml file: \n"
+    paste config.yaml
+
+    while true; do
+        read -p "Do you wish to proceed with this config.yaml file? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo " "; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+}
+
+# Display cluster_config.json function for user inspection
+clusterConfig() {
+
+    # Show cluster_config.json params
+    echo -e "Please verify parameters set in the cluster_config.json file: \n"
+    paste cluster_config.json
+    echo " "
+
+    while true; do
+        read -p "Do you wish to proceed with this cluster_config.json file? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo " "; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+    
+}
+
+# Prepare to submit cluster jobs function: display config files, unlock, and dry run
 snakePrep() {
 
-        # Show config.yaml params
-        echo -e "\nPlease verify parameters set in the config.yaml file: \n"
-        paste config.yaml
+    snakeConfig
 
-        while true; do
-            read -p "Do you wish to proceed with this config.yaml file? (y/n)" yn
-            case $yn in
-                [Yy]* ) echo " "; break;;
-                [Nn]* ) exit;;
-                * ) echo "Please answer yes or no.";;
-            esac
-        done
+    clusterConfig
 
-        # Show cluster_config.json params
-        echo -e "Please verify parameters set in the cluster_config.json file: \n"
-        paste cluster_config.json
-        echo -e "\n"
+    echo "Unlocking snakemake ... "
+    snakemake --unlock
 
-        while true; do
-            read -p "Do you wish to proceed with this cluster_config.json file? (y/n)" yn
-            case $yn in
-                [Yy]* ) echo " "; break;;
-                [Nn]* ) exit;;
-                * ) echo "Please answer yes or no.";;
-            esac
-        done
-
-        echo -e "\nUnlocking snakemake ... "
-        snakemake --unlock
-
-        echo -e "\nDry-running snakemake jobs ... "
-        snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+    echo -e "\nDry-running snakemake jobs ... "
+    snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
 }
 
 # Submit login node function
 submitLogin() {
 
-    snakePrep
+    echo "No need to parse Snakefile for target rule: $task ... "
+
+    checkParams
+
+    snakeConfig
+
+    echo "Unlocking snakemake ... "
+    snakemake --unlock
+    echo " "
 
     while true; do
-        read -p "Do you wish to submit this job? (y/n)" yn
+        read -p "Do you wish to submit this $task job? (y/n)" yn
         case $yn in
             [Yy]* ) snakemake $task ; break;;
             [Nn]* ) exit;;
@@ -134,28 +185,24 @@ submitLogin() {
 submitCluster() {
 
     # Parse Snakefile rule all (line 22 of Snakefile) input to match output of desired target rule stored in "$string". Note: Hardcoded line number.
-
     echo "Parsing Snakefile to target rule: $task ... "
     sed  -i "22s~^.*$~        $string~" Snakefile
 
     # Check if the number of cores flag is specified by user for cluster job
-
     if [[ -z "$ncores" ]]; then
         
         # No number of cores provided.
-        echo -e "\nWARNING: User is requesting to submit cluster job without specifying the number of cores parameter (-n) ... "
+        echo -e "\nWARNING: User is requesting to submit cluster job without specifying the number of cores parameter (-c) ... "
 
     else
 
         # Parse cluster_config.json cores (line 5) to match number requested cores stored in "$ncores". Note: Hardcoded line number.
-
-        echo "Parsing cluster_config.json to match requested number of cores: $ncores."
+        echo "Parsing cluster_config.json to match requested number of cores: $ncores ... "
         sed -i "5s/:.*$/: $ncores,/" cluster_config.json
 
     fi 
 
     # Check if the number of jobs flag is specified by user for cluster job
-
     if [[ -z "$njobs" ]]; then
         
         # No number of jobs provided.
@@ -164,16 +211,17 @@ submitCluster() {
     fi   
 
     # Check if memory input argument was provided by user. If so, parse cluster_config.json memory (line 7) to match requested memory stored in "$mem". Note: Hardcoded line number.
-
     if [[ -z "$mem" ]]; then
 
         # No memory flag provided.
         echo "WARNING: User is requesting to submit cluster job without specifying the memory flag (-m) ... "
 
+        checkParams
+
         snakePrep
 
         while true; do
-            read -p "Do you wish to submit this batch of jobs? (y/n)" yn
+            read -p "Do you wish to submit this batch of $task jobs? (y/n)" yn
             case $yn in
                 [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
                 [Nn]* ) exit;;
@@ -184,8 +232,10 @@ submitCluster() {
     else
 
         # Memory flag was provided, parse cluster_config.json memory (line 7) to match number requested memory stored in "$mem". Note: Hardcoded line number.
-        echo "Parsing cluster_config.json to match requested memory: $mem."
+        echo "Parsing cluster_config.json to match requested memory: $mem ... "
         sed -i "7s/:.*$/: $(echo $mem)G,/" cluster_config.json
+
+        checkParams
 
         snakePrep
 
@@ -202,24 +252,20 @@ submitCluster() {
 }
 
 # Parse function
-
 parse() {
 
   printLogo
 
   # Set root folder
-
   echo "Setting current directory to root ... "
   root=$(pwd)
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
   # No need to parse snakefile for login node jobs, submit the following locally
-
-  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] ||  [ $task == "extractProteinBins" ] || [ $task == "organizeGems" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ]; then
+  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] ||  [ $task == "extractProteinBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ]; then
     submitLogin
 
  # Parse snakefile for cluster jobs
-
   elif [ $task == "fastp" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", IDs = IDs)'
     submitCluster
@@ -284,11 +330,11 @@ parse() {
 }
 
 # Read input arguments
-
 if [ $# -eq 0 ]; then
     echo "No arguments provided ... "
     usage
 else
+
     # Read in options
     while [[ $1 = -?* ]]; do
       case $1 in

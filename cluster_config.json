@@ -9,9 +9,3 @@
         "output"    : "logs/{wildcards}.%N.{rule}.out.log",
 },
 }
-
-#Using mem flag
-#nohup snakemake all -j 200 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} --mem {cluster.mem} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}" &
-
-#No mem flag
-#nohup snakemake all -j 200 -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}" &

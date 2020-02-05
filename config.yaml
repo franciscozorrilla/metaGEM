@@ -18,15 +18,17 @@ folder:
     SMETANA: SMETANA
     memote: memote
     qfiltered: qfiltered
+    stats: stats
+    finalBins: final_bins
 scripts:
     kallisto2concoct: kallisto2concoct.py
     binFilter: binFilter.py
+    qfilterVis: qfilterVis.R
     assemblyVis: assemblyVis.R
     binningVis: binningVis.R
     modelVis: modelVis.R
-dbs:
-    carveme: /path/to/scripts/media_db.tsv
-    toy: /path/to/scripts/download_toydata.txt
+    carveme: media_db.tsv
+    toy: download_toydata.txt
 cores:
     fastp: 4
     megahit: 24
