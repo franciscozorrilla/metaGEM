@@ -396,12 +396,12 @@ rule metabat:
         echo -e "\nIndexing assembly ... "
         bwa index $(basename $(dirname {input.assembly}))
         
-        echo -e "\nMapping sample to assemlby ... "
+        echo -e "\nMapping sample to assembly ... "
         bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) \
             $(basename {input.R1}) \
             $(basename {input.R2}) > $(basename $(dirname {input.assembly})).sam
         
-        echo -e "\nConverting sam to bam with samtools view ... " 
+        echo -e "\nConverting SAM to BAM with samtools view ... " 
         samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
 
         echo -e "\nSorting sam file with samtools sort ... " 
@@ -728,7 +728,7 @@ rule abundance:
         samtools view -@ {config[cores][abundance]} -Sb $(basename {output}).sam > $(basename {output}).bam
 
         echo "Sorting BAM file ... "
-        samtools sort -@ {config[cores][abundance]} $(basename {output}).bam $(basename {output}).sort
+        samtools sort -@ {config[cores][abundance]} -o $(basename {output}).sort.bam $(basename {output}).bam
 
         echo "Extracting stats from sorted BAM file ... "
         samtools flagstat $(basename {output}).sort.bam > map.stats
