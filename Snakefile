@@ -405,7 +405,7 @@ rule metabat:
         samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
 
         echo -e "\nSorting sam file with samtools sort ... " 
-        samtools sort -@ {config[cores][metabat]} $(basename $(dirname {input.assembly})).bam > $(basename $(dirname {input.assembly})).sort
+        samtools sort -@ {config[cores][metabat]} -o $(basename $(dirname {input.assembly})).sort $(basename $(dirname {input.assembly})).bam
         
         echo -e "\nRunning metabat2 ... "
         runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
@@ -711,63 +711,63 @@ rule abundance:
         mkdir -p {output}
         cd $TMPDIR
 
-        echo "Copying quality filtered paired end reads and generated MAGs to TMPDIR ... "
+        echo -e "\nCopying quality filtered paired end reads and generated MAGs to TMPDIR ... "
         cp {input.R1} {input.R2} {input.bins}/* .
 
-        echo "Concatenating all bins into one FASTA file ... "
+        echo -e "\nConcatenating all bins into one FASTA file ... "
         cat *.fa > $(basename {output}).fa
 
-        echo "Creating bwa index for concatenated FASTA file ... "
+        echo -e "\nCreating bwa index for concatenated FASTA file ... "
         bwa index $(basename {output}).fa
 
-        echo "Mapping quality filtered paired end reads to concatenated FASTA file ... "
+        echo -e "\nMapping quality filtered paired end reads to concatenated FASTA file with bwa mem ... "
         bwa mem -t {config[cores][abundance]} $(basename {output}).fa \
             $(basename {input.R1}) $(basename {input.R2}) > $(basename {output}).sam
 
-        echo "Converting SAM to BAM ... "
+        echo -e "\nConverting SAM to BAM with samtools view ... "
         samtools view -@ {config[cores][abundance]} -Sb $(basename {output}).sam > $(basename {output}).bam
 
-        echo "Sorting BAM file ... "
+        echo -e "\nSorting BAM file with samtools sort ... "
         samtools sort -@ {config[cores][abundance]} -o $(basename {output}).sort.bam $(basename {output}).bam
 
-        echo "Extracting stats from sorted BAM file ... "
+        echo -e "\nExtracting stats from sorted BAM file with samtools flagstat ... "
         samtools flagstat $(basename {output}).sort.bam > map.stats
 
-        echo "Copying sample_map.stats file to root/abundance/sample for bin concatenation and deleting temporary FASTA file ... "
+        echo -e "\nCopying sample_map.stats file to root/abundance/sample for bin concatenation and deleting temporary FASTA file ... "
         cp map.stats {output}/$(basename {output})_map.stats
         rm $(basename {output}).fa
         
-        echo "Repeat procedure for each bin ... "
+        echo -e "\nRepeat procedure for each bin ... "
         for bin in *.fa;do
 
-            echo "Setting up temporary sub-directory to map against bin $bin ... "
+            echo -e "\nSetting up temporary sub-directory to map against bin $bin ... "
             mkdir -p $(echo "$bin"| sed "s/.fa//")
             mv $bin $(echo "$bin"| sed "s/.fa//")
             cd $(echo "$bin"| sed "s/.fa//")
 
-            echo "Creating bwa index for bin $bin ... "
+            echo -e "\nCreating bwa index for bin $bin ... "
             bwa index $bin
 
-            echo "Mapping quality filtered paired end reads to bin $bin ... "
+            echo -e "\nMapping quality filtered paired end reads to bin $bin with bwa mem ... "
             bwa mem -t {config[cores][abundance]} $bin \
                 ../$(basename {input.R1}) ../$(basename {input.R2}) > $(echo "$bin"|sed "s/.fa/.sam/")
 
-            echo "Converting SAM to BAM ... "
+            echo -e "\nConverting SAM to BAM with samtools view ... "
             samtools view -@ {config[cores][abundance]} -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
 
-            echo "Sorting BAM file ... "
-            samtools sort -@ {config[cores][abundance]} $(echo "$bin"|sed "s/.fa/.bam/") $(echo "$bin"|sed "s/.fa/.sort/")
+            echo -e "\nSorting BAM file with samtools sort ... "
+            samtools sort -@ {config[cores][abundance]} -o $(echo "$bin"|sed "s/.fa/.sort.bam/") $(echo "$bin"|sed "s/.fa/.bam/")
 
-            echo "Extracting stats from sorted BAM file ... "
+            echo -e "\nExtracting stats from sorted BAM file with samtools flagstat ... "
             samtools flagstat $(echo "$bin"|sed "s/.fa/.sort.bam/") > $(echo "$bin"|sed "s/.fa/.map/")
 
-            echo "Appending bin length to bin.map stats file ... "
+            echo -e "\nAppending bin length to bin.map stats file ... "
             echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
             less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
             
             paste $(echo "$bin"|sed "s/.fa/.map/")
 
-            echo "Calculating abundance for bin $bin ... "
+            echo -e "\nCalculating abundance for bin $bin ... "
             echo -n "$bin"|sed "s/.fa//" >> $(echo "$bin"|sed "s/.fa/.abund/")
             echo -n $'\t' >> $(echo "$bin"|sed "s/.fa/.abund/")
             X=$(less $(echo "$bin"|sed "s/.fa/.map/")|grep "mapped ("|awk -F' ' '{{print $1}}')
@@ -777,7 +777,7 @@ rule abundance:
             
             paste $(echo "$bin"|sed "s/.fa/.abund/")
             
-            echo "Removing temporary files for bin $bin ... "
+            echo -e "\nRemoving temporary files for bin $bin ... "
             rm $bin
             cp $(echo "$bin"|sed "s/.fa/.map/") {output}
             mv $(echo "$bin"|sed "s/.fa/.abund/") ../
@@ -785,7 +785,7 @@ rule abundance:
             rm -r $(echo "$bin"| sed "s/.fa//")
         done
 
-        echo "Done processing all bins, summarizing results into sample.abund file ... "
+        echo -e "\nDone processing all bins, summarizing results into sample.abund file ... "
         cat *.abund > $(basename {output}).abund
         mv $(basename {output}).abund {output}
         """
