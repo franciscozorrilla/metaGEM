@@ -710,47 +710,82 @@ rule abundance:
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p {output}
         cd $TMPDIR
-        cp {input.bins}/* .
+
+        echo "Copying quality filtered paired end reads and generated MAGs to TMPDIR ... "
+        cp {input.R1} {input.R2} {input.bins}/* .
+
+        echo "Concatenating all bins into one FASTA file ... "
         cat *.fa > $(basename {output}).fa
-        cp {input.R1} {input.R2} .
-        echo "CREATING INDEX FOR BIN CONCATENATION AND MAPPING READS "
+
+        echo "Creating bwa index for concatenated FASTA file ... "
         bwa index $(basename {output}).fa
+
+        echo "Mapping quality filtered paired end reads to concatenated FASTA file ... "
         bwa mem -t {config[cores][abundance]} $(basename {output}).fa \
             $(basename {input.R1}) $(basename {input.R2}) > $(basename {output}).sam
+
+        echo "Converting SAM to BAM ... "
         samtools view -@ {config[cores][abundance]} -Sb $(basename {output}).sam > $(basename {output}).bam
+
+        echo "Sorting BAM file ... "
         samtools sort -@ {config[cores][abundance]} $(basename {output}).bam $(basename {output}).sort
+
+        echo "Extracting stats from sorted BAM file ... "
         samtools flagstat $(basename {output}).sort.bam > map.stats
+
+        echo "Copying sample_map.stats file to root/abundance/sample for bin concatenation and deleting temporary FASTA file ... "
         cp map.stats {output}/$(basename {output})_map.stats
         rm $(basename {output}).fa
-        echo "DONE MAPPING READS TO BIN CONCATENATION, BEGIN MAPPING READS TO EACH BIN "
+        
+        echo "Repeat procedure for each bin ... "
         for bin in *.fa;do
+
+            echo "Setting up temporary sub-directory to map against bin $bin ... "
             mkdir -p $(echo "$bin"| sed "s/.fa//")
             mv $bin $(echo "$bin"| sed "s/.fa//")
             cd $(echo "$bin"| sed "s/.fa//")
-            echo "INDEXING AND MAPPING BIN $bin "
+
+            echo "Creating bwa index for bin $bin ... "
             bwa index $bin
+
+            echo "Mapping quality filtered paired end reads to bin $bin ... "
             bwa mem -t {config[cores][abundance]} $bin \
                 ../$(basename {input.R1}) ../$(basename {input.R2}) > $(echo "$bin"|sed "s/.fa/.sam/")
+
+            echo "Converting SAM to BAM ... "
             samtools view -@ {config[cores][abundance]} -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
+
+            echo "Sorting BAM file ... "
             samtools sort -@ {config[cores][abundance]} $(echo "$bin"|sed "s/.fa/.bam/") $(echo "$bin"|sed "s/.fa/.sort/")
+
+            echo "Extracting stats from sorted BAM file ... "
             samtools flagstat $(echo "$bin"|sed "s/.fa/.sort.bam/") > $(echo "$bin"|sed "s/.fa/.map/")
+
+            echo "Appending bin length to bin.map stats file ... "
             echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
             less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
-            echo "FINISHED MAPPING READS TO BIN $bin "
+            
             paste $(echo "$bin"|sed "s/.fa/.map/")
-            echo "CALCULATING ABUNDANCE FOR BIN $bin "
+
+            echo "Calculating abundance for bin $bin ... "
             echo -n "$bin"|sed "s/.fa//" >> $(echo "$bin"|sed "s/.fa/.abund/")
             echo -n $'\t' >> $(echo "$bin"|sed "s/.fa/.abund/")
             X=$(less $(echo "$bin"|sed "s/.fa/.map/")|grep "mapped ("|awk -F' ' '{{print $1}}')
             Y=$(less $(echo "$bin"|sed "s/.fa/.map/")|tail -n 1|awk -F' ' '{{print $4}}')
             Z=$(less "../map.stats"|grep "mapped ("|awk -F' ' '{{print $1}}')
             awk -v x="$X" -v y="$Y" -v z="$Z" 'BEGIN{{print (100*x/y/z) * 100}}' >> $(echo "$bin"|sed "s/.fa/.abund/")
+            
+            paste $(echo "$bin"|sed "s/.fa/.abund/")
+            
+            echo "Removing temporary files for bin $bin ... "
             rm $bin
             cp $(echo "$bin"|sed "s/.fa/.map/") {output}
             mv $(echo "$bin"|sed "s/.fa/.abund/") ../
             cd ..
             rm -r $(echo "$bin"| sed "s/.fa//")
         done
+
+        echo "Done processing all bins, summarizing results into sample.abund file ... "
         cat *.abund > $(basename {output}).abund
         mv $(basename {output}).abund {output}
         """
