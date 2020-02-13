@@ -171,8 +171,8 @@ rule qfilterVis:
     input: 
         f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output: 
-        text=f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilter.stats',
-        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilterVis.pdf'
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilter.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilterVis.pdf'
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
@@ -251,8 +251,8 @@ rule assemblyVis:
     input: 
         f'{config["path"]["root"]}/{config["folder"]["assemblies"]}'
     output: 
-        text=f'{config["path"]["root"]}/{config["folder"]["stats"]}/assembly.stats',
-        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/assemblyVis.pdf',
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/assembly.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/assemblyVis.pdf',
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
@@ -525,8 +525,8 @@ rule binningVis:
     input: 
         f'{config["path"]["root"]}'
     output: 
-        text=f'{config["path"]["root"]}/{config["folder"]["stats"]}/reassembled_bins.stats',
-        plot=f'{config["path"]["root"]}/{config["folder"]["stats"]}/binningVis.pdf'
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/reassembled_bins.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/binningVis.pdf'
     message:
         """
         Generate bar plot with number of bins and density plot of bin contigs, 
@@ -657,34 +657,6 @@ rule binningVis:
         echo "Done. "
         """
 
-
-rule classifyGenomes:
-    input:
-        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/classify-genomes'
-    output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["classification"]}/{{IDs}}')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.classify-genomes.benchmark.txt'
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
-        mkdir -p {output}
-        cd $TMPDIR
-        cp -r {input.script}/* {input.bins}/* .
-
-        echo "Begin classifying bins ... "
-        for bin in *.fa; do
-            echo -e "\nClassifying $bin ... "
-            $PWD/classify-genomes $bin -t {config[cores][classify]} -o $(echo $bin|sed 's/.fa/.taxonomy/')
-            cp *.taxonomy {output}
-            rm *.taxonomy
-            rm $bin 
-        done
-        echo "Done classifying bins. "
-        """
-
-
 rule abundance:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
@@ -698,12 +670,14 @@ rule abundance:
         """
         Calculate bin abundance fraction using the following:
 
-        binAbundanceFraction = (L * X / Y / Z) * 100
+        binAbundanceFraction = ( X / Y / Z) * 1000000
 
         X = # of reads mapped to bin_i from sample_k
-        Y = length of bin_i
+        Y = length of bin_i (bp)
         Z = # of reads mapped to all bins in sample_k
-        L = length of reads (100 bp)
+
+        Note: 1000000 scaling factor converts length in bp to Mbp
+
         """
     shell:
         """
@@ -770,10 +744,11 @@ rule abundance:
             echo -e "\nCalculating abundance for bin $bin ... "
             echo -n "$bin"|sed "s/.fa//" >> $(echo "$bin"|sed "s/.fa/.abund/")
             echo -n $'\t' >> $(echo "$bin"|sed "s/.fa/.abund/")
+
             X=$(less $(echo "$bin"|sed "s/.fa/.map/")|grep "mapped ("|awk -F' ' '{{print $1}}')
             Y=$(less $(echo "$bin"|sed "s/.fa/.map/")|tail -n 1|awk -F' ' '{{print $4}}')
             Z=$(less "../map.stats"|grep "mapped ("|awk -F' ' '{{print $1}}')
-            awk -v x="$X" -v y="$Y" -v z="$Z" 'BEGIN{{print (100*x/y/z) * 100}}' >> $(echo "$bin"|sed "s/.fa/.abund/")
+            awk -v x="$X" -v y="$Y" -v z="$Z" 'BEGIN{{print (x/y/z) * 1000000}}' >> $(echo "$bin"|sed "s/.fa/.abund/")
             
             paste $(echo "$bin"|sed "s/.fa/.abund/")
             
@@ -802,40 +777,111 @@ rule abundance:
         """
 
 
-rule taxonomyVis:
+rule classifyGenomes:
+    input:
+        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
+        script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/classify-genomes'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["classification"]}/{{IDs}}')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.classify-genomes.benchmark.txt'
     shell:
         """
-        cd {config[path][root]}/{config[folder][classification]}
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        mkdir -p {output}
+        cd $TMPDIR
+        cp -r {input.script}/* {input.bins}/* .
+
+        echo "Begin classifying bins ... "
+        for bin in *.fa; do
+            echo -e "\nClassifying $bin ... "
+            $PWD/classify-genomes $bin -t {config[cores][classify]} -o $(echo $bin|sed 's/.fa/.taxonomy/')
+            cp *.taxonomy {output}
+            rm *.taxonomy
+            rm $bin 
+        done
+        echo "Done classifying bins. "
+        """
+
+rule taxonomyVis:
+    input: 
+        f'{config["path"]["root"]}/{config["folder"]["classification"]}'
+    output: 
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/classification.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/taxonomyVis.pdf'
+    message:
+        """
+        Generate bar plot with most common taxa (n>15) and density plots with mapping statistics.
+        """
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        cd {input}
+
+        echo -e "\nBegin reading classification result files ... \n"
         for folder in */;do 
-            for file in $folder*.taxonomy;do 
-                fasta=$(echo $file | sed 's|^.*/||' | sed 's/.taxonomy//g' | sed 's/.orig//g' | sed 's/.permissive//g' | sed 's/.strict//g'); 
+            for file in $folder*.taxonomy;do
+
+                # Define sample ID to append to start of each bin name in summary file
+                sample=$(echo $folder|sed 's|/||')
+
+                # Define bin name with sample ID, shorten metaWRAP naming scheme (orig/permissive/strict)
+                fasta=$(echo $file | sed 's|^.*/||' | sed 's/.taxonomy//g' | sed 's/orig/o/g' | sed 's/permissive/p/g' | sed 's/strict/s/g' | sed "s/^/$sample./g");
+
+                # Extract NCBI ID 
                 NCBI=$(less $file | grep NCBI | cut -d ' ' -f4);
+
+                # Extract consensus taxonomy
                 tax=$(less $file | grep tax | sed 's/Consensus taxonomy: //g');
+
+                # Extract consensus motus
                 motu=$(less $file | grep mOTUs | sed 's/Consensus mOTUs: //g');
+
+                # Extract number of detected genes
                 detect=$(less $file | grep detected | sed 's/Number of detected genes: //g');
+
+                # Extract percentage of agreeing genes
                 percent=$(less $file | grep agreeing | sed 's/Percentage of agreeing genes: //g' | sed 's/%//g');
+
+                # Extract number of mapped genes
                 map=$(less $file | grep mapped | sed 's/Number of mapped genes: //g');
+                
+                # Extract COG IDs, need to use set +e;...;set -e to avoid erroring out when reading .taxonomy result file for bin with no taxonomic annotation
+                set +e
                 cog=$(less $file | grep COG | cut -d$'\t' -f1 | tr '\n' ',' | sed 's/,$//g');
+                set -e
+                
+                # Display and store extracted results
+                echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog"
                 echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog" >> classification.stats;
             done;
         done
-        cd {config[path][root]}/{config[folder][abundance]}
-        for folder in */;do 
-            for file in $folder*.map;do 
-                SAMP=$(paste $file | sed -n '1p' | cut -d ' ' -f1);
-                BIN=$(paste $file | sed -n '3p' | cut -d ' ' -f1);
-                LEN=$(paste $file | sed -n '12p' | cut -d ' ' -f4);
-                MAG=$(paste $folder*_map.stats | sed -n '3p' | cut -d ' ' -f1);
-                name=$(echo $file | sed 's/.map//g' | sed 's|^.*/||g');
-                echo -n "$name ";
-                awk -v samp="$SAMP" -v bin="$BIN" -v len="$LEN" 'BEGIN{{printf bin/samp/len}}';
-                echo -n " "; 
-                awk -v mag="$MAG" -v bin="$BIN" -v len="$LEN" 'BEGIN{{print bin/mag/ len}}';
-            done;
-        done > abundance.stats
 
+        echo -e "\nDone generating classification.stats summary file, moving to stats/ directory and running taxonomyVis.R script ... "
+        mv classification.stats {config[path][root]}/{config[folder][stats]}
+        cd {config[path][root]}/{config[folder][stats]}
+
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][taxonomyVis]}
+        rm Rplots.pdf # Delete redundant pdf file
+        echo "Done. "
         """
 
+
+rule parseTaxAb:
+    input:
+        taxonomy = f'{config["path"]["root"]}/{config["folder"]["classification"]}',
+        abundance = f'{config["path"]["root"]}/{config["folder"]["abundance"]}'
+    output:
+        directory(f'{config["path"]["root"]}/MAG.table')
+    message:
+        """
+        Parses an abundance table with MAG taxonomy for rows and samples for columns.
+        Note: parseTaxAb should only be run after the classifyGenomes and abundance rules.
+        """
+    shell:
+        """
+
+        """
 
 rule extractProteinBins:
     message:
@@ -893,14 +939,22 @@ rule carveme:
 
 
 rule modelVis:
-    input:
+    input: 
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}'
+    output: 
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/classification.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/taxonomyVis.pdf'
+    message:
+        """
+        Generate bar plot with GEMs generated across samples and density plots showing number of 
+        unique metabolites, reactions, and genes across GEMs.
+        """
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         cd {input}
 
-        echo "Begin reading models ... "
+        echo -e "\nBegin reading models ... \n"
         for model in *.xml;do 
             id=$(echo $model|sed 's/.xml//g'); 
             mets=$(less $model| grep "species id="|cut -d ' ' -f 8|sed 's/..$//g'|sort|uniq|wc -l);
@@ -909,10 +963,14 @@ rule modelVis:
             echo "Model: $id has $mets mets, $rxns reactions, and $genes genes ... "
             echo "$id $mets $rxns $genes" >> GEMs.stats;
         done
-        
+
+        echo -e "\nDone generating GEMs.stats summary file, moving to stats/ folder and running modelVis.R script ... "
         mv GEMs.stats {config[path][root]}/{config[folder][stats]}
         cd {config[path][root]}/{config[folder][stats]}
+
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][modelVis]}
+        rm Rplots.pdf # Delete redundant pdf file
+        echo "Done. "
         """
 
 

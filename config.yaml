@@ -27,6 +27,7 @@ scripts:
     assemblyVis: assemblyVis.R
     binningVis: binningVis.R
     modelVis: modelVis.R
+    taxonomyVis: taxonomyVis.R
     carveme: media_db.tsv
     toy: download_toydata.txt
 cores:
