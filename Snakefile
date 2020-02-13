@@ -787,6 +787,17 @@ rule abundance:
 
         echo -e "\nDone processing all bins, summarizing results into sample.abund file ... "
         cat *.abund > $(basename {output}).abund
+
+        echo -ne "\nSumming calculated abundances to obtain normalization value ... "
+        norm=$(less $(basename {output}).abund |awk '{{sum+=$2}}END{{print sum}}');
+        echo $norm
+
+        echo -e "\nGenerating column with abundances normalized between 0 and 1 ... "
+        awk -v NORM="$norm" '{{printf $1"\t"$2"\t"$2/NORM"\n"}}' $(basename {output}).abund > abundance.txt
+
+        rm $(basename {output}).abund
+        mv abundance.txt $(basename {output}).abund
+
         mv $(basename {output}).abund {output}
         """
 
