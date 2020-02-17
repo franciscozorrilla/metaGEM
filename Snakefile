@@ -768,7 +768,7 @@ rule abundance:
         echo $norm
 
         echo -e "\nGenerating column with abundances normalized between 0 and 1 ... "
-        awk -v NORM="$norm" '{{printf $1"\t"$2"\t"$2/NORM"\n"}}' $(basename {output}).abund > abundance.txt
+        awk -v NORM="$norm" '{{printf $1"\t"$2"\t"$2/NORM"\\n"}}' $(basename {output}).abund > abundance.txt
 
         rm $(basename {output}).abund
         mv abundance.txt $(basename {output}).abund
@@ -820,6 +820,7 @@ rule taxonomyVis:
 
         echo -e "\nBegin reading classification result files ... \n"
         for folder in */;do 
+
             for file in $folder*.taxonomy;do
 
                 # Define sample ID to append to start of each bin name in summary file
@@ -854,7 +855,9 @@ rule taxonomyVis:
                 # Display and store extracted results
                 echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog"
                 echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog" >> classification.stats;
+            
             done;
+        
         done
 
         echo -e "\nDone generating classification.stats summary file, moving to stats/ directory and running taxonomyVis.R script ... "
@@ -869,17 +872,32 @@ rule taxonomyVis:
 
 rule parseTaxAb:
     input:
-        taxonomy = f'{config["path"]["root"]}/{config["folder"]["classification"]}',
+        taxonomy = rules.taxonomyVis.output.text ,
         abundance = f'{config["path"]["root"]}/{config["folder"]["abundance"]}'
     output:
         directory(f'{config["path"]["root"]}/MAG.table')
     message:
         """
         Parses an abundance table with MAG taxonomy for rows and samples for columns.
-        Note: parseTaxAb should only be run after the classifyGenomes and abundance rules.
+        Note: parseTaxAb should only be run after the classifyGenomes, taxonomyVis, and abundance rules.
         """
     shell:
         """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        cd {input.abundance}
+
+        for folder in */;do
+
+            # Define sample ID
+            sample=$(echo $folder|sed 's|/||g')
+            
+            # Same as in taxonomyVis rule, modify bin names by adding sample ID and shortening metaWRAP naming scheme (orig/permissive/strict)
+            paste $sample/$sample.abund | sed 's/orig/o/g' | sed 's/permissive/p/g' | sed 's/strict/s/g' | sed "s/^/$sample./g" >> abundance.stats
+       
+        done
+
+        mv abundance.stats {config[path][root]}/{config[folder][stats]}
+        cd {config[path][root]}/{config[folder][stats]}
 
         """
 
@@ -959,7 +977,7 @@ rule modelVis:
             id=$(echo $model|sed 's/.xml//g'); 
             mets=$(less $model| grep "species id="|cut -d ' ' -f 8|sed 's/..$//g'|sort|uniq|wc -l);
             rxns=$(less $model|grep -c 'reaction id=');
-            genes=$(less $model|grep -c 'fbc:geneProduct fbc:id=');
+            genes=$(less $model|grep 'fbc:geneProduct fbc:id='|grep -vic spontaneous);
             echo "Model: $id has $mets mets, $rxns reactions, and $genes genes ... "
             echo "$id $mets $rxns $genes" >> GEMs.stats;
         done
