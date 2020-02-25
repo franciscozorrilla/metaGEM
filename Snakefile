@@ -991,6 +991,52 @@ rule modelVis:
         echo "Done. "
         """
 
+rule ECvis:
+    input: 
+        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}'
+    output:
+        directory(f'{config["path"]["root"]}/ecfiles')
+    message:
+        """
+        Get EC information from GEMs. 
+        Switch the input folder and grep|sed expressions to match the ec numbers in you model sets.
+        Currently configured for UHGG GEM set.
+        """
+    shell:
+        """
+        echo -e "\nCopying GEMs from specified input directory to TMPDIR ... "
+        cp -r {input} $TMPDIR
+
+        cd $TMPDIR
+        mkdir ecfiles
+
+        while read model; do
+
+            # Read E.C. numbers from  each sbml file and write to a unique file, note that grep expression is hardcoded for specific GEM batches           
+            less $(basename {input})/$model|
+                grep 'EC Number'| \
+                sed 's/^.*: //g'| \
+                sed 's/<.*$//g'| \
+                sed '/-/d'|sed '/N\/A/d' | \
+                sort|uniq -c \
+            > ecfiles/$model.ec
+
+            echo -ne "Reading E.C. numbers in model $model, unique E.C. : "
+            ECNUM=$(less ecfiles/$model.ec|wc -l)
+            echo $ECNUM
+
+        done< <(ls $(basename {input}))
+
+        echo -e "\nMoving ecfiles folder back to {config[path][root]}"
+        mv ecfiles {config[path][root]}
+        cd {config[path][root]}
+
+        echo -e "\nCreating sorted unique file EC.summary for easy EC inspection ... "
+        cat ecfiles/*.ec|awk '{{print $NF}}'|sort|uniq -c > EC.summary
+
+        paste EC.summary
+
+        """
 
 rule organizeGEMs:
     input:
