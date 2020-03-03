@@ -275,26 +275,27 @@ rule assemblyVis:
         """
 
 
-rule crossMap:
+rule metabat:
     input:
         contigs = rules.megahit.output,
         READS = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["concoctInput"]}/{{IDs}}')
+        directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.crossMap.benchmark.txt'
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.metabat.benchmark.txt'
     message:
         """
-        The idea for this rule is to cross map all samples with bwa, and then use the output of this rule for all 3 binners.
-        This is in contrast to the previous implementations, where only concoct gets crossmapping information from kallisto,
-        and maxbin/metabat only use mapping info from the focal sample. This may be hard to scale for large datasets with >
-        100 samples.
+        Cross map all samples with bwa then use the output of this rule to create contig abundance/depth files 
+        to be used for binning with metabat2 and maxbin2. After depth files are copied back to workspace and 
+        metabat2 finishes we avoid the need to copy bam files back to workspace saving space as well as 
+        reducing total nubmer of jobs to run.
         """
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         cd $TMPDIR
         cp {input.contigs} .
+        mkdir -p {output}
 
         # Define the focal sample ID, fsample: 
         # The one sample that all other samples will be mapped against mapping sample msampleID in for loop
@@ -308,87 +309,91 @@ rule crossMap:
         echo -e "\nIndexing assembly ... "
         bwa index $fsampleID.fa
         
-        # Make sure that output folder is created so that cram files can be moved
-        # from $TMPDIR to workspace as they are created
-        mkdir -p {output}
-
         for folder in {input.READS}/*;do 
 
-                echo -e "\nCopying sample $folder to be mapped againts the focal sample $fsampleID ..."
-                cp $folder/*.gz .
+                id=$(basename $folder)
 
-                # Define names for input/outputs to make calls bwa/samtools calls easier 
-                SAM=$(basename $(echo -n "$folder"|sed 's/$/.sam/g'))
-                BAM=$(basename $(echo -n "$folder"|sed 's/$/.bam/g'))
-                SORT=$(basename $(echo -n "$folder"|sed 's/$/.sort/g'))
-                CRAM=$(basename $(echo -n "$folder"|sed 's/$/.cram/g'))
+                echo -e "\nCopying sample $id to be mapped againts the focal sample $fsampleID ..."
+                cp $folder/*.gz .
                 
                 # Maybe I should be piping the lines below to reduce I/O ?
 
                 echo -e "\nMapping sample to assembly ... "
-                bwa mem -t {config[cores][kallisto]} $fsampleID.fa *.fastq.gz > $(echo $SAM)
+                bwa mem -t {config[cores][metabat]} $fsampleID.fa *.fastq.gz > $id.sam
                 
                 echo -e "\nConverting SAM to BAM with samtools view ... " 
-                samtools view -@ {config[cores][kallisto]} -Sb *.sam > $(echo $BAM)
+                samtools view -@ {config[cores][metabat]} -Sb $id.sam > $id.bam
 
                 echo -e "\nSorting BAM file with samtools sort ... " 
-                samtools sort -@ {config[cores][kallisto]} -o $(echo $SORT) *.bam
+                samtools sort -@ {config[cores][metabat]} -o $id.sort $id.bam
 
-                echo -e "\nConverting sorted BAM file to CRAM for better compression ... " 
-                samtools view -C -T $fsampleID.fa $(echo $SORT) > $(echo $CRAM)
+                echo -e "\nRunning jgi_summarize_bam_contig_depths script to generate contig abundance/depth file ... "
+                jgi_summarize_bam_contig_depths --outputDepth $id.depth $id.sort
 
-                echo -e "\nDone. Removing temporary files and moving CRAM output file back to workspace ... "
+                echo -e "\nCopying depth file to workspace"
+                mv $id.depth {output}
+
+                echo -e "\nRemoving temporary files ... "
                 rm *.fastq.gz *.sam *.bam
-                mv *.cram {output}
+
         done
+        
+        nSamples=$(ls {input.READS}|wc -l)
+        echo -e "\nDone mapping focal sample $fsampleID agains $nSamples samples in dataset folder."
+
+        echo -e "\nRunning jgi_summarize_bam_contig_depths for all sorted bam files ... "
+        jgi_summarize_bam_contig_depths --outputDepth $id.all.depth *.sort
+
+        echo -e "\nRunning metabat2 ... "
+        metabat2 -i $fsampleID.fa -a $id.all.depth -o $fsampleID
+
+        mv *.fa $id.all.depth $(dirname {output})
 
         """
 
 
-rule metabat:
+rule maxbin:
     input:
         assembly = rules.megahit.output,
-        READS = rules.qfilter.output
+        depth = rules.metabat.output
     output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
+        directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.metabat.benchmark.txt'
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
+    message:
+        """
+        Note that this rule uses of the output depth of metabat2 as an input to bin using maxbin2.
+        """
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
-        cp {input.assembly} {input.READS} $TMPDIR
+        cp -r {input.assembly} {input.depth} $TMPDIR
         mkdir -p $(dirname $(dirname {output}))
         cd $TMPDIR
 
-        echo "Renaming and unizzping assembly ... "
-        mv $(basename {input.assembly}) $(basename $(dirname {input.assembly})).gz
-        gunzip $(basename $(dirname {input.assembly})).gz
+        echo -e "\nUnzipping assembly ... "
+        gunzip contigs.fasta.gz
 
-        echo -e "\nIndexing assembly ... "
-        bwa index $(basename $(dirname {input.assembly}))
+        echo -e "\nGenerating list of depth files based on metabat2 output ... "
+        find $(basename {input.depth}) -name "*.depth" > abund.list
         
-        echo -e "\nMapping sample to assembly ... "
-        bwa mem -t {config[cores][metabat]} $(basename $(dirname {input.assembly})) \
-            $(basename {input.READS}) > $(basename $(dirname {input.assembly})).sam
+        echo -e "\nRunning maxbin2 ... "
+        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -abund_list abund.list
         
-        echo -e "\nConverting SAM to BAM with samtools view ... " 
-        samtools view -@ {config[cores][metabat]} -Sb $(basename $(dirname {input.assembly})).sam > $(basename $(dirname {input.assembly})).bam
+        rm contigs.fasta *.gz
 
-        echo -e "\nSorting sam file with samtools sort ... " 
-        samtools sort -@ {config[cores][metabat]} -o $(basename $(dirname {input.assembly})).sort $(basename $(dirname {input.assembly})).bam
-        
-        echo -e "\nRunning metabat2 ... "
-        runMetaBat.sh $(basename $(dirname {input.assembly})) $(basename $(dirname {input.assembly})).sort
-        
+        mkdir $(basename {output})
         mkdir -p $(dirname {output})
-        mv *.txt $(basename {output}) $(dirname {output})
+
+        mv *.summary *.abundance *.fasta $(basename {output})
+        mv $(basename {output}) $(dirname {output})
         """
 
 
 rule concoct:
     input:
-        table = rules.kallisto.output,
-        contigs = rules.megahit.output
+        contigs = rules.megahit.output,
+        reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["concoctOutput"]}/{{IDs}}/{{IDs}}.concoct-bins')
     benchmark:
@@ -397,22 +402,58 @@ rule concoct:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
+
+        fsampleID=$(echo $(basename $(dirname {input.contigs})))
+        echo -e "\nCopying focal sample assembly $fsampleID to TMPDIR ... "
+
+        cp {input.contigs} $TMPDIR
         cd $TMPDIR
-        cp {input.contigs} {input.table} $TMPDIR
 
         echo "Unzipping assembly ... "
         gunzip $(basename {input.contigs})
 
         echo -e "Done. \nCutting up contigs (default 10kbp chunks) ... "
-        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > assembly_c10k.fa
+        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta -b assembly_c10k.bed > assembly_c10k.fa
         
+        echo -e "\nIndexing assembly ... "
+        bwa index assembly_c10k.fa
+
+        echo -e "Done. \nPreparing to map focal sample against other samples ... "
+        for folder in {input.reads}/*;do 
+
+                id=$(basename $folder)
+                echo -e "\nCopying sample $id to be mapped againts the focal sample $fsampleID ..."
+                cp $folder/*.gz .
+                
+                # Maybe I should be piping the lines below to reduce I/O ?
+
+                echo -e "\nMapping sample to assembly ... "
+                bwa mem -t {config[cores][concoct]} assembly_c10k.fa *.fastq.gz > $id.sam
+                
+                echo -e "\nConverting SAM to BAM with samtools view ... " 
+                samtools view -@ {config[cores][concoct]} -Sb $id.sam > $id.bam
+
+                echo -e "\nSorting BAM file with samtools sort ... " 
+                samtools sort -@ {config[cores][concoct]} -o $id.sort $id.bam
+
+                echo -e "\Indexing sorted BAM file with samtools index ... " 
+                samtools index $id.sort
+
+                echo -e "\nRemoving temporary files ... "
+                rm *.fastq.gz *.sam *.bam
+
+        done
+
+        echo -e "\nSummarizing sorted and indexed BAM files with concoct_coverage_table.py ... " 
+        concoct_coverage_table.py assembly_c10k.bed *.sort > coverage_table.tsv
+
         echo -e "\nRunning CONCOCT ... "
-        concoct --coverage_file {input.table} --composition_file assembly_c10k.fa \
+        concoct --coverage_file coverage_table.tsv --composition_file assembly_c10k.fa \
             -b $(basename $(dirname {output})) \
             -t {config[cores][concoct]} \
             -c {config[params][concoct]}
             
-        echo -e "\nMerging clustering results into original contigs ... "
+        echo -e "\nMerging clustering results into original contigs with merge_cutup_clustering.py ... "
         merge_cutup_clustering.py $(basename $(dirname {output}))_clustering_gt1000.csv > $(basename $(dirname {output}))_clustering_merged.csv
         
         echo -e "\nExtracting bins ... "
@@ -421,39 +462,6 @@ rule concoct:
         
         mkdir -p $(dirname {output})
         mv $(basename {output}) *.txt *.csv $(dirname {output})
-        """
-
-
-rule maxbin:
-    input:
-        assembly = rules.megahit.output,
-        READS = rules.qfilter.output
-    output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
-        cp {input.assembly} {input.READS} $TMPDIR
-        mkdir -p $(dirname $(dirname {output}))
-        cd $TMPDIR
-
-        echo "Unzipping assembly ... "
-        gunzip contigs.fasta.gz
-        
-        echo -e "\nRunning maxbin2 ... "
-        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) \
-            -reads *.fastq.gz \
-            -thread {config[cores][maxbin]}
-        
-        rm contigs.fasta *.gz
-
-        mkdir $(basename {output})
-        mkdir -p $(dirname {output})
-
-        mv *.fasta $(basename {output})
-        mv *.abund* $(basename {output}) $(dirname {output})
         """
 
 
