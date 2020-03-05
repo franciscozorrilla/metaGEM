@@ -10,19 +10,31 @@ classification$percent[is.na(classification$percent)]  <- 0
 classification$fasta=gsub(" $","",classification$fasta)
 
 taxplot = classification %>% 
-  count(taxonomy) %>% filter(n>15) %>% 
+  count(taxonomy) %>% filter(n>10) %>% 
   ggplot(aes(x=reorder(taxonomy,-n),y=n)) +
   geom_bar(stat = "identity") + 
+  ggtitle("Taxonomy of reconstructed MAGs") +
+  xlab("Taxonomy") +
+  ylab("Count") +
   coord_flip()
 
 mapplot=ggplot(classification)+
-  geom_density(aes(map),fill="#7fc97f")
+  geom_density(aes(map),fill="#7fc97f") + 
+  ggtitle("Density of marker genes mapped ") +
+  xlab("Number of marker genes mapped to MAG") +
+  ylab("Density") +
 
 detplot=ggplot(classification)+
-  geom_density(aes(detect),fill="#beaed4")
+  geom_density(aes(detect),fill="#beaed4") + 
+  ggtitle("Density of marker genes detected") +
+  xlab("Number of marker genes detected in MAG") +
+  ylab("Density") +
 
 perplot=ggplot(classification)+
-  geom_density(aes(percent),fill="#fdc086")
+  geom_density(aes(percent),fill="#fdc086") + 
+  ggtitle("Density of agreeing percentage of marker genes") +
+  xlab("Percentage of mapped marker genes agreeing with assigned taxomy") +
+  ylab("Density") +
 
 plotax=grid.arrange(taxplot,arrangeGrob(detplot,mapplot,perplot,nrow=3,ncol = 1),nrow=1,ncol=2)
 

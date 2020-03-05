@@ -960,8 +960,8 @@ rule modelVis:
     input: 
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}'
     output: 
-        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/classification.stats',
-        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/taxonomyVis.pdf'
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GEMs.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/modelVis.pdf'
     message:
         """
         Generate bar plot with GEMs generated across samples and density plots showing number of 
@@ -1050,7 +1050,7 @@ rule organizeGEMs:
         """
         cd {input}
         for folder in */;do
-            echo "Creating GEM subfolder for sample $folder ... "
+            echo -n "Creating GEM subfolder for sample $folder ... "
             mkdir -p ../{config[folder][GEMs]}/$folder;
             echo -n "moving GEMs ... "
             mv ../{config[folder][GEMs]}/$(echo $folder|sed 's|/||')_*.xml ../{config[folder][GEMs]}/$folder;

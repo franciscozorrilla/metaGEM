@@ -385,8 +385,8 @@ rule maxbin:
         mkdir $(basename {output})
         mkdir -p $(dirname {output})
 
-        mv *.summary *.abundance *.fasta $(basename {output})
-        mv $(basename {output}) $(dirname {output})
+        mv *.fasta $(basename {output})
+        mv $(basename {output}) *.summary *.abundance $(dirname {output})
         """
 
 
@@ -412,11 +412,11 @@ rule concoct:
         echo "Unzipping assembly ... "
         gunzip $(basename {input.contigs})
 
-        echo -e "Done. \nCutting up contigs (default 10kbp chunks) ... "
+        echo -e "Done. \nCutting up contigs to 10kbp chunks (default), do not use this for mapping!"
         cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta -b assembly_c10k.bed > assembly_c10k.fa
         
-        echo -e "\nIndexing assembly ... "
-        bwa index assembly_c10k.fa
+        echo -e "\nIndexing assembly of original contigs for mapping (not 10kbp chunks assembly file) ... "
+        bwa index contigs.fasta
 
         echo -e "Done. \nPreparing to map focal sample against other samples ... "
         for folder in {input.reads}/*;do 
@@ -428,7 +428,7 @@ rule concoct:
                 # Maybe I should be piping the lines below to reduce I/O ?
 
                 echo -e "\nMapping sample to assembly ... "
-                bwa mem -t {config[cores][concoct]} assembly_c10k.fa *.fastq.gz > $id.sam
+                bwa mem -t {config[cores][concoct]} contigs.fasta *.fastq.gz > $id.sam
                 
                 echo -e "\nConverting SAM to BAM with samtools view ... " 
                 samtools view -@ {config[cores][concoct]} -Sb $id.sam > $id.bam
@@ -436,7 +436,7 @@ rule concoct:
                 echo -e "\nSorting BAM file with samtools sort ... " 
                 samtools sort -@ {config[cores][concoct]} -o $id.sort $id.bam
 
-                echo -e "\Indexing sorted BAM file with samtools index ... " 
+                echo -e "\nIndexing sorted BAM file with samtools index ... " 
                 samtools index $id.sort
 
                 echo -e "\nRemoving temporary files ... "
@@ -737,8 +737,7 @@ rule abundance:
             bwa index $bin
 
             echo -e "\nMapping quality filtered single end reads to bin $bin with bwa mem ... "
-            bwa mem -t {config[cores][abundance]} $bin \
-                ../$(basename {input.READS}) > $(echo "$bin"|sed "s/.fa/.sam/")
+            bwa mem -t {config[cores][abundance]} $bin ../$(basename {input.READS}) > $(echo "$bin"|sed "s/.fa/.sam/")
 
             echo -e "\nConverting SAM to BAM with samtools view ... "
             samtools view -@ {config[cores][abundance]} -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
@@ -943,8 +942,8 @@ rule modelVis:
     input: 
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}'
     output: 
-        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/classification.stats',
-        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/taxonomyVis.pdf'
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GEMs.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/modelVis.pdf'
     message:
         """
         Generate bar plot with GEMs generated across samples and density plots showing number of 
@@ -987,38 +986,13 @@ rule organizeGEMs:
         """
         cd {input}
         for folder in */;do
-            echo "Creating GEM subfolder for sample $folder ... "
+            echo -n "Creating GEM subfolder for sample $folder ... "
             mkdir -p ../{config[folder][GEMs]}/$folder;
             echo -n "moving GEMs ... "
             mv ../{config[folder][GEMs]}/$(echo $folder|sed 's|/||')_*.xml ../{config[folder][GEMs]}/$folder;
             echo "done. "
         done
         """
-
-
-rule smetana:
-    input:
-        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{IDs}}'
-    output:
-        f'{config["path"]["root"]}/{config["folder"]["SMETANA"]}/{{IDs}}_detailed.tsv'
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.smetana.benchmark.txt'
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u
-        mkdir -p {config[path][root]}/{config[folder][SMETANA]}
-        cp {config[dbs][carveme]} {input}/*.xml $TMPDIR
-        cd $TMPDIR
-        
-        smetana -o $(basename {input}) --flavor fbc2 \
-            --mediadb media_db.tsv -m {config[params][smetanaMedia]} \
-            --detailed \
-            --solver {config[params][smetanaSolver]} -v *.xml
-        
-        cp *.tsv {config[path][root]} #safety measure for backup of results in case rule fails for some reason
-        mv *.tsv $(dirname {output})
-        """
-
 
 rule memote:
     input:
@@ -1044,4 +1018,28 @@ rule memote:
             rm $model
         done
         """
+
+rule smetana:
+    input:
+        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{IDs}}'
+    output:
+        f'{config["path"]["root"]}/{config["folder"]["SMETANA"]}/{{IDs}}_detailed.tsv'
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.smetana.benchmark.txt'
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        mkdir -p {config[path][root]}/{config[folder][SMETANA]}
+        cp {config[dbs][carveme]} {input}/*.xml $TMPDIR
+        cd $TMPDIR
+        
+        smetana -o $(basename {input}) --flavor fbc2 \
+            --mediadb media_db.tsv -m {config[params][smetanaMedia]} \
+            --detailed \
+            --solver {config[params][smetanaSolver]} -v *.xml
+        
+        cp *.tsv {config[path][root]} #safety measure for backup of results in case rule fails for some reason
+        mv *.tsv $(dirname {output})
+        """
+
 
