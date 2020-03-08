@@ -15,7 +15,7 @@ colnames(abundance) = c("fasta","ab","abNorm")
 
 classification = left_join(classification,abundance,by="fasta")
 
-ggplot(classification, aes(x = sample, y = abNorm, fill = taxonomy)) + 
+plot = ggplot(classification, aes(x = sample, y = abNorm, fill = taxonomy)) + 
   geom_bar(stat = "identity") + 
   ggtitle("Taxonomic composition of samples based on MAGs") +
   xlab("Sample ID") + 
