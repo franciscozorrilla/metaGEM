@@ -5,10 +5,9 @@ folder:
     logs: logs
     assemblies: assemblies
     scripts: scripts
-    concoctInput: concoct_input
-    concoctOutput: concoct_output
-    maxbin: maxbin_output
-    metabat: metabat_output
+    concoct: concoct
+    maxbin: maxbin
+    metabat: metabat
     refined: refined_bins
     reassembled: reassembled_bins
     classification: classification
@@ -33,7 +32,7 @@ scripts:
 cores:
     fastp: 4
     megahit: 24
-    kallisto: 24
+    crossMap: 24
     concoct: 24
     metabat: 24
     maxbin: 24
