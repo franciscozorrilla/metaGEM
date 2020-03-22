@@ -274,12 +274,12 @@ parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)'
     submitCluster
 
-  elif [ $task == "kallisto" ]; then
-    string='expand(config["path"]["root"]+"/"+config["folder"]["concoctInput"]+"/{IDs}_concoct_inputtableR.tsv", IDs = IDs)'
+  elif [ $task == "crossMap" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{IDs}/cov", IDs = IDs)'
     submitCluster
 
   elif [ $task == "concoct" ]; then
-    string='expand(config["path"]["root"]+"/"+config["folder"]["concoctOutput"]+"/{IDs}/{IDs}.concoct-bins", IDs = IDs)'
+    string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{IDs}/{IDs}.concoct-bins", IDs = IDs)'
     submitCluster
 
   elif [ $task == "metabat" ]; then

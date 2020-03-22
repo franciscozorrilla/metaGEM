@@ -35,4 +35,4 @@ geneplot = ggplot() +
 
 plot=grid.arrange(samplesplot,arrangeGrob(metplot,rxnplot,geneplot,nrow=3,ncol=1),nrow=1,ncol=2,heights=c(60),widths=c(30,30))
 
-ggsave("gemVis.pdf",plot=plot, height = 8, width = 12)
+ggsave("modelVis.pdf",plot=plot, height = 8, width = 12)

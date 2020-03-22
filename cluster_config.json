@@ -1,8 +1,8 @@
 {
 "__default__" : {
         "account" : "patil",
-        "time" : "7-00:00:00",
-        "n" : 48,
+        "time" : "0-06:00:00",
+        "n" : 12,
         "tasks" : 1,
         "mem" : 60G,
         "name"      : "DL.{rule}",

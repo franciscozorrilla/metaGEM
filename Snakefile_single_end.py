@@ -11,15 +11,15 @@ def get_ids_from_path_pattern(path_pattern):
 # Make sure that final_bins/ folder contains all bins in single folder for binIDs
 # wildcard to work. Use extractProteinBins rule or perform manually.
 binIDs = get_ids_from_path_pattern('final_bins/*.faa')
-IDs = get_ids_from_path_pattern('dataset/*')
+IDs = get_ids_from_path_pattern('assemblies/*')
 
-DATA_READS_1 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_1.fastq.gz'
-DATA_READS_2 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_2.fastq.gz'
+DATA_READS = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}.fastq.gz'
 
+# Inserting space here to avoid having to change the hardcoded line 22 edit in the metabagpipes parser to expand wildcards
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins', IDs=IDs)
+        expand(f'{config["path"]["root"]}/test/motus2/{{IDs}}', IDs=IDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
@@ -144,25 +144,21 @@ rule organizeData:
 
 rule qfilter: 
     input:
-        R1 = DATA_READS_1,
-        R2 = DATA_READS_2
+        READS = DATA_READS
     output:
-        R1 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_1.fastq.gz', 
-        R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_2.fastq.gz' 
+        f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}.fastq.gz', 
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
 
-        mkdir -p $(dirname $(dirname {output.R1}))
-        mkdir -p $(dirname {output.R1})
+        mkdir -p $(dirname $(dirname {output}))
+        mkdir -p $(dirname {output})
 
         fastp --thread {config[cores][fastp]} \
-            -i {input.R1} \
-            -I {input.R2} \
-            -o {output.R1} \
-            -O {output.R2} \
-            -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json \
-            -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
+            -i {input} \
+            -o {output} \
+            -j $(dirname {output})/$(echo $(basename $(dirname {output}))).json \
+            -h $(dirname {output})/$(echo $(basename $(dirname {output}))).html
 
         """
 
@@ -209,8 +205,7 @@ rule qfilterVis:
 
 rule megahit:
     input:
-        R1 = rules.qfilter.output.R1, 
-        R2 = rules.qfilter.output.R2
+        rules.qfilter.output
     output:
         f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{IDs}}/contigs.fasta.gz'
     benchmark:
@@ -221,15 +216,13 @@ rule megahit:
         cd $TMPDIR
 
         echo -n "Copying qfiltered reads to $TMPDIR ... "
-        cp {input.R1} {input.R2} $TMPDIR
+        cp {input} $TMPDIR
         echo "done. "
 
         echo -n "Running megahit ... "
         megahit -t {config[cores][megahit]} \
-            --presets {config[params][assemblyPreset]} \
             --verbose \
-            -1 $(basename {input.R1}) \
-            -2 $(basename {input.R2}) \
+            -r $(basename {input}) \
             -o tmp;
         echo "done. "
 
@@ -281,39 +274,42 @@ rule assemblyVis:
         rm Rplots.pdf
         """
 
-rule crossMap:
+
+rule metabat:
     input:
         contigs = rules.megahit.output,
-        reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
+        READS = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output:
-        concoct = directory(f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{IDs}}/cov'),
-        metabat = directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/cov'),
-        maxbin = directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/cov')
+        directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.crossMap.benchmark.txt'
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.metabat.benchmark.txt'
+    message:
+        """
+        Cross map all samples with bwa then use the output of this rule to create contig abundance/depth files 
+        to be used for binning with metabat2 and maxbin2. After depth files are copied back to workspace and 
+        metabat2 finishes we avoid the need to copy bam files back to workspace saving space as well as 
+        reducing total nubmer of jobs to run.
+        """
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         cd $TMPDIR
         cp {input.contigs} .
-
-        mkdir -p {output.concoct}
-        mkdir -p {output.metabat}
-        mkdir -p {output.maxbin}
+        mkdir -p {output}
 
         # Define the focal sample ID, fsample: 
-        # The one sample's assembly that all other samples' read will be mapped against in a for loop
+        # The one sample that all other samples will be mapped against mapping sample msampleID in for loop
         fsampleID=$(echo $(basename $(dirname {input.contigs})))
         echo -e "\nFocal sample: $fsampleID ... "
 
         echo "Renaming and unzipping assembly ... "
-        mv $(basename {input}) $(echo $fsampleID|sed 's/$/.fa.gz/g')
+        mv $(basename {input.contigs}) $(echo $fsampleID|sed 's/$/.fa.gz/g')
         gunzip $(echo $fsampleID|sed 's/$/.fa.gz/g')
 
         echo -e "\nIndexing assembly ... "
         bwa index $fsampleID.fa
         
-        for folder in {input.reads}/*;do 
+        for folder in {input.READS}/*;do 
 
                 id=$(basename $folder)
 
@@ -323,76 +319,141 @@ rule crossMap:
                 # Maybe I should be piping the lines below to reduce I/O ?
 
                 echo -e "\nMapping sample to assembly ... "
-                bwa mem -t {config[cores][crossMap]} $fsampleID.fa *.fastq.gz > $id.sam
+                bwa mem -t {config[cores][metabat]} $fsampleID.fa *.fastq.gz > $id.sam
                 
                 echo -e "\nConverting SAM to BAM with samtools view ... " 
-                samtools view -@ {config[cores][crossMap]} -Sb $id.sam > $id.bam
+                samtools view -@ {config[cores][metabat]} -Sb $id.sam > $id.bam
 
                 echo -e "\nSorting BAM file with samtools sort ... " 
-                samtools sort -@ {config[cores][crossMap]} -o $id.sort $id.bam
+                samtools sort -@ {config[cores][metabat]} -o $id.sort $id.bam
 
-                echo -e "\nRunning jgi_summarize_bam_contig_depths script to generate contig abundance/depth file for maxbin2 input ... "
+                echo -e "\nRunning jgi_summarize_bam_contig_depths script to generate contig abundance/depth file ... "
                 jgi_summarize_bam_contig_depths --outputDepth $id.depth $id.sort
 
-                echo -e "\nMoving depth file to sample $fsampleID maxbin2 folder ... "
-                mv $id.depth {output.maxbin}
-
-                echo -e "\nIndexing sorted BAM file with samtools index for CONCOCT input table generation ... " 
-                samtools index $id.sort
+                echo -e "\nCopying depth file to workspace"
+                mv $id.depth {output}
 
                 echo -e "\nRemoving temporary files ... "
                 rm *.fastq.gz *.sam *.bam
 
         done
         
-        nSamples=$(ls {input.reads}|wc -l)
+        nSamples=$(ls {input.READS}|wc -l)
         echo -e "\nDone mapping focal sample $fsampleID agains $nSamples samples in dataset folder."
 
-        echo -e "\nRunning jgi_summarize_bam_contig_depths for all sorted bam files to generate metabat2 input ... "
+        echo -e "\nRunning jgi_summarize_bam_contig_depths for all sorted bam files ... "
         jgi_summarize_bam_contig_depths --outputDepth $id.all.depth *.sort
 
-        echo -e "\nMoving input file $id.all.depth to $fsampleID metabat2 folder... "
-        mv $id.all.depth {output.metabat}
+        echo -e "\nRunning metabat2 ... "
+        metabat2 -i $fsampleID.fa -a $id.all.depth -o $fsampleID
 
-        echo -e "Done. \nCutting up contigs to 10kbp chunks (default), not to be used for mapping!"
-        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m $fsampleID.fa -b assembly_c10k.bed > assembly_c10k.fa
-
-        echo -e "\nSummarizing sorted and indexed BAM files with concoct_coverage_table.py to generate CONCOCT input table ... " 
-        concoct_coverage_table.py assembly_c10k.bed *.sort > coverage_table.tsv
-
-        echo -e "\nMoving CONCOCT input table to $fsampleID concoct folder"
-        mv coverage_table.tsv {output.concoct}
+        mv *.fa $id.all.depth $(dirname {output})
 
         """
 
+
+rule maxbin:
+    input:
+        assembly = rules.megahit.output,
+        depth = rules.metabat.output
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
+    message:
+        """
+        Note that this rule uses of the output depth of metabat2 as an input to bin using maxbin2.
+        """
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        cp -r {input.assembly} {input.depth} $TMPDIR
+        mkdir -p $(dirname $(dirname {output}))
+        cd $TMPDIR
+
+        echo -e "\nUnzipping assembly ... "
+        gunzip contigs.fasta.gz
+
+        echo -e "\nGenerating list of depth files based on metabat2 output ... "
+        find $(basename {input.depth}) -name "*.depth" > abund.list
+        
+        echo -e "\nRunning maxbin2 ... "
+        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -abund_list abund.list
+        
+        rm contigs.fasta *.gz
+
+        mkdir $(basename {output})
+        mkdir -p $(dirname {output})
+
+        mv *.fasta $(basename {output})
+        mv $(basename {output}) *.summary *.abundance $(dirname {output})
+        """
+
+
 rule concoct:
     input:
-        table = rules.crossMap.output.concoct,
-        contigs = rules.megahit.output
+        contigs = rules.megahit.output,
+        reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{IDs}}/{{IDs}}.concoct-bins')
+        directory(f'{config["path"]["root"]}/{config["folder"]["concoctOutput"]}/{{IDs}}/{{IDs}}.concoct-bins')
     benchmark:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.concoct.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
         mkdir -p $(dirname $(dirname {output}))
+
+        fsampleID=$(echo $(basename $(dirname {input.contigs})))
+        echo -e "\nCopying focal sample assembly $fsampleID to TMPDIR ... "
+
+        cp {input.contigs} $TMPDIR
         cd $TMPDIR
-        cp {input.contigs} {input.table}/coverage_table.tsv $TMPDIR
 
         echo "Unzipping assembly ... "
         gunzip $(basename {input.contigs})
 
-        echo -e "Done. \nCutting up contigs (default 10kbp chunks) ... "
-        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta > assembly_c10k.fa
+        echo -e "Done. \nCutting up contigs to 10kbp chunks (default), do not use this for mapping!"
+        cut_up_fasta.py -c {config[params][cutfasta]} -o 0 -m contigs.fasta -b assembly_c10k.bed > assembly_c10k.fa
         
+        echo -e "\nIndexing assembly of original contigs for mapping (not 10kbp chunks assembly file) ... "
+        bwa index contigs.fasta
+
+        echo -e "Done. \nPreparing to map focal sample against other samples ... "
+        for folder in {input.reads}/*;do 
+
+                id=$(basename $folder)
+                echo -e "\nCopying sample $id to be mapped againts the focal sample $fsampleID ..."
+                cp $folder/*.gz .
+                
+                # Maybe I should be piping the lines below to reduce I/O ?
+
+                echo -e "\nMapping sample to assembly ... "
+                bwa mem -t {config[cores][concoct]} contigs.fasta *.fastq.gz > $id.sam
+                
+                echo -e "\nConverting SAM to BAM with samtools view ... " 
+                samtools view -@ {config[cores][concoct]} -Sb $id.sam > $id.bam
+
+                echo -e "\nSorting BAM file with samtools sort ... " 
+                samtools sort -@ {config[cores][concoct]} -o $id.sort $id.bam
+
+                echo -e "\nIndexing sorted BAM file with samtools index ... " 
+                samtools index $id.sort
+
+                echo -e "\nRemoving temporary files ... "
+                rm *.fastq.gz *.sam *.bam
+
+        done
+
+        echo -e "\nSummarizing sorted and indexed BAM files with concoct_coverage_table.py ... " 
+        concoct_coverage_table.py assembly_c10k.bed *.sort > coverage_table.tsv
+
         echo -e "\nRunning CONCOCT ... "
         concoct --coverage_file coverage_table.tsv --composition_file assembly_c10k.fa \
             -b $(basename $(dirname {output})) \
             -t {config[cores][concoct]} \
             -c {config[params][concoct]}
             
-        echo -e "\nMerging clustering results into original contigs ... "
+        echo -e "\nMerging clustering results into original contigs with merge_cutup_clustering.py ... "
         merge_cutup_clustering.py $(basename $(dirname {output}))_clustering_gt1000.csv > $(basename $(dirname {output}))_clustering_merged.csv
         
         echo -e "\nExtracting bins ... "
@@ -404,67 +465,9 @@ rule concoct:
         """
 
 
-rule metabat:
-    input:
-        assembly = rules.megahit.output,
-        depth = rules.crossMap.output.metabat
-    output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.metabat.benchmark.txt'
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
-        cp {input.assembly} {input.depth}/*.all.depth $TMPDIR
-        mkdir -p $(dirname {output})
-        cd $TMPDIR
-
-        gunzip $(basename {input.assembly})
-
-        echo -e "\nRunning metabat2 ... "
-        metabat2 -i contigs.fasta -a *.all.depth -o $(basename $(dirname {output}))
-
-        mkdir -p {output}
-        mv *.fa {output}
-        """
-
-
-rule maxbin:
-    input:
-        assembly = rules.megahit.output,
-        depth = rules.crossMap.output.maxbin
-    output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
-        cp -r {input.assembly} {input.depth}/*.depth $TMPDIR
-        mkdir -p $(dirname {output})
-        cd $TMPDIR
-
-        echo -e "\nUnzipping assembly ... "
-        gunzip $(basename {input.assembly})
-
-        echo -e "\nGenerating list of depth files based on crossMap rule output ... "
-        find . -name "*.depth" > abund.list
-        
-        echo -e "\nRunning maxbin2 ... "
-        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -abund_list abund.list
-
-        rm *.depth contigs.fasta
-        mkdir $(basename {output})
-
-        mv *.fasta $(basename {output})
-        mv * $(dirname {output})
-
-        """
-
-
 rule binRefine:
     input:
-        concoct = f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{IDs}}/{{IDs}}.concoct-bins',
+        concoct = f'{config["path"]["root"]}/{config["folder"]["concoctOutput"]}/{{IDs}}/{{IDs}}.concoct-bins',
         metabat = f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins',
         maxbin = f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins'
     output:
@@ -503,8 +506,7 @@ rule binRefine:
 
 rule binReassemble:
     input:
-        R1 = rules.qfilter.output.R1, 
-        R2 = rules.qfilter.output.R2,
+        READS = rules.qfilter.output,
         refinedBins = rules.binRefine.output
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}')
@@ -514,14 +516,14 @@ rule binReassemble:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
         mkdir -p $(dirname {output})
-        cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} $TMPDIR
+        cp -r {input.refinedBins}/metawrap_*_bins {input.READS} $TMPDIR
         cd $TMPDIR
         
         echo "Running metaWRAP bin reassembly ... "
         metaWRAP reassemble_bins -o $(basename {output}) \
             -b metawrap_*_bins \
-            -1 $(basename {input.R1}) \
-            -2 $(basename {input.R2}) \
+            -1 $(basename {input.READS}) \
+            -2 $(basename {input.READS}) \
             -t {config[cores][reassemble]} \
             -m {config[params][reassembleMem]} \
             -c {config[params][reassembleComp]} \
@@ -552,7 +554,7 @@ rule binningVis:
         # READ CONCOCT BINS
 
         echo "Generating concoct_bins.stats file containing bin ID, number of contigs, and length ... "
-        cd {input}/{config[folder][concoct]}
+        cd {input}/{config[folder][concoctOutput]}
         for folder in */;do 
             var=$(echo $folder|sed 's|/||g'); # Define sample name
             for bin in $folder*concoct-bins/*.fa;do 
@@ -670,126 +672,6 @@ rule binningVis:
         echo "Done. "
         """
 
-rule abundance:
-    input:
-        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        R1 = rules.qfilter.output.R1, 
-        R2 = rules.qfilter.output.R2
-    output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["abundance"]}/{{IDs}}')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.abundance.benchmark.txt'
-    message:
-        """
-        Calculate bin abundance fraction using the following:
-
-        binAbundanceFraction = ( X / Y / Z) * 1000000
-
-        X = # of reads mapped to bin_i from sample_k
-        Y = length of bin_i (bp)
-        Z = # of reads mapped to all bins in sample_k
-
-        Note: 1000000 scaling factor converts length in bp to Mbp
-
-        """
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
-        mkdir -p {output}
-        cd $TMPDIR
-
-        echo -e "\nCopying quality filtered paired end reads and generated MAGs to TMPDIR ... "
-        cp {input.R1} {input.R2} {input.bins}/* .
-
-        echo -e "\nConcatenating all bins into one FASTA file ... "
-        cat *.fa > $(basename {output}).fa
-
-        echo -e "\nCreating bwa index for concatenated FASTA file ... "
-        bwa index $(basename {output}).fa
-
-        echo -e "\nMapping quality filtered paired end reads to concatenated FASTA file with bwa mem ... "
-        bwa mem -t {config[cores][abundance]} $(basename {output}).fa \
-            $(basename {input.R1}) $(basename {input.R2}) > $(basename {output}).sam
-
-        echo -e "\nConverting SAM to BAM with samtools view ... "
-        samtools view -@ {config[cores][abundance]} -Sb $(basename {output}).sam > $(basename {output}).bam
-
-        echo -e "\nSorting BAM file with samtools sort ... "
-        samtools sort -@ {config[cores][abundance]} -o $(basename {output}).sort.bam $(basename {output}).bam
-
-        echo -e "\nExtracting stats from sorted BAM file with samtools flagstat ... "
-        samtools flagstat $(basename {output}).sort.bam > map.stats
-
-        echo -e "\nCopying sample_map.stats file to root/abundance/sample for bin concatenation and deleting temporary FASTA file ... "
-        cp map.stats {output}/$(basename {output})_map.stats
-        rm $(basename {output}).fa
-        
-        echo -e "\nRepeat procedure for each bin ... "
-        for bin in *.fa;do
-
-            echo -e "\nSetting up temporary sub-directory to map against bin $bin ... "
-            mkdir -p $(echo "$bin"| sed "s/.fa//")
-            mv $bin $(echo "$bin"| sed "s/.fa//")
-            cd $(echo "$bin"| sed "s/.fa//")
-
-            echo -e "\nCreating bwa index for bin $bin ... "
-            bwa index $bin
-
-            echo -e "\nMapping quality filtered paired end reads to bin $bin with bwa mem ... "
-            bwa mem -t {config[cores][abundance]} $bin \
-                ../$(basename {input.R1}) ../$(basename {input.R2}) > $(echo "$bin"|sed "s/.fa/.sam/")
-
-            echo -e "\nConverting SAM to BAM with samtools view ... "
-            samtools view -@ {config[cores][abundance]} -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
-
-            echo -e "\nSorting BAM file with samtools sort ... "
-            samtools sort -@ {config[cores][abundance]} -o $(echo "$bin"|sed "s/.fa/.sort.bam/") $(echo "$bin"|sed "s/.fa/.bam/")
-
-            echo -e "\nExtracting stats from sorted BAM file with samtools flagstat ... "
-            samtools flagstat $(echo "$bin"|sed "s/.fa/.sort.bam/") > $(echo "$bin"|sed "s/.fa/.map/")
-
-            echo -e "\nAppending bin length to bin.map stats file ... "
-            echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
-            less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
-            
-            paste $(echo "$bin"|sed "s/.fa/.map/")
-
-            echo -e "\nCalculating abundance for bin $bin ... "
-            echo -n "$bin"|sed "s/.fa//" >> $(echo "$bin"|sed "s/.fa/.abund/")
-            echo -n $'\t' >> $(echo "$bin"|sed "s/.fa/.abund/")
-
-            X=$(less $(echo "$bin"|sed "s/.fa/.map/")|grep "mapped ("|awk -F' ' '{{print $1}}')
-            Y=$(less $(echo "$bin"|sed "s/.fa/.map/")|tail -n 1|awk -F' ' '{{print $4}}')
-            Z=$(less "../map.stats"|grep "mapped ("|awk -F' ' '{{print $1}}')
-            awk -v x="$X" -v y="$Y" -v z="$Z" 'BEGIN{{print (x/y/z) * 1000000}}' >> $(echo "$bin"|sed "s/.fa/.abund/")
-            
-            paste $(echo "$bin"|sed "s/.fa/.abund/")
-            
-            echo -e "\nRemoving temporary files for bin $bin ... "
-            rm $bin
-            cp $(echo "$bin"|sed "s/.fa/.map/") {output}
-            mv $(echo "$bin"|sed "s/.fa/.abund/") ../
-            cd ..
-            rm -r $(echo "$bin"| sed "s/.fa//")
-        done
-
-        echo -e "\nDone processing all bins, summarizing results into sample.abund file ... "
-        cat *.abund > $(basename {output}).abund
-
-        echo -ne "\nSumming calculated abundances to obtain normalization value ... "
-        norm=$(less $(basename {output}).abund |awk '{{sum+=$2}}END{{print sum}}');
-        echo $norm
-
-        echo -e "\nGenerating column with abundances normalized between 0 and 1 ... "
-        awk -v NORM="$norm" '{{printf $1"\t"$2"\t"$2/NORM"\\n"}}' $(basename {output}).abund > abundance.txt
-
-        rm $(basename {output}).abund
-        mv abundance.txt $(basename {output}).abund
-
-        mv $(basename {output}).abund {output}
-        """
-
-
 rule classifyGenomes:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
@@ -815,6 +697,7 @@ rule classifyGenomes:
         done
         echo "Done classifying bins. "
         """
+
 
 rule taxonomyVis:
     input: 
@@ -883,16 +766,133 @@ rule taxonomyVis:
         """
 
 
-rule parseTaxAb:
+rule abundance:
     input:
-        taxonomy = rules.taxonomyVis.output.text ,
-        abundance = f'{config["path"]["root"]}/{config["folder"]["abundance"]}'
+        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
+        READS = rules.qfilter.output
     output:
-        directory(f'{config["path"]["root"]}/MAG.table')
+        directory(f'{config["path"]["root"]}/{config["folder"]["abundance"]}/{{IDs}}')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.abundance.benchmark.txt'
     message:
         """
-        Parses an abundance table with MAG taxonomy for rows and samples for columns.
-        Note: parseTaxAb should only be run after the classifyGenomes, taxonomyVis, and abundance rules.
+        Calculate bin abundance fraction using the following:
+
+        binAbundanceFraction = ( X / Y / Z) * 1000000
+
+        X = # of reads mapped to bin_i from sample_k
+        Y = length of bin_i (bp)
+        Z = # of reads mapped to all bins in sample_k
+
+        Note: 1000000 scaling factor converts length in bp to Mbp
+
+        """
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+        mkdir -p {output}
+        cd $TMPDIR
+
+        echo -e "\nCopying quality filtered single end reads and generated MAGs to TMPDIR ... "
+        cp {input.READS} {input.bins}/* .
+
+        echo -e "\nConcatenating all bins into one FASTA file ... "
+        cat *.fa > $(basename {output}).fa
+
+        echo -e "\nCreating bwa index for concatenated FASTA file ... "
+        bwa index $(basename {output}).fa
+
+        echo -e "\nMapping quality filtered single end reads to concatenated FASTA file with bwa mem ... "
+        bwa mem -t {config[cores][abundance]} $(basename {output}).fa \
+            $(basename {input.READS}) > $(basename {output}).sam
+
+        echo -e "\nConverting SAM to BAM with samtools view ... "
+        samtools view -@ {config[cores][abundance]} -Sb $(basename {output}).sam > $(basename {output}).bam
+
+        echo -e "\nSorting BAM file with samtools sort ... "
+        samtools sort -@ {config[cores][abundance]} -o $(basename {output}).sort.bam $(basename {output}).bam
+
+        echo -e "\nExtracting stats from sorted BAM file with samtools flagstat ... "
+        samtools flagstat $(basename {output}).sort.bam > map.stats
+
+        echo -e "\nCopying sample_map.stats file to root/abundance/sample for bin concatenation and deleting temporary FASTA file ... "
+        cp map.stats {output}/$(basename {output})_map.stats
+        rm $(basename {output}).fa
+        
+        echo -e "\nRepeat procedure for each bin ... "
+        for bin in *.fa;do
+
+            echo -e "\nSetting up temporary sub-directory to map against bin $bin ... "
+            mkdir -p $(echo "$bin"| sed "s/.fa//")
+            mv $bin $(echo "$bin"| sed "s/.fa//")
+            cd $(echo "$bin"| sed "s/.fa//")
+
+            echo -e "\nCreating bwa index for bin $bin ... "
+            bwa index $bin
+
+            echo -e "\nMapping quality filtered single end reads to bin $bin with bwa mem ... "
+            bwa mem -t {config[cores][abundance]} $bin ../$(basename {input.READS}) > $(echo "$bin"|sed "s/.fa/.sam/")
+
+            echo -e "\nConverting SAM to BAM with samtools view ... "
+            samtools view -@ {config[cores][abundance]} -Sb $(echo "$bin"|sed "s/.fa/.sam/") > $(echo "$bin"|sed "s/.fa/.bam/")
+
+            echo -e "\nSorting BAM file with samtools sort ... "
+            samtools sort -@ {config[cores][abundance]} -o $(echo "$bin"|sed "s/.fa/.sort.bam/") $(echo "$bin"|sed "s/.fa/.bam/")
+
+            echo -e "\nExtracting stats from sorted BAM file with samtools flagstat ... "
+            samtools flagstat $(echo "$bin"|sed "s/.fa/.sort.bam/") > $(echo "$bin"|sed "s/.fa/.map/")
+
+            echo -e "\nAppending bin length to bin.map stats file ... "
+            echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
+            less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
+            
+            paste $(echo "$bin"|sed "s/.fa/.map/")
+
+            echo -e "\nCalculating abundance for bin $bin ... "
+            echo -n "$bin"|sed "s/.fa//" >> $(echo "$bin"|sed "s/.fa/.abund/")
+            echo -n $'\t' >> $(echo "$bin"|sed "s/.fa/.abund/")
+
+            X=$(less $(echo "$bin"|sed "s/.fa/.map/")|grep "mapped ("|awk -F' ' '{{print $1}}')
+            Y=$(less $(echo "$bin"|sed "s/.fa/.map/")|tail -n 1|awk -F' ' '{{print $4}}')
+            Z=$(less "../map.stats"|grep "mapped ("|awk -F' ' '{{print $1}}')
+            awk -v x="$X" -v y="$Y" -v z="$Z" 'BEGIN{{print (x/y/z) * 1000000}}' >> $(echo "$bin"|sed "s/.fa/.abund/")
+            
+            paste $(echo "$bin"|sed "s/.fa/.abund/")
+            
+            echo -e "\nRemoving temporary files for bin $bin ... "
+            rm $bin
+            cp $(echo "$bin"|sed "s/.fa/.map/") {output}
+            mv $(echo "$bin"|sed "s/.fa/.abund/") ../
+            cd ..
+            rm -r $(echo "$bin"| sed "s/.fa//")
+        done
+
+        echo -e "\nDone processing all bins, summarizing results into sample.abund file ... "
+        cat *.abund > $(basename {output}).abund
+
+        echo -ne "\nSumming calculated abundances to obtain normalization value ... "
+        norm=$(less $(basename {output}).abund |awk '{{sum+=$2}}END{{print sum}}');
+        echo $norm
+
+        echo -e "\nGenerating column with abundances normalized between 0 and 1 ... "
+        awk -v NORM="$norm" '{{printf $1"\t"$2"\t"$2/NORM"\\n"}}' $(basename {output}).abund > abundance.txt
+
+        rm $(basename {output}).abund
+        mv abundance.txt $(basename {output}).abund
+
+        mv $(basename {output}).abund {output}
+        """
+
+rule abundanceVis:
+    input:
+        abundance = f'{config["path"]["root"]}/{config["folder"]["abundance"]}',
+        taxonomy = rules.taxonomyVis.output.text
+    output: 
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/abundance.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/abundanceVis.pdf'
+    message:
+        """
+        Generate stacked bar plots showing composition of samples
         """
     shell:
         """
@@ -914,6 +914,7 @@ rule parseTaxAb:
 
         """
 
+
 rule extractProteinBins:
     message:
         "Extract ORF annotated protein fasta files for each bin from reassembly checkm files."
@@ -926,8 +927,8 @@ rule extractProteinBins:
         for folder in reassembled_bins/*/;do 
             echo "Moving bins from sample $(echo $(basename $folder)) ... "
             for bin in $folder*reassembled_bins.checkm/bins/*;do 
-            var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
-            mv $bin/*.faa {config[path][root]}/{config[folder][finalBins]}/$var;
+                var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
+                mv $bin/*.faa {config[path][root]}/{config[folder][finalBins]}/$var;
             done;
         done
         """
@@ -958,9 +959,13 @@ rule carveme:
         cd $TMPDIR
         
         echo "Begin carving GEM ... "
-        carve -g {config[params][carveMedia]} \
-            -v \
-            --mediadb $(basename {input.media}) \
+        #carve -g {config[params][carveMedia]} \
+        #    -v \
+        #    --mediadb $(basename {input.media}) \
+        #    --fbc2 \
+        #    -o $(echo $(basename {input.bin}) | sed 's/.faa/.xml/g') $(basename {input.bin})
+
+        carve -v \
             --fbc2 \
             -o $(echo $(basename {input.bin}) | sed 's/.faa/.xml/g') $(basename {input.bin})
         
@@ -1004,52 +1009,6 @@ rule modelVis:
         echo "Done. "
         """
 
-rule ECvis:
-    input: 
-        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}'
-    output:
-        directory(f'{config["path"]["root"]}/ecfiles')
-    message:
-        """
-        Get EC information from GEMs. 
-        Switch the input folder and grep|sed expressions to match the ec numbers in you model sets.
-        Currently configured for UHGG GEM set.
-        """
-    shell:
-        """
-        echo -e "\nCopying GEMs from specified input directory to TMPDIR ... "
-        cp -r {input} $TMPDIR
-
-        cd $TMPDIR
-        mkdir ecfiles
-
-        while read model; do
-
-            # Read E.C. numbers from  each sbml file and write to a unique file, note that grep expression is hardcoded for specific GEM batches           
-            less $(basename {input})/$model|
-                grep 'EC Number'| \
-                sed 's/^.*: //g'| \
-                sed 's/<.*$//g'| \
-                sed '/-/d'|sed '/N\/A/d' | \
-                sort|uniq -c \
-            > ecfiles/$model.ec
-
-            echo -ne "Reading E.C. numbers in model $model, unique E.C. : "
-            ECNUM=$(less ecfiles/$model.ec|wc -l)
-            echo $ECNUM
-
-        done< <(ls $(basename {input}))
-
-        echo -e "\nMoving ecfiles folder back to {config[path][root]}"
-        mv ecfiles {config[path][root]}
-        cd {config[path][root]}
-
-        echo -e "\nCreating sorted unique file EC.summary for easy EC inspection ... "
-        cat ecfiles/*.ec|awk '{{print $NF}}'|sort|uniq -c > EC.summary
-
-        paste EC.summary
-
-        """
 
 rule organizeGEMs:
     input:
@@ -1070,45 +1029,6 @@ rule organizeGEMs:
             echo "done. "
         done
         """
-
-
-rule smetana:
-    input:
-        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{IDs}}'
-    output:
-        f'{config["path"]["root"]}/{config["folder"]["SMETANA"]}/{{IDs}}_detailed.tsv'
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.smetana.benchmark.txt'
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u
-        mkdir -p {config[path][root]}/{config[folder][SMETANA]}
-        cp {config[dbs][carveme]} {input}/*.xml $TMPDIR
-        cd $TMPDIR
-        
-        smetana -o $(basename {input}) --flavor fbc2 \
-            --mediadb media_db.tsv -m {config[params][smetanaMedia]} \
-            --detailed \
-            --solver {config[params][smetanaSolver]} -v *.xml
-        
-        cp *.tsv {config[path][root]} #safety measure for backup of results in case rule fails for some reason
-        mv *.tsv $(dirname {output})
-        """
-
-
-rule interactionVis:
-    input:
-        f'{config["path"]["root"]}/{config["folder"]["SMETANA"]}'
-    shell:
-        """
-        cd {input}
-        mv media_db.tsv ../scripts/
-        cat *.tsv|sed '/community/d' > smetana.all
-        less smetana.all |cut -f2|sort|uniq > media.txt
-        ll|grep tsv|awk '{print $NF}'|sed 's/_.*$//g'>samples.txt
-        while read sample;do echo -n "$sample ";while read media;do var=$(less smetana.all|grep $sample|grep -c $media); echo -n "$var " ;done < media.txt; echo "";done < samples.txt > sampleMedia.stats
-        """
-
 
 rule memote:
     input:
@@ -1135,12 +1055,51 @@ rule memote:
         done
         """
 
+rule smetana:
+    input:
+        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{IDs}}'
+    output:
+        f'{config["path"]["root"]}/{config["folder"]["SMETANA"]}/{{IDs}}_detailed.tsv'
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.smetana.benchmark.txt'
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        mkdir -p {config[path][root]}/{config[folder][SMETANA]}
+        cp {config[path][root]}/{config[folder][scripts]}/{config[scripts][carveme]} {input}/*.xml $TMPDIR
+        cd $TMPDIR
+        
+        smetana -o $(basename {input}) --flavor fbc2 \
+            --mediadb media_db.tsv -m {config[params][smetanaMedia]} \
+            --detailed \
+            --solver {config[params][smetanaSolver]} -v *.xml
+        
+        mv *.tsv $(dirname {output})
+        """
+
+rule motus2:
+    input: 
+        rules.qfilter.output
+    output:
+        directory(f'{config["path"]["root"]}/test/motus2/{{IDs}}')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.motus2.benchmark.txt'
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        cp {input} $TMPDIR
+        cd $TMPDIR
+
+        motus profile -s $(basename {input}) -o $(basename {input}).motus2 -t 12
+        mkdir -p {output}
+        rm $(basename {input})
+        mv * {output}
+        """
 
 rule grid:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        R1 = rules.qfilter.output.R1, 
-        R2 = rules.qfilter.output.R2
+        reads = rules.qfilter.output
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["GRiD"]}/{{IDs}}')
     benchmark:
@@ -1149,11 +1108,8 @@ rule grid:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u
 
-        cp -r {input.bins} {input.R1} {input.R2} $TMPDIR
+        cp -r {input.bins} {input.reads} $TMPDIR
         cd $TMPDIR
-
-        cat *.gz > $(basename $(dirname {input.bins})).fastq.gz
-        rm $(basename {input.R1}) $(basename {input.R2})
 
         mkdir MAGdb out
         update_database -d MAGdb -g $(basename {input.bins}) -p MAGdb
@@ -1161,21 +1117,7 @@ rule grid:
 
         grid multiplex -r . -e fastq.gz -d MAGdb -p -c 0.2 -o out -n {config[cores][grid]}
 
-        rm $(basename $(dirname {input.bins})).fastq.gz
+        rm $(basename {input.reads})
         mkdir {output}
         mv out/* {output}
         """
-
-rule prokka:
-    input:
-        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins'
-    output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["GRiD"]}/{{IDs}}')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.grid.benchmark.txt'
-    shell:
-        """
-
-        """
-
-
