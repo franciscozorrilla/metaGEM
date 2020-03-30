@@ -18,7 +18,9 @@ folder:
     memote: memote
     qfiltered: qfiltered
     stats: stats
-    finalBins: final_bins
+    proteinBins: protein_bins
+    dnaBins: dna_bins
+    pangenome: pangenome
 scripts:
     kallisto2concoct: kallisto2concoct.py
     binFilter: binFilter.py
@@ -44,6 +46,7 @@ cores:
     smetana: 12
     memote: 4
     grid: 24
+    prokka: 2
 params:
     cutfasta: 10000
     assemblyPreset: meta-sensitive

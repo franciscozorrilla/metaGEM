@@ -12,14 +12,14 @@ def get_ids_from_path_pattern(path_pattern):
 # wildcard to work. Use extractProteinBins rule or perform manually.
 binIDs = get_ids_from_path_pattern('final_bins/*.faa')
 IDs = get_ids_from_path_pattern('dataset/*')
-
+speciesIDs = get_ids_from_path_pattern('pangenome/speciesBinIDs/*.txt')
 DATA_READS_1 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_1.fastq.gz'
 DATA_READS_2 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_2.fastq.gz'
 
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins', IDs=IDs)
+        expand(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/prokka/{{binIDs}}', binIDs=binIDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
@@ -46,7 +46,7 @@ rule createFolders:
         echo -e "Setting up result folders in the following work directory: $(echo {input}) \n"
 
         # Generate folders.txt by extracting folder names from config.yaml file
-        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 18|sed '/^$/d' > folders.txt # NOTE: hardcoded number (18) for folder names, increase number if new folders are introduced.
+        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 20|sed '/^$/d' > folders.txt # NOTE: hardcoded number (20) for folder names, increase number if new folders are introduced.
         
         while read line;do 
             echo "Creating $line folder ... "
@@ -281,7 +281,7 @@ rule assemblyVis:
         rm Rplots.pdf
         """
 
-rule crossMap:
+rule crossMap:  
     input:
         contigs = rules.megahit.output,
         reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
@@ -920,14 +920,14 @@ rule extractProteinBins:
     shell:
         """
         cd {config[path][root]}
-        mkdir -p {config[folder][finalBins]}
+        mkdir -p {config[folder][proteinBins]}
 
-        echo -e "Begin moving and renaming ORF annotated protein fasta bins from reassembled_bins/ to final_bins/ ... \n"
+        echo -e "Begin moving and renaming ORF annotated protein fasta bins from reassembled_bins/ to protein_bins/ ... \n"
         for folder in reassembled_bins/*/;do 
             echo "Moving bins from sample $(echo $(basename $folder)) ... "
             for bin in $folder*reassembled_bins.checkm/bins/*;do 
-            var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
-            mv $bin/*.faa {config[path][root]}/{config[folder][finalBins]}/$var;
+                var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
+                mv $bin/*.faa {config[path][root]}/{config[folder][proteinBins]}/$var;
             done;
         done
         """
@@ -935,7 +935,7 @@ rule extractProteinBins:
 
 rule carveme:
     input:
-        bin = f'{config["path"]["root"]}/{config["folder"]["finalBins"]}/{{binIDs}}.faa',
+        bin = f'{config["path"]["root"]}/{config["folder"]["proteinBins"]}/{{binIDs}}.faa',
         media = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["carveme"]}'
     output:
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{binIDs}}.xml'
@@ -1166,16 +1166,125 @@ rule grid:
         mv out/* {output}
         """
 
-rule prokka:
-    input:
-        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins'
-    output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["GRiD"]}/{{IDs}}')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.grid.benchmark.txt'
+
+rule extractDnaBins:
+    message:
+        "Extract dna fasta files for each bin from reassembly output."
     shell:
         """
+        cd {config[path][root]}
+        mkdir -p {config[folder][dnaBins]}
 
+        echo -e "Begin moving and renaming dna fasta bins from reassembled_bins/ to dna_bins/ ... \n"
+        for folder in reassembled_bins/*/;do 
+            echo "Moving bins from sample $(echo $(basename $folder)) ... "
+            for bin in $folder*reassembled_bins/*;do 
+                var=$(echo $bin| sed 's|reassembled_bins/||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
+                mv $bin {config[path][root]}/{config[folder][dnaBins]}/$var;
+            done;
+        done
         """
 
 
+rule prokka:
+    input:
+        bins = f'{config["path"]["root"]}/{config["folder"]["dnaBins"]}/{{binIDs}}.fa'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/prokka/unorganized/{{binIDs}}')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{binIDs}}.prokka.benchmark.txt'
+    shell:
+        """
+        set +u;source activate prokkaroary;set -u
+        mkdir -p $(dirname $(dirname {output}))
+        mkdir -p $(dirname {output})
+
+        cp {input} $TMPDIR
+        cd $TMPDIR
+
+        id=$(echo $(basename {input})|sed "s/.fa//g")
+        prokka -locustag $id --cpus {config[cores][prokka]} --centre MAG --compliant -outdir prokka/$id -prefix $id $(basename {input})
+
+        mv prokka/$id $(dirname {output})
+        """
+
+
+rule prepareRoary:
+    input:
+        taxonomy = rules.taxonomyVis.output.text,
+        binning = rules.binningVis.output.text,
+        script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["prepRoary"]}'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/speciesBinIDs')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/prepareRoary.benchmark.txt'
+    message:
+        """
+        This rule matches the results from classifyGenomes->taxonomyVis with the completeness & contamination
+        CheckM results from the metaWRAP reassembly->binningVis results, identifies speceies represented by 
+        at least 10 high quality MAGs (completeness >= 90 & contamination <= 10), and outputs text files 
+        with bin IDs for each such species. Also organizes the prokka output folders based on taxonomy.
+        Note: Do not run this before finishing all prokka jobs!
+        """
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        cd $(dirname {input.taxonomy})
+
+        echo -e "\nCreating speciesBinIDs folder containing.txt files with binIDs for each species that is represented by at least 10 high quality MAGs (completeness >= 90 & contamination <= 10) ... "
+        Rscript {input.script}
+
+        nSpecies=$(ls $(basename {output})|wc -l)
+        nSpeciesTot=$(cat $(basename {output})/*|wc -l)
+        nMAGsTot=$(paste {input.binning}|wc -l)
+        echo -e "\nIdentified $nSpecies species represented by at least 10 high quality MAGs, totaling $nSpeciesTot MAGs out of $nMAGsTot total MAGs generated ... "
+
+        echo -e "\nMoving speciesBinIDs folder to pangenome directory: $(dirname {output})"
+        mv $(basename {output}) $(dirname {output})
+
+        echo -e "\nOrganizing prokka folder according to taxonomy ... "
+        echo -e "\nGFF files of identified species with at least 10 HQ MAGs will be copied to prokka/organzied/speciesSubfolder for roary input ... "
+        cd $(dirname {output})
+        mkdir -p prokka/organized
+
+        for species in speciesBinIDs/*.txt;do
+
+            speciesID=$(echo $(basename $species)|sed 's/.txt//g');
+            echo -e "\nCreating folder and organizing prokka output for species $speciesID ... "
+            mkdir -p prokka/organized/$speciesID
+
+            while read line;do
+                
+                binID=$(echo $line|sed 's/.bin/_bin/g')
+                echo "Copying GFF prokka output of bin $binID"
+                cp prokka/unorganized/$binID/*.gff prokka/organized/$speciesID/
+
+            done< $species
+        done
+
+        echo -e "\nDone"
+        """ 
+
+
+rule roary:
+    input:
+        f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/prokka/organized/{{speciesIDs}}/'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/roary/{{speciesIDs}}/')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{speciesIDs}}.roary.benchmark.txt'
+    shell:
+        """
+        set +u;source activate prokkaroary;set -u
+        mkdir -p $(dirname {output})
+        cd $TMPDIR
+        cp -r {input} .
+                
+        roary -p {config[cores][roary]} -i {config[params][roaryI]} -cd {config[params][roaryCD]} -f yes_al -e -v $(basename {input})/*.gff
+        cd yes_al
+        create_pan_genome_plots.R 
+        cd ..
+        mkdir -p {output}
+
+        mv yes_al/* {output}
+        """

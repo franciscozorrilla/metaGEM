@@ -43,7 +43,7 @@ Snakefile wrapper/parser for metaBAGpipes.
                             fastp 
                             megahit 
 
-                            kallisto 
+                            crossMap 
                             concoct 
                             metabat
                             maxbin 
@@ -59,6 +59,8 @@ Snakefile wrapper/parser for metaBAGpipes.
                             classifyGenomes
                             abundance 
                             grid
+                            prokka
+                            roary
 
                         VISUALIZATION (in development)
                             qfilterVis
@@ -262,7 +264,7 @@ parse() {
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
   # No need to parse snakefile for login node jobs, submit the following locally
-  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] ||  [ $task == "extractProteinBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ]; then
+  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] ||  [ $task == "extractProteinBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
     submitLogin
 
  # Parse snakefile for cluster jobs
@@ -320,6 +322,14 @@ parse() {
 
   elif [ $task == "grid" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["GRiD"]+"/{IDs}", IDs = IDs)'
+    submitCluster
+
+  elif [ $task == "prokka" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["pangenome"]+"/prokka/unorganized/{binIDs}", binIDs = binIDs)'
+    submitCluster
+
+  elif [ $task == "roary" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["pangenome"]+"/roary/{speciesIDs}/", speciesIDs = speciesIDs)'
     submitCluster
 
   else
