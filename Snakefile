@@ -750,8 +750,14 @@ rule abundance:
 
             echo -e "\nAppending bin length to bin.map stats file ... "
             echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
-            less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
-            
+
+            # Need to check if bins are original (megahit-assembled) or strict/permissive (metaspades-assembled)
+            if [[ $bin == *.strict ]] || [[ $bin == *.permissive ]];then
+                less $bin |grep ">"|cut -d '_' -f4|awk '{{sum+=$1}}END{{print sum}}' >> $(echo "$bin"|sed "s/.fa/.map/")
+            else
+                less $bin |grep ">"|cut -d '-' -f4|sed 's/len_//g'|awk '{{sum+=$1}}END{{print sum}}' >> $(echo "$bin"|sed "s/.fa/.map/")
+            fi
+
             paste $(echo "$bin"|sed "s/.fa/.map/")
 
             echo -e "\nCalculating abundance for bin $bin ... "
