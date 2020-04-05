@@ -115,6 +115,8 @@ rule organizeData:
         
         Note: This rule is meant to be run on real datasets. 
         Do not run for toy dataset, as downloadToy rule above sorts the downloaded data already.
+
+        Assumes file names have format: SAMPLEID_1|2.fastq.gz, e.g. ERR599026_2.fastq.gz
         """
     shell:
         """
@@ -752,7 +754,7 @@ rule abundance:
             echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
 
             # Need to check if bins are original (megahit-assembled) or strict/permissive (metaspades-assembled)
-            if [[ $bin == *.strict ]] || [[ $bin == *.permissive ]];then
+            if [[ $bin == *.strict.fa ]] || [[ $bin == *.permissive.fa ]];then
                 less $bin |grep ">"|cut -d '_' -f4|awk '{{sum+=$1}}END{{print sum}}' >> $(echo "$bin"|sed "s/.fa/.map/")
             else
                 less $bin |grep ">"|cut -d '-' -f4|sed 's/len_//g'|awk '{{sum+=$1}}END{{print sum}}' >> $(echo "$bin"|sed "s/.fa/.map/")
@@ -1181,12 +1183,12 @@ rule extractDnaBins:
         cd {config[path][root]}
         mkdir -p {config[folder][dnaBins]}
 
-        echo -e "Begin moving and renaming dna fasta bins from reassembled_bins/ to dna_bins/ ... \n"
+        echo -e "Begin copying and renaming dna fasta bins from reassembled_bins/ to dna_bins/ ... \n"
         for folder in reassembled_bins/*/;do 
-            echo "Moving bins from sample $(echo $(basename $folder)) ... "
+            echo "Copying bins from sample $(echo $(basename $folder)) ... "
             for bin in $folder*reassembled_bins/*;do 
                 var=$(echo $bin| sed 's|reassembled_bins/||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
-                mv $bin {config[path][root]}/{config[folder][dnaBins]}/$var;
+                cp $bin {config[path][root]}/{config[folder][dnaBins]}/$var;
             done;
         done
         """

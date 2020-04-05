@@ -27,7 +27,7 @@ usage() {
 
   printLogo
 
-  echo -n "Usage: bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES] [-m MEMORY]
+  echo -n "Usage: bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c ALLOCATED CORES] [-m ALLOCATED GB MEMORY] [-h ALLOCATED HOURS]
 
 Snakefile wrapper/parser for metaBAGpipes. 
 
@@ -56,6 +56,7 @@ Snakefile wrapper/parser for metaBAGpipes.
                             organizeGEMs
                             smetana
 
+                            extractDnaBins
                             classifyGenomes
                             abundance 
                             grid
@@ -74,8 +75,9 @@ Snakefile wrapper/parser for metaBAGpipes.
   -j, --nJobs       Specify number of jobs to run in parallel
   -c, --nCores      Specify number of cores per job
   -m, --mem         Specify memory in GB required for job
+  -h, --hours       Specify number of hours to allocated to job runtime
 
-Suggested workflow:
+Suggested workflow: (OUTDATED, NEED TO UPDATE)
     1. QC of raw data (fastp)
     2. Assembly into contigs (megahit)
     3. Binning into MAGs (kallisto, concoct, metabat, maxbin, binRefine, binReassemble)
@@ -190,11 +192,21 @@ submitCluster() {
     echo "Parsing Snakefile to target rule: $task ... "
     sed  -i "22s~^.*$~        $string~" Snakefile
 
+    # Check if the number of jobs flag is specified by user for cluster job
+    if [[ -z "$njobs" ]]; then
+        
+        # No number of jobs provided.
+        echo "WARNING: User is requesting to submit cluster job without specifying the number of jobs parameter (-j) ... "
+    else   
+        # Number of jobs provided.
+        echo "Number of jobs to be sumitted to cluster: $njobs ... "
+    fi   
+
     # Check if the number of cores flag is specified by user for cluster job
     if [[ -z "$ncores" ]]; then
         
         # No number of cores provided.
-        echo -e "\nWARNING: User is requesting to submit cluster job without specifying the number of cores parameter (-c) ... "
+        echo "WARNING: User is requesting to submit cluster job without specifying the number of cores parameter (-c) ... "
 
     else
 
@@ -204,13 +216,19 @@ submitCluster() {
 
     fi 
 
-    # Check if the number of jobs flag is specified by user for cluster job
-    if [[ -z "$njobs" ]]; then
+    # Check if the hours flag is specified by user for cluster job
+    if [[ -z "$hours" ]]; then
         
         # No number of jobs provided.
-        echo "WARNING: User is requesting to submit cluster job without specifying the number of jobs parameter (-j) ... "
+        echo "WARNING: User is requesting to submit cluster job without specifying the number of hours parameter (-h) ... "
 
-    fi   
+    else
+
+        # Parse cluster_config.json time (line 4) to match number requested hours stored in "$hours". Note: Hardcoded line number.
+        echo "Parsing cluster_config.json to match requested time (hours): $hours ... "
+        sed -i "4s/:.*$/: \"0-$hours:00:00\",/" cluster_config.json
+
+    fi 
 
     # Check if memory input argument was provided by user. If so, parse cluster_config.json memory (line 7) to match requested memory stored in "$mem". Note: Hardcoded line number.
     if [[ -z "$mem" ]]; then
@@ -264,7 +282,7 @@ parse() {
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
   # No need to parse snakefile for login node jobs, submit the following locally
-  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] ||  [ $task == "extractProteinBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
+  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] || [ $task == "abundanceVis" ] || [ $task == "extractProteinBins" ] || [ $task == "extractDnaBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
     submitLogin
 
  # Parse snakefile for cluster jobs
@@ -352,8 +370,9 @@ else
         -j|--nJobs) shift; njobs=${1} ;;
         -c|--nCores) shift; ncores=${1} ;;
         -m|--mem) shift; mem=${1} ;;
+        -h|--hours) shift; hours=${1} ;;
         --endopts) shift; break ;;
-        *) die "invalid option: '$1'." ;;
+        * ) echo "Unknown option(s) provided, please read helpfile ... " && usage && exit 1;;
       esac
       shift
     done

@@ -19,7 +19,7 @@ DATA_READS = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/test/motus2/{{IDs}}', IDs=IDs)
+        expand(f'{config["path"]["root"]}/{config["folder"]["abundance"]}/{{IDs}}', IDs=IDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
@@ -395,7 +395,7 @@ rule concoct:
         contigs = rules.megahit.output,
         reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
     output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["concoctOutput"]}/{{IDs}}/{{IDs}}.concoct-bins')
+        directory(f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{IDs}}/{{IDs}}.concoct-bins')
     benchmark:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.concoct.benchmark.txt'
     shell:
@@ -467,7 +467,7 @@ rule concoct:
 
 rule binRefine:
     input:
-        concoct = f'{config["path"]["root"]}/{config["folder"]["concoctOutput"]}/{{IDs}}/{{IDs}}.concoct-bins',
+        concoct = f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{IDs}}/{{IDs}}.concoct-bins',
         metabat = f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins',
         maxbin = f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins'
     output:
@@ -554,7 +554,7 @@ rule binningVis:
         # READ CONCOCT BINS
 
         echo "Generating concoct_bins.stats file containing bin ID, number of contigs, and length ... "
-        cd {input}/{config[folder][concoctOutput]}
+        cd {input}/{config[folder][concoct]}
         for folder in */;do 
             var=$(echo $folder|sed 's|/||g'); # Define sample name
             for bin in $folder*concoct-bins/*.fa;do 
@@ -844,8 +844,14 @@ rule abundance:
 
             echo -e "\nAppending bin length to bin.map stats file ... "
             echo -n "Bin Length = " >> $(echo "$bin"|sed "s/.fa/.map/")
-            less $bin|cut -d '_' -f4| awk -F' ' '{{print $NF}}'|sed 's/len=//'|awk '{{sum+=$NF;}}END{{print sum;}}' >> $(echo "$bin"|sed "s/.fa/.map/")
-            
+
+            # Need to check if bins are original (megahit-assembled) or strict/permissive (metaspades-assembled)
+            if [[ $bin == *.strict.fa ]] || [[ $bin == *.permissive.fa ]];then
+                less $bin |grep ">"|cut -d '_' -f4|awk '{{sum+=$1}}END{{print sum}}' >> $(echo "$bin"|sed "s/.fa/.map/")
+            else
+                less $bin |grep ">"|cut -d '-' -f4|sed 's/len_//g'|awk '{{sum+=$1}}END{{print sum}}' >> $(echo "$bin"|sed "s/.fa/.map/")
+            fi
+
             paste $(echo "$bin"|sed "s/.fa/.map/")
 
             echo -e "\nCalculating abundance for bin $bin ... "
@@ -911,6 +917,7 @@ rule abundanceVis:
 
         mv abundance.stats {config[path][root]}/{config[folder][stats]}
         cd {config[path][root]}/{config[folder][stats]}
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][abundanceVis]}
 
         """
 
@@ -921,14 +928,14 @@ rule extractProteinBins:
     shell:
         """
         cd {config[path][root]}
-        mkdir -p {config[folder][finalBins]}
+        mkdir -p {config[folder][proteinBins]}
 
         echo -e "Begin moving and renaming ORF annotated protein fasta bins from reassembled_bins/ to final_bins/ ... \n"
         for folder in reassembled_bins/*/;do 
             echo "Moving bins from sample $(echo $(basename $folder)) ... "
             for bin in $folder*reassembled_bins.checkm/bins/*;do 
                 var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
-                mv $bin/*.faa {config[path][root]}/{config[folder][finalBins]}/$var;
+                mv $bin/*.faa {config[path][root]}/{config[folder][proteinBins]}/$var;
             done;
         done
         """
@@ -936,7 +943,7 @@ rule extractProteinBins:
 
 rule carveme:
     input:
-        bin = f'{config["path"]["root"]}/{config["folder"]["finalBins"]}/{{binIDs}}.faa',
+        bin = f'{config["path"]["root"]}/{config["folder"]["proteinBins"]}/{{binIDs}}.faa',
         media = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["carveme"]}'
     output:
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{binIDs}}.xml'

@@ -22,12 +22,13 @@ folder:
     dnaBins: dna_bins
     pangenome: pangenome
 scripts:
-    kallisto2concoct: kallisto2concoct.py
+    prepRoary: prepareRoaryInput.R
     binFilter: binFilter.py
     qfilterVis: qfilterVis.R
     assemblyVis: assemblyVis.R
     binningVis: binningVis.R
     modelVis: modelVis.R
+    abundanceVis: abundanceVis.R
     taxonomyVis: taxonomyVis.R
     carveme: media_db.tsv
     toy: download_toydata.txt
@@ -47,6 +48,7 @@ cores:
     memote: 4
     grid: 24
     prokka: 2
+    roary: 12
 params:
     cutfasta: 10000
     assemblyPreset: meta-sensitive
@@ -60,6 +62,8 @@ params:
     carveMedia: M8
     smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
     smetanaSolver: CPLEX
+    roaryI: 90
+    roaryCD: 90
 envs:
     metabagpipes: metabagpipes
     metawrap: metawrap
