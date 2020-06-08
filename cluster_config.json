@@ -2,9 +2,9 @@
 "__default__" : {
         "account" : "patil",
         "time" : "0-06:00:00",
-        "n" : 12,
+        "n" : 48,
         "tasks" : 1,
-        "mem" : 60G,
+        "mem" : 180G,
         "name"      : "DL.{rule}",
         "output"    : "logs/{wildcards}.%N.{rule}.out.log",
 },

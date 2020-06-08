@@ -1,10 +1,11 @@
 path:
-    root: /path/to/workspace
+    root: /scratch/zorrilla
 folder:
     data: dataset
     logs: logs
     assemblies: assemblies
     scripts: scripts
+    crossMap: crossMap 
     concoct: concoct
     maxbin: maxbin
     metabat: metabat
@@ -22,6 +23,7 @@ folder:
     dnaBins: dna_bins
     pangenome: pangenome
 scripts:
+    kallisto2concoct: kallisto2concoct.py
     prepRoary: prepareRoaryInput.R
     binFilter: binFilter.py
     qfilterVis: qfilterVis.R
@@ -32,16 +34,18 @@ scripts:
     taxonomyVis: taxonomyVis.R
     carveme: media_db.tsv
     toy: download_toydata.txt
+    GTDBtkVis: 
 cores:
     fastp: 4
-    megahit: 24
-    crossMap: 24
-    concoct: 24
-    metabat: 24
-    maxbin: 24
-    refine: 24
-    reassemble: 24
+    megahit: 48
+    crossMap: 48
+    concoct: 48
+    metabat: 48
+    maxbin: 48
+    refine: 48
+    reassemble: 48
     classify: 2
+    gtdbtk: 48
     abundance: 16
     carveme: 4
     smetana: 12
@@ -52,7 +56,11 @@ cores:
 params:
     cutfasta: 10000
     assemblyPreset: meta-sensitive
+    assemblyMin: 1000
     concoct: 800
+    metabatMin: 50000
+    seed: 420
+    minBin: 1500
     refineMem: 1600
     refineComp: 50
     refineCont: 10
@@ -65,6 +73,6 @@ params:
     roaryI: 90
     roaryCD: 90
 envs:
-    metabagpipes: metabagpipes
+    metabagpipes: metabagpipesFinal
     metawrap: metawrap
     
