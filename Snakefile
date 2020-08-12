@@ -9,8 +9,8 @@ def get_ids_from_path_pattern(path_pattern):
     return ids
 
 # Make sure that final_bins/ folder contains all bins in single folder for binIDs
-borkSoil = get_ids_from_path_pattern('coassembly/data/*')
-binIDs = get_ids_from_path_pattern('final_bins/*.faa')
+gemIDs = get_ids_from_path_pattern('GEMs/*.xml')
+binIDs = get_ids_from_path_pattern('protein_bins/*.faa')
 IDs = get_ids_from_path_pattern('qfiltered/*')
 speciesIDs = get_ids_from_path_pattern('pangenome/speciesBinIDs/*.txt')
 DATA_READS_1 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_1.fastq.gz'
@@ -19,7 +19,7 @@ focal = get_ids_from_path_pattern('dataset/*')
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/{config["folder"]["abundance"]}/{{IDs}}', IDs=IDs)
+        expand(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/roary/{{speciesIDs}}/', speciesIDs=speciesIDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
@@ -30,7 +30,6 @@ rule all:
         """
         echo {input}
         """
-
 
 rule createFolders:
     input:
@@ -1006,8 +1005,8 @@ rule binningVis:
 
 rule abundance:
     input:
-        #bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        bins = f'{config["path"]["root"]}/dna_bins_organized/{{IDs}}/',
+        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
+        #bins = f'{config["path"]["root"]}/dna_bins_organized/{{IDs}}/',
         R1 = rules.qfilter.output.R1, 
         R2 = rules.qfilter.output.R2
     output:
@@ -1337,7 +1336,7 @@ rule extractProteinBins:
             echo "Moving bins from sample $(echo $(basename $folder)) ... "
             for bin in $folder*reassembled_bins.checkm/bins/*;do 
                 var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
-                mv $bin/*.faa {config[path][root]}/{config[folder][proteinBins]}/$var;
+                cp $bin/*.faa {config[path][root]}/{config[folder][proteinBins]}/$var;
             done;
         done
         """
@@ -1522,27 +1521,27 @@ rule interactionVis:
 
 rule memote:
     input:
-        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{IDs}}'
+        f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{gemIDs}}.xml'
     output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["memote"]}/{{IDs}}')
+        directory(f'{config["path"]["root"]}/{config["folder"]["memote"]}/{{gemIDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.memote.benchmark.txt'
+        f'{config["path"]["root"]}/benchmarks/{{gemIDs}}.memote.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u
+        module load git
 
-        mkdir -p $(dirname {output})
         mkdir -p {output}
-        
-        cp {input}/*.xml $SCRATCHDIR
+        cp {input} $SCRATCHDIR
         cd $SCRATCHDIR
-        
-        for model in *.xml;do
-            memote report snapshot --filename $(echo $model|sed 's/.xml/.html/') $model
-            memote run $model > $(echo $model|sed 's/.xml/-summary.txt/')
-            mv *.txt *.html {output}
-            rm $model
-        done
+
+        memote report snapshot --skip test_find_metabolites_produced_with_closed_bounds --skip test_find_metabolites_consumed_with_closed_bounds --skip test_find_metabolites_not_produced_with_open_bounds --skip test_find_metabolites_not_consumed_with_open_bounds --skip test_find_incorrect_thermodynamic_reversibility --filename $(echo $(basename {input})|sed 's/.xml/.html/') *.xml
+        memote run --skip test_find_metabolites_produced_with_closed_bounds --skip test_find_metabolites_consumed_with_closed_bounds --skip test_find_metabolites_not_produced_with_open_bounds --skip test_find_metabolites_not_consumed_with_open_bounds --skip test_find_incorrect_thermodynamic_reversibility *.xml
+
+        mv result.json.gz $(echo $(basename {input})|sed 's/.xml/.json.gz/')
+
+        mv *.gz *.html {output}
+
         """
 
 
@@ -1618,8 +1617,64 @@ rule prokka:
         mv prokka/$id $(dirname {output})
         """
 
-
 rule prepareRoary:
+    input:
+        taxonomy = rules.GTDBtkVis.output.text,
+        binning = rules.binningVis.output.text,
+        script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["prepRoary"]}'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/speciesBinIDs')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/prepareRoary.benchmark.txt'
+    message:
+        """
+        This rule matches the results from classifyGenomes->taxonomyVis with the completeness & contamination
+        CheckM results from the metaWRAP reassembly->binningVis results, identifies speceies represented by 
+        at least 10 high quality MAGs (completeness >= 90 & contamination <= 10), and outputs text files 
+        with bin IDs for each such species. Also organizes the prokka output folders based on taxonomy.
+        Note: Do not run this before finishing all prokka jobs!
+        """
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        cd $(dirname {input.taxonomy})
+
+        echo -e "\nCreating speciesBinIDs folder containing.txt files with binIDs for each species that is represented by at least 10 high quality MAGs (completeness >= 90 & contamination <= 10) ... "
+        Rscript {input.script}
+
+        nSpecies=$(ls $(basename {output})|wc -l)
+        nSpeciesTot=$(cat $(basename {output})/*|wc -l)
+        nMAGsTot=$(paste {input.binning}|wc -l)
+        echo -e "\nIdentified $nSpecies species represented by at least 10 high quality MAGs, totaling $nSpeciesTot MAGs out of $nMAGsTot total MAGs generated ... "
+
+        echo -e "\nMoving speciesBinIDs folder to pangenome directory: $(dirname {output})"
+        mv $(basename {output}) $(dirname {output})
+
+        echo -e "\nOrganizing prokka folder according to taxonomy ... "
+        echo -e "\nGFF files of identified species with at least 10 HQ MAGs will be copied to prokka/organzied/speciesSubfolder for roary input ... "
+        cd $(dirname {output})
+        mkdir -p prokka/organized
+
+        for species in speciesBinIDs/*.txt;do
+
+            speciesID=$(echo $(basename $species)|sed 's/.txt//g');
+            echo -e "\nCreating folder and organizing prokka output for species $speciesID ... "
+            mkdir -p prokka/organized/$speciesID
+
+            while read line;do
+                
+                binID=$(echo $line|sed 's/.bin/_bin/g')
+                echo "Copying GFF prokka output of bin $binID"
+                cp prokka/unorganized/$binID/*.gff prokka/organized/$speciesID/
+
+            done< $species
+        done
+
+        echo -e "\nDone"
+        """ 
+
+
+rule prepareRoaryMOTUS2:
     input:
         taxonomy = rules.taxonomyVis.output.text,
         binning = rules.binningVis.output.text,
@@ -1690,7 +1745,49 @@ rule roary:
         cd $SCRATCHDIR
         cp -r {input} .
                 
-        roary -p {config[cores][roary]} -i {config[params][roaryI]} -cd {config[params][roaryCD]} -f yes_al -e -v $(basename {input})/*.gff
+        roary -s -p {config[cores][roary]} -i {config[params][roaryI]} -cd {config[params][roaryCD]} -f yes_al -e -v $(basename {input})/*.gff
+        cd yes_al
+        create_pan_genome_plots.R 
+        cd ..
+        mkdir -p {output}
+
+        mv yes_al/* {output}
+        """
+
+rule roaryTop10:
+    input:
+        f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/prokka/organized/'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/roary/top10/')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/roaryTop10.roary.benchmark.txt'
+    message:
+        """
+        Runs pangenome for ~692 MAGs belonging to 10 species:
+        Agathobacter rectale, Bacteroides uniformis, 
+        Ruminococcus_E bromii_B, Gemmiger sp003476825, 
+        Blautia_A wexlerae, Dialister invisus,
+        Anaerostipes hadrus, Fusicatenibacter saccharivorans,
+        Eubacterium_E hallii, and NA
+        """
+    shell:
+        """
+        set +u;source activate prokkaroary;set -u
+        mkdir -p $(dirname {output})
+        cd $SCRATCHDIR
+
+        cp -r {input}/Agathobacter_rectale/* . 
+        cp -r {input}/Bacteroides_uniformis/* . 
+        cp -r {input}/Ruminococcus_E_bromii_B/* . 
+        cp -r {input}/Gemmiger_sp003476825/* . 
+        cp -r {input}/Blautia_A_wexlerae/* .
+        cp -r {input}/Dialister_invisus/* . 
+        cp -r {input}/Anaerostipes_hadrus/* . 
+        cp -r {input}/Fusicatenibacter_saccharivorans/* . 
+        cp -r {input}/Eubacterium_E_hallii/* . 
+        cp -r {input}/NA/* .
+                
+        roary -s -p {config[cores][roary]} -i {config[params][roaryI]} -cd {config[params][roaryCD]} -f yes_al -e -v *.gff
         cd yes_al
         create_pan_genome_plots.R 
         cd ..
@@ -1733,4 +1830,132 @@ rule drepComp:
         dRep compare drep_comp -g $(basename {input})/*.fa -p 48
         mv drep_comp $(dirname {input})
         """
+
+rule phylophlan:
+    input:
+        f'/home/zorrilla/workspace/european/dna_bins'
+    output:
+        directory(f'/scratch/zorrilla/phlan/out')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/bench.txt'
+    shell:
+        """
+        cd $SCRATCHDIR
+        cp -r {input} . 
+        cp $(dirname {output})/*.cfg .
+        mkdir -p logs
+
+        phylophlan -i dna_bins \
+                    -d phylophlan \
+                    -f 02_tol.cfg \
+                    --genome_extension fa \
+                    --diversity low \
+                    --fast \
+                    -o out \
+                    --nproc 128 \
+                    --verbose 2>&1 | tee logs/phylophlan.logs
+
+        cp -r out $(dirname {output})
+        """
+
+rule phylophlanPlant:
+    input:
+        f'/home/zorrilla/workspace/china_soil/dna_bins'
+    output:
+        directory(f'/home/zorrilla/workspace/china_soil/phlan/')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/benchPlant.txt'
+    shell:
+        """
+        cd $SCRATCHDIR
+        cp -r {input} . 
+        cp /scratch/zorrilla/phlan/*.cfg .
+        mkdir -p logs
+
+        phylophlan -i dna_bins \
+                    -d phylophlan \
+                    -f 02_tol.cfg \
+                    --genome_extension fa \
+                    --diversity low \
+                    --fast \
+                    -o $(basename {output}) \
+                    --nproc 128 \
+                    --verbose 2>&1 | tee logs/phylophlan.logs
+
+        cp -r $(basename {output}) $(dirname {output})
+        """
+        
+rule phylophlanMeta:
+    input:
+        f'/home/zorrilla/workspace/european/dna_bins'
+    output:
+        directory(f'/home/zorrilla/workspace/european/phlan/dist')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/bench.txt'
+    shell:
+        """
+        cd {input}
+        cd ../
+
+        phylophlan_metagenomic -i $(basename {input}) -o $(basename {output})_dist --nproc 2 --only_input
+    
+        mv $(basename {output})_dist $(basename {output})
+        mv -r $(basename {output}) $(dirname {output})
+        """
+
+
+rule phylophlanMetaAll:
+    input:
+        lab=f'/home/zorrilla/workspace/korem/dna_bins',
+        gut=f'/home/zorrilla/workspace/european/dna_bins' ,
+        plant=f'/home/zorrilla/workspace/china_soil/dna_bins' ,
+        soil=f'/home/zorrilla/workspace/straya/dna_bins' ,
+        ocean=f'/scratch/zorrilla/dna_bins' 
+    output:
+        directory(f'/home/zorrilla/workspace/european/phlan/all')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/allMetaBench.txt'
+    shell:
+        """
+        mkdir -p {output}
+        cd $SCRATCHDIR
+
+        mkdir allMAGs
+        cp {input.lab}/* allMAGs
+        cp {input.gut}/* allMAGs
+        cp {input.plant}/* allMAGs
+        cp {input.soil}/* allMAGs
+        cp {input.ocean}/* allMAGs
+
+        phylophlan_metagenomic -i allMAGs -o all --nproc 4 --only_input
+        mv all_distmat.tsv $(dirname {output})
+        """
+
+rule drawTree:
+    input:
+        f'/home/zorrilla/workspace/china_soil/phlan'
+    shell:
+        """
+        cd {input}
+        graphlan.py dna_bins.tre.iqtree tree.out
+        """
+
+rule makePCA:
+    input:
+        f'/home/zorrilla/workspace/european/phlan'
+    shell:
+        """
+        cd $SCRATCHDIR
+        echo -e "\nCopying files to scratch dir: $SCRATCHDIR"
+        cp {input}/*.tsv {input}/*.ids {input}/*.R .
+
+        echo -e "\nRunning nmds.R script ... "
+        Rscript nmds.R
+        rm *.tsv *.ids *.R
+
+        mkdir -p nmds
+        mv *.pdf nmds
+        mv nmds {input}
+        """
+
 

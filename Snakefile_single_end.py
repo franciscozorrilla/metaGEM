@@ -19,7 +19,7 @@ DATA_READS = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/{config["folder"]["abundance"]}/{{IDs}}', IDs=IDs)
+        expand(f'{config["path"]["root"]}/GTDBtk/{{IDs}}', IDs=IDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
@@ -672,6 +672,32 @@ rule binningVis:
         echo "Done. "
         """
 
+rule GTDBtk:
+    input: 
+        f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins'
+    output:
+        directory(f'{config["path"]["root"]}/GTDBtk/{{IDs}}')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.GTDBtk.benchmark.txt'
+    message:
+        """
+        The folder dna_bins_organized assumes subfolders containing dna bins for refined and reassembled bins.
+        Note: slightly modified inputs/outputs for european dataset.
+        """
+    shell:
+        """
+        set +u;source activate gtdbtk-tmp;set -u;
+        export GTDBTK_DATA_PATH=/g/scb2/patil/zorrilla/conda/envs/gtdbtk/share/gtdbtk-1.1.0/db/
+
+        cd $SCRATCHDIR
+        cp -r {input} .
+
+        gtdbtk classify_wf --genome_dir $(basename {input}) --out_dir GTDBtk -x fa --cpus {config[cores][gtdbtk]}
+        mkdir -p {output}
+        mv GTDBtk/* {output}
+
+        """
+
 rule classifyGenomes:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
@@ -935,7 +961,7 @@ rule extractProteinBins:
             echo "Moving bins from sample $(echo $(basename $folder)) ... "
             for bin in $folder*reassembled_bins.checkm/bins/*;do 
                 var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
-                mv $bin/*.faa {config[path][root]}/{config[folder][proteinBins]}/$var;
+                cp $bin/*.faa {config[path][root]}/{config[folder][proteinBins]}/$var;
             done;
         done
         """
