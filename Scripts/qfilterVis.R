@@ -45,4 +45,4 @@ bar = ggplot(data = qfilter) +
   theme(legend.title = element_blank())
 
 qfilt=grid.arrange(bar,arrangeGrob(reads,bases,q20,q30,nrow=4,ncol=1),ncol =2,nrow=1)
-ggsave("qfilterVis.pdf",plot= qfilt,device = "pdf",dpi = 300, width = 40, height = 20, units = "cm")
+ggsave("qfilterVis.pdf",plot= qfilt,device = "pdf",height = 6, width=8)

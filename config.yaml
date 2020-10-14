@@ -1,5 +1,5 @@
 path:
-    root: /scratch/zorrilla
+    root: /scratch/zorrilla/tara
 folder:
     data: dataset
     logs: logs

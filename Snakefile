@@ -13,13 +13,13 @@ gemIDs = get_ids_from_path_pattern('GEMs/*.xml')
 binIDs = get_ids_from_path_pattern('protein_bins/*.faa')
 IDs = get_ids_from_path_pattern('qfiltered/*')
 speciesIDs = get_ids_from_path_pattern('pangenome/speciesBinIDs/*.txt')
-DATA_READS_1 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_1.fastq.gz'
-DATA_READS_2 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_2.fastq.gz'
+DATA_READS_1 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_R1.fastq.gz'
+DATA_READS_2 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_R2.fastq.gz'
 focal = get_ids_from_path_pattern('dataset/*')
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/roary/{{speciesIDs}}/', speciesIDs=speciesIDs)
+        expand(f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{IDs}}/contigs.fasta.gz', IDs=IDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
@@ -147,8 +147,8 @@ rule qfilter:
         R1 = DATA_READS_1,
         R2 = DATA_READS_2
     output:
-        R1 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_1.fastq.gz', 
-        R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_2.fastq.gz' 
+        R1 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R1.fastq.gz', 
+        R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R2.fastq.gz' 
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u;
@@ -546,9 +546,9 @@ rule kallistoIndex:
 
 rule crossMap3:  
     input:
-        index = rules.kallistoIndex.output,
-        R1 = rules.qfilter.output.R1,
-        R2 = rules.qfilter.output.R2
+        index = f'{config["path"]["root"]}/kallistoIndex/{{focal}}/index.kaix',
+        R1 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R1.fastq.gz',
+        R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R2.fastq.gz'
     output:
         directory(f'{config["path"]["root"]}/kallisto/{{focal}}/{{IDs}}')
     benchmark:
