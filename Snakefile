@@ -1585,11 +1585,13 @@ rule extractDnaBins:
         mkdir -p {config[folder][dnaBins]}
 
         echo -e "Begin copying and renaming dna fasta bins from reassembled_bins/ to dna_bins/ ... \n"
-        for folder in reassembled_bins/*/;do 
-            echo "Copying bins from sample $(echo $(basename $folder)) ... "
+        for folder in reassembled_bins/*/;do
+            sample=$(echo $(basename $folder));
+            mkdir -p {config[path][root]}/{config[folder][dnaBins]}/$sample
+            echo "Copying bins from sample $sample ... "
             for bin in $folder*reassembled_bins/*;do 
-                var=$(echo $bin| sed 's|reassembled_bins/||g'|sed 's|/|\.|g');
-                cp $bin {config[path][root]}/{config[folder][dnaBins]}/$var;
+                var=$(echo $bin| sed 's|reassembled_bins/||g'|sed 's|/|\.|g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
+                cp $bin {config[path][root]}/{config[folder][dnaBins]}/$sample/$var;
             done;
         done
         """
