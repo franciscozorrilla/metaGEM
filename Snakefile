@@ -1006,7 +1006,7 @@ rule binningVis:
 rule abundance:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        #bins = f'{config["path"]["root"]}/dna_bins_organized/{{IDs}}/',
+        #bins = f'{config["path"]["root"]}/dna_bins/{{IDs}}/',
         R1 = rules.qfilter.output.R1, 
         R2 = rules.qfilter.output.R2
     output:
