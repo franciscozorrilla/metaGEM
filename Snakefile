@@ -1202,7 +1202,7 @@ rule classifyGenomes:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
         script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/classify-genomes'
     output:
-        directory(f'{config["path"]["root"]}/{config["folder"]["classification"]}/{{IDs}}')
+        #directory(f'{config["path"]["root"]}/{config["folder"]["classification"]}/{{IDs}}')
     benchmark:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.classify-genomes.benchmark.txt'
     shell:
