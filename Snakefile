@@ -1132,16 +1132,15 @@ rule abundance:
         """
 
 rule GTDBtk:
-    input: 
-        f'{config["path"]["root"]}/dna_bins_organized/{{IDs}}'
+    input:
+        f'{config["path"]["root"]}/dna_bins/{{IDs}}'
     output:
         directory(f'{config["path"]["root"]}/GTDBtk/{{IDs}}')
     benchmark:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.GTDBtk.benchmark.txt'
     message:
         """
-        The folder dna_bins_organized assumes subfolders containing dna bins for refined and reassembled bins.
-        Note: slightly modified inputs/outputs for european dataset.
+        The folder dna_bins assumes subfolders containing dna bins for refined and reassembled bins.
         """
     shell:
         """
@@ -1154,7 +1153,6 @@ rule GTDBtk:
         gtdbtk classify_wf --genome_dir $(basename {input}) --out_dir GTDBtk -x fa --cpus {config[cores][gtdbtk]}
         mkdir -p {output}
         mv GTDBtk/* {output}
-
         """
 
 rule GTDBtkVis:
