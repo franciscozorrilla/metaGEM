@@ -57,7 +57,7 @@ Snakefile wrapper/parser for metaGEM.
                             smetana
 
                             extractDnaBins
-                            classifyGenomes
+                            gtdbtk
                             abundance 
                             grid
                             prokka
@@ -318,7 +318,7 @@ parse() {
     string='expand(config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}", IDs = IDs)'
     submitCluster
 
-  elif [ $task == "classifyGenomes" ]; then
+  elif [ $task == "gtdbtk" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["classification"]+"/{IDs}", IDs = IDs)'
     submitCluster
 
