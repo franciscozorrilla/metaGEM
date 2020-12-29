@@ -105,4 +105,4 @@ densities2=grid.arrange(contplot,contigplot,nrow=2,ncol=1)
 
 plot=grid.arrange(binplot,densities1,densities2,nrow=1,ncol=3)
 
-ggsave("binningVis.pdf",plot=plot, height = 8, width = 12)
+ggsave("binningVis.pdf",plot=plot, height = 6, width = 12)
