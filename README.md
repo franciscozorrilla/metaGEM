@@ -1,10 +1,10 @@
-# metaBAGpipes
+# metaGEM
 
 > A Snakemake-based workflow to generate high quality MAGs, reconstruct GEMs, and perform community metabolic interaction simulations on HPC clusters.
 
 ![pipeline](https://github.com/franciscozorrilla/metaBAGpipes/blob/dev/pipeline.jpeg)
 
-metaBAGpipes integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WMGS datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Additional outputs include abundance estimates and taxonomic annotations.
+metaGEM integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WMGS datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Additional outputs include abundance estimates and taxonomic annotations.
 
 ## Use cases:
 
@@ -32,11 +32,11 @@ Experimental:
 
 ### Usage
 
-bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
+bash metaGEM.sh [-t TASK] [-j NUMBER OF JOBS] [-c NUMBER OF CORES]
 
 ```
 
-Snakefile wrapper/parser for metaBAGpipes. 
+Snakefile wrapper/parser for metaGEM. 
 
  Options:
   -t, --task        Specify task to complete:
@@ -73,26 +73,26 @@ Snakefile wrapper/parser for metaBAGpipes.
   -c, --nCores      Specify number of cores per job
   -h, --help        Display this help and exit
 
-Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
+Example: bash metaGEM.sh -t createFolders -j 1 -c 1
 
 ```
 
 ## Installation
 
 ```bash
-git clone https://github.com/franciscozorrilla/metaBAGpipes.git
+git clone https://github.com/franciscozorrilla/metaGEM.git
 ```
 
 ### Conda environments
 
-#### metaBAGpipes
+#### metaGEM
 
 A [conda](https://conda.io/en/latest/) specification file is provided to install required packages inside an
-environment called `metabagpipes`.
+environment called `metaGEM`.
 
 ```bash
-conda env create -f metaBAGpipes_env.yml
-source activate metabagpipes
+conda env create -f metaGEM_env.yml
+source activate metaGEM
 ```
 
 ##### CPLEX
@@ -117,12 +117,12 @@ CheckM is used extensively to evaluate the output of various itntermediate steps
 A [Singularity](https://sylabs.io/docs/) recipe files is provided to build an image that can be used with HPC clusters.
 
 ```bash
-sudo singularity --verbose build metabagpipes.simg Singularity
+sudo singularity --verbose build metaGEM.simg Singularity
 ```
 
 ## Toy dataset
 
-As a tutorial, and to verify that your metaBAGpipes installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ). Expected output can be found in the Tutorial folder.
+As a tutorial, and to verify that your metaGEM installation is working correctly, we provide a [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ). Expected output can be found in the Tutorial folder.
 
 ## Tutorial
 
@@ -194,7 +194,7 @@ params:
     smetanaMedia: M1,M2,M3,M4,M5,M7,M8,M9,M10,M11,M13,M14,M15A,M15B,M16
     smetanaSolver: CPLEX
 envs:
-    metabagpipes: metabagpipes
+    metaGEM: metaGEM
     metawrap: metawrap
 ```
 
@@ -208,10 +208,10 @@ To test that your snakemake installation and Snakefile are working properly, run
 snakemake createFolders
 ```
 
-Or, using the metaBAGpipes.sh parser:
+Or, using the metaGEM.sh parser:
 
 ```bash
-./metaBAGpipes.sh -t createFolders -j 1 -c 1
+./metaGEM.sh -t createFolders -j 1 -c 1
 ```
 
 Next, download the [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ) into the `dataset` folder. This can be done manually, or more conveniently, using the `downloadToy` snakemake rule.
@@ -220,22 +220,22 @@ Next, download the [toy dataset](https://zenodo.org/record/3534949#.XclQriV7lTZ)
 snakemake downloadToy
 ```
 
-Alternatively, using the metaBAGpipes.sh parser:
+Alternatively, using the metaGEM.sh parser:
 
 ```bash
-./metaBAGpipes.sh -t downloadToy -j 1 -c 1
+./metaGEM.sh -t downloadToy -j 1 -c 1
 ```
 
-Organize reads into sample specific sub-directories. This is required as metaBAGpipes uses snakemake wildcards based on these subfolders.
+Organize reads into sample specific sub-directories. This is required as metaGEM uses snakemake wildcards based on these subfolders.
 
 ```bash
 snakemake organizeData
 ```
 
-Or using the metaBAGpipes.sh parser:
+Or using the metaGEM.sh parser:
 
 ```bash
-./metaBAGpipes.sh -t organizeData -j 1 -c 1
+./metaGEM.sh -t organizeData -j 1 -c 1
 ```
 
 
@@ -287,16 +287,16 @@ rule all:
         """
 ```
 
-The metaBAGpipes.sh parser simplifies the user interaction by automatically editing the `Snakefile` and `cluster_config.json` according to the provided arguments: `-t/--task`, `-j/--nJobs`, `-n/--nCores`.
+The metaGEM.sh parser simplifies the user interaction by automatically editing the `Snakefile` and `cluster_config.json` according to the provided arguments: `-t/--task`, `-j/--nJobs`, `-n/--nCores`.
 
 ### 1. Assembly
 
 We use the metaSPAdes assembler which contains its own internal quality control module. If you wish to use another assembler such as [megahit](https://github.com/voutcn/megahit), we recommend pre-processing using [fastp](https://github.com/OpenGene/fastp) or [trimmomatic](https://github.com/timflutre/trimmomatic).
 
-To run the assembly step on the toy dataset using the `metaBAGpipes.sh` parser, simply run:
+To run the assembly step on the toy dataset using the `metaGEM.sh` parser, simply run:
 
 ```bash
-./metaBAGpipes.sh -t metaspades -j 3 -c 16
+./metaGEM.sh -t metaspades -j 3 -c 16
 ```
 
 To run the assembly step "manually", copy the output of `rule metaspades`, and insert it into the input for `rule all`:
@@ -378,7 +378,7 @@ rule concoct:
         config["path"]["root"]+"/"+"benchmarks/{IDs}.concoct.benchmark.txt"
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metaGEM]};set -u;
         mkdir -p $(dirname {output})
         mkdir -p $(dirname $(dirname {output}))
         cp {input.contigs} {input.table} $TMPDIR
@@ -412,11 +412,11 @@ Edit the input of `rule all` to expand the output of `rule maxbin`, edit `cluste
 
 ### 3. Bin refinement
 
-Edit the input of `rule all` to expand the output of `rule binRefine`, edit `cluster_config.json` if necessary, and run snakemake. Note that this step uses the `metawrap` conda environment instead of the `metabagpipes` environment. Ensure that CheckM is correctly installed and the downloaded database is configured as described in the Installation section.
+Edit the input of `rule all` to expand the output of `rule binRefine`, edit `cluster_config.json` if necessary, and run snakemake. Note that this step uses the `metawrap` conda environment instead of the `metaGEM` environment. Ensure that CheckM is correctly installed and the downloaded database is configured as described in the Installation section.
 
 ### 4. Bin reassembly
 
-Edit the input of `rule all` to expand the output of `rule binReassemble`, edit `cluster_config.json` if necessary, and run snakemake. Note that this step uses the `metawrap` conda environment instead of the `metabagpipes` environment. Again, ensure that CheckM is correctly installed and the downloaded database is configured as described in the Installation section.
+Edit the input of `rule all` to expand the output of `rule binReassemble`, edit `cluster_config.json` if necessary, and run snakemake. Note that this step uses the `metawrap` conda environment instead of the `metaGEM` environment. Again, ensure that CheckM is correctly installed and the downloaded database is configured as described in the Installation section.
 
 ### 5. MAG classification
 
@@ -444,6 +444,6 @@ To our best knowledge, the work presented in this thesis project represents the 
 Dataset used:
   * Karlsson, Fredrik H., et al. “Gut Metagenome in European Women with Normal, Impaired and Diabetic Glucose Control.” *Nature*, vol.498, no.7452, 2013, pp.99–103. , doi:10.1038/nature12198.
 
-This repository is administered by Francisco Zorrilla ([@franciscozorrilla](https://github.com/franciscozorrilla/)), Structural and Computational Biology Unit, EMBL. metaBAGpipes was developed throughout my Master's thesis project at the Systems and Synthetic Biology division of Chalmers Univeristy of Technology, under the supervision of Aleksej Zelezniak.
+This repository is administered by Francisco Zorrilla ([@franciscozorrilla](https://github.com/franciscozorrilla/)), Structural and Computational Biology Unit, EMBL. metaGEM was developed throughout my Master's thesis project at the Systems and Synthetic Biology division of Chalmers Univeristy of Technology, under the supervision of Aleksej Zelezniak.
 
-  * Last update: 11-11-2019
+  * Last update: 29-12-2020
