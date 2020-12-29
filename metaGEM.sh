@@ -335,7 +335,7 @@ parse() {
     submitCluster
 
   elif [ $task == "memote" ]; then
-    string='expand(config["path"]["root"]+"/"+config["folder"]["memote"]+"/{IDs}", IDs = IDs)'
+    string='expand(config["path"]["root"]+"/"+config["folder"]["memote"]+"/{gemIDs}", gemIDs = gemIDs)'
     submitCluster
 
   elif [ $task == "grid" ]; then
