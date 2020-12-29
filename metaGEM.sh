@@ -4,19 +4,19 @@
 printLogo() {
 
   echo '
-                           /$$               /$$$$$$$   /$$$$$$   /$$$$$$            /$$                              
-                          | $$              | $$__  $$ /$$__  $$ /$$__  $$          |__/                              
- /$$$$$$/$$$$   /$$$$$$  /$$$$$$    /$$$$$$ | $$  \ $$| $$  \ $$| $$  \__/  /$$$$$$  /$$  /$$$$$$   /$$$$$$   /$$$$$$$
-| $$_  $$_  $$ /$$__  $$|_  $$_/   |____  $$| $$$$$$$ | $$$$$$$$| $$ /$$$$ /$$__  $$| $$ /$$__  $$ /$$__  $$ /$$_____/
-| $$ \ $$ \ $$| $$$$$$$$  | $$      /$$$$$$$| $$__  $$| $$__  $$| $$|_  $$| $$  \ $$| $$| $$  \ $$| $$$$$$$$|  $$$$$$ 
-| $$ | $$ | $$| $$_____/  | $$ /$$ /$$__  $$| $$  \ $$| $$  | $$| $$  \ $$| $$  | $$| $$| $$  | $$| $$_____/ \____  $$
-| $$ | $$ | $$|  $$$$$$$  |  $$$$/|  $$$$$$$| $$$$$$$/| $$  | $$|  $$$$$$/| $$$$$$$/| $$| $$$$$$$/|  $$$$$$$ /$$$$$$$/
-|__/ |__/ |__/ \_______/   \___/   \_______/|_______/ |__/  |__/ \______/ | $$____/ |__/| $$____/  \_______/|_______/ 
-                                                                          | $$          | $$                          
-                                                                          | $$          | $$                          
-                                                                          |__/          |__/                          
 
-A Snakemake-based metagenomics pipeline desinged to study microbial communities using high performance computer clusters.
+_________________________________________________________________________/\\\\\\\\\\\\___/\\\\\\\\\\\\\\\___/\\\\____________/\\\\_        
+ _______________________________________________________________________/\\\//////////___\/\\\///////////___\/\\\\\\________/\\\\\\_       
+  __________________________________________/\\\________________________/\\\______________\/\\\______________\/\\\//\\\____/\\\//\\\_      
+   ____/\\\\\__/\\\\\________/\\\\\\\\____/\\\\\\\\\\\___/\\\\\\\\\_____\/\\\____/\\\\\\\__\/\\\\\\\\\\\______\/\\\\///\\\/\\\/_\/\\\_     
+    __/\\\///\\\\\///\\\____/\\\/////\\\__\////\\\////___\////////\\\____\/\\\___\/////\\\__\/\\\///////_______\/\\\__\///\\\/___\/\\\_    
+     _\/\\\_\//\\\__\/\\\___/\\\\\\\\\\\______\/\\\_________/\\\\\\\\\\___\/\\\_______\/\\\__\/\\\______________\/\\\____\///_____\/\\\_   
+      _\/\\\__\/\\\__\/\\\__\//\\///////_______\/\\\_/\\____/\\\/////\\\___\/\\\_______\/\\\__\/\\\______________\/\\\_____________\/\\\_  
+       _\/\\\__\/\\\__\/\\\___\//\\\\\\\\\\_____\//\\\\\____\//\\\\\\\\/\\__\//\\\\\\\\\\\\/___\/\\\\\\\\\\\\\\\__\/\\\_____________\/\\\_ 
+        _\///___\///___\///_____\//////////_______\/////______\////////\//____\////////////_____\///////////////___\///______________\///__
+
+
+A Snakemake-based metagenomics pipeline desinged to study the metabolism of microbial communities using high performance computer clusters.
 '
 
 }
@@ -27,9 +27,9 @@ usage() {
 
   printLogo
 
-  echo -n "Usage: bash metaBAGpipes.sh [-t TASK] [-j NUMBER OF JOBS] [-c ALLOCATED CORES] [-m ALLOCATED GB MEMORY] [-h ALLOCATED HOURS]
+  echo -n "Usage: bash metaGEM.sh [-t TASK] [-j NUMBER OF JOBS] [-c ALLOCATED CORES] [-m ALLOCATED GB MEMORY] [-h ALLOCATED HOURS]
 
-Snakefile wrapper/parser for metaBAGpipes. 
+Snakefile wrapper/parser for metaGEM. 
 
  Options:
   -t, --task        Specify task to complete:
@@ -89,7 +89,7 @@ Suggested workflow: (OUTDATED, NEED TO UPDATE)
     9. MAG abundance calculation (abundance)
     10. MAG growth rate estimation (grid)
 
-Example: bash metaBAGpipes.sh -t createFolders -j 1 -c 1
+Example: bash metaGEM.sh -t createFolders -j 1 -c 1
 
 "
 }
@@ -154,7 +154,7 @@ snakePrep() {
     clusterConfig
 
     echo "Unlocking snakemake ... "
-    snakemake --unlock
+    snakemake --unlock -j 1
 
     echo -e "\nDry-running snakemake jobs ... "
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
@@ -170,13 +170,13 @@ submitLogin() {
     snakeConfig
 
     echo "Unlocking snakemake ... "
-    snakemake --unlock
+    snakemake --unlock -j 1
     echo " "
 
     while true; do
         read -p "Do you wish to submit this $task job? (y/n)" yn
         case $yn in
-            [Yy]* ) snakemake $task ; break;;
+            [Yy]* ) snakemake $task -j 1; break;;
             [Nn]* ) exit;;
             * ) echo "Please answer yes or no.";;
         esac
