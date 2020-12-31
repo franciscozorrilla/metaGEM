@@ -1178,14 +1178,14 @@ rule modelVis:
         cd {input}
 
         echo -e "\nBegin reading models ... \n"
-        for model in *.xml;do 
-            id=$(echo $model|sed 's/.xml//g'); 
+        while read model;do 
+            id=$(echo $(basename $model)|sed 's/.xml//g'); 
             mets=$(less $model| grep "species id="|cut -d ' ' -f 8|sed 's/..$//g'|sort|uniq|wc -l);
             rxns=$(less $model|grep -c 'reaction id=');
             genes=$(less $model|grep 'fbc:geneProduct fbc:id='|grep -vic spontaneous);
             echo "Model: $id has $mets mets, $rxns reactions, and $genes genes ... "
             echo "$id $mets $rxns $genes" >> GEMs.stats;
-        done
+        done< <(find . -name "*.xml")
 
         echo -e "\nDone generating GEMs.stats summary file, moving to stats/ folder and running modelVis.R script ... "
         mv GEMs.stats {config[path][root]}/{config[folder][stats]}
