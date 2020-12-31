@@ -1163,6 +1163,7 @@ rule GTDBtkVis:
         plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GTDBtkVis.pdf'
     message:
         """
+        Appropriate for visualizing many samples, does not look at relative abundances.
         Generate bar plot with most common taxa (n>15) and density plots with mapping statistics.
         """
     shell:
