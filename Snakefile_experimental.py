@@ -228,3 +228,319 @@ rule parseTaxAb:
         cd {config[path][root]}/{config[folder][stats]}
 
         """
+
+rule prepareRoary:
+    input:
+        taxonomy = rules.GTDBtkVis.output.text,
+        binning = rules.binningVis.output.text,
+        script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["prepRoary"]}'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/speciesBinIDs')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/prepareRoary.benchmark.txt'
+    message:
+        """
+        This rule matches the results from classifyGenomes->taxonomyVis with the completeness & contamination
+        CheckM results from the metaWRAP reassembly->binningVis results, identifies speceies represented by 
+        at least 10 high quality MAGs (completeness >= 90 & contamination <= 10), and outputs text files 
+        with bin IDs for each such species. Also organizes the prokka output folders based on taxonomy.
+        Note: Do not run this before finishing all prokka jobs!
+        """
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        cd $(dirname {input.taxonomy})
+
+        echo -e "\nCreating speciesBinIDs folder containing.txt files with binIDs for each species that is represented by at least 10 high quality MAGs (completeness >= 90 & contamination <= 10) ... "
+        Rscript {input.script}
+
+        nSpecies=$(ls $(basename {output})|wc -l)
+        nSpeciesTot=$(cat $(basename {output})/*|wc -l)
+        nMAGsTot=$(paste {input.binning}|wc -l)
+        echo -e "\nIdentified $nSpecies species represented by at least 10 high quality MAGs, totaling $nSpeciesTot MAGs out of $nMAGsTot total MAGs generated ... "
+
+        echo -e "\nMoving speciesBinIDs folder to pangenome directory: $(dirname {output})"
+        mv $(basename {output}) $(dirname {output})
+
+        echo -e "\nOrganizing prokka folder according to taxonomy ... "
+        echo -e "\nGFF files of identified species with at least 10 HQ MAGs will be copied to prokka/organzied/speciesSubfolder for roary input ... "
+        cd $(dirname {output})
+        mkdir -p prokka/organized
+
+        for species in speciesBinIDs/*.txt;do
+
+            speciesID=$(echo $(basename $species)|sed 's/.txt//g');
+            echo -e "\nCreating folder and organizing prokka output for species $speciesID ... "
+            mkdir -p prokka/organized/$speciesID
+
+            while read line;do
+                
+                binID=$(echo $line|sed 's/.bin/_bin/g')
+                echo "Copying GFF prokka output of bin $binID"
+                cp prokka/unorganized/$binID/*.gff prokka/organized/$speciesID/
+
+            done< $species
+        done
+
+        echo -e "\nDone"
+        """ 
+
+
+rule prepareRoaryMOTUS2:
+    input:
+        taxonomy = rules.taxonomyVis.output.text,
+        binning = rules.binningVis.output.text,
+        script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["prepRoary"]}'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/speciesBinIDs')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/prepareRoary.benchmark.txt'
+    message:
+        """
+        This rule matches the results from classifyGenomes->taxonomyVis with the completeness & contamination
+        CheckM results from the metaWRAP reassembly->binningVis results, identifies speceies represented by 
+        at least 10 high quality MAGs (completeness >= 90 & contamination <= 10), and outputs text files 
+        with bin IDs for each such species. Also organizes the prokka output folders based on taxonomy.
+        Note: Do not run this before finishing all prokka jobs!
+        """
+    shell:
+        """
+        set +u;source activate {config[envs][metabagpipes]};set -u
+        cd $(dirname {input.taxonomy})
+
+        echo -e "\nCreating speciesBinIDs folder containing.txt files with binIDs for each species that is represented by at least 10 high quality MAGs (completeness >= 90 & contamination <= 10) ... "
+        Rscript {input.script}
+
+        nSpecies=$(ls $(basename {output})|wc -l)
+        nSpeciesTot=$(cat $(basename {output})/*|wc -l)
+        nMAGsTot=$(paste {input.binning}|wc -l)
+        echo -e "\nIdentified $nSpecies species represented by at least 10 high quality MAGs, totaling $nSpeciesTot MAGs out of $nMAGsTot total MAGs generated ... "
+
+        echo -e "\nMoving speciesBinIDs folder to pangenome directory: $(dirname {output})"
+        mv $(basename {output}) $(dirname {output})
+
+        echo -e "\nOrganizing prokka folder according to taxonomy ... "
+        echo -e "\nGFF files of identified species with at least 10 HQ MAGs will be copied to prokka/organzied/speciesSubfolder for roary input ... "
+        cd $(dirname {output})
+        mkdir -p prokka/organized
+
+        for species in speciesBinIDs/*.txt;do
+
+            speciesID=$(echo $(basename $species)|sed 's/.txt//g');
+            echo -e "\nCreating folder and organizing prokka output for species $speciesID ... "
+            mkdir -p prokka/organized/$speciesID
+
+            while read line;do
+                
+                binID=$(echo $line|sed 's/.bin/_bin/g')
+                echo "Copying GFF prokka output of bin $binID"
+                cp prokka/unorganized/$binID/*.gff prokka/organized/$speciesID/
+
+            done< $species
+        done
+
+        echo -e "\nDone"
+        """ 
+
+rule roaryTop10:
+    input:
+        f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/prokka/organized/'
+    output:
+        directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/roary/top10/')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/roaryTop10.roary.benchmark.txt'
+    message:
+        """
+        Runs pangenome for ~692 MAGs belonging to 10 species:
+        Agathobacter rectale, Bacteroides uniformis, 
+        Ruminococcus_E bromii_B, Gemmiger sp003476825, 
+        Blautia_A wexlerae, Dialister invisus,
+        Anaerostipes hadrus, Fusicatenibacter saccharivorans,
+        Eubacterium_E hallii, and NA
+        """
+    shell:
+        """
+        set +u;source activate prokkaroary;set -u
+        mkdir -p $(dirname {output})
+        cd $SCRATCHDIR
+
+        cp -r {input}/Agathobacter_rectale/* . 
+        cp -r {input}/Bacteroides_uniformis/* . 
+        cp -r {input}/Ruminococcus_E_bromii_B/* . 
+        cp -r {input}/Gemmiger_sp003476825/* . 
+        cp -r {input}/Blautia_A_wexlerae/* .
+        cp -r {input}/Dialister_invisus/* . 
+        cp -r {input}/Anaerostipes_hadrus/* . 
+        cp -r {input}/Fusicatenibacter_saccharivorans/* . 
+        cp -r {input}/Eubacterium_E_hallii/* . 
+        cp -r {input}/NA/* .
+                
+        roary -s -p {config[cores][roary]} -i {config[params][roaryI]} -cd {config[params][roaryCD]} -f yes_al -e -v *.gff
+        cd yes_al
+        create_pan_genome_plots.R 
+        cd ..
+        mkdir -p {output}
+
+        mv yes_al/* {output}
+        """
+
+rule phylophlan:
+    input:
+        f'/home/zorrilla/workspace/european/dna_bins'
+    output:
+        directory(f'/scratch/zorrilla/phlan/out')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/bench.txt'
+    shell:
+        """
+        cd $SCRATCHDIR
+        cp -r {input} . 
+        cp $(dirname {output})/*.cfg .
+        mkdir -p logs
+
+        phylophlan -i dna_bins \
+                    -d phylophlan \
+                    -f 02_tol.cfg \
+                    --genome_extension fa \
+                    --diversity low \
+                    --fast \
+                    -o out \
+                    --nproc 128 \
+                    --verbose 2>&1 | tee logs/phylophlan.logs
+
+        cp -r out $(dirname {output})
+        """
+
+rule phylophlanPlant:
+    input:
+        f'/home/zorrilla/workspace/china_soil/dna_bins'
+    output:
+        directory(f'/home/zorrilla/workspace/china_soil/phlan/')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/benchPlant.txt'
+    shell:
+        """
+        cd $SCRATCHDIR
+        cp -r {input} . 
+        cp /scratch/zorrilla/phlan/*.cfg .
+        mkdir -p logs
+
+        phylophlan -i dna_bins \
+                    -d phylophlan \
+                    -f 02_tol.cfg \
+                    --genome_extension fa \
+                    --diversity low \
+                    --fast \
+                    -o $(basename {output}) \
+                    --nproc 128 \
+                    --verbose 2>&1 | tee logs/phylophlan.logs
+
+        cp -r $(basename {output}) $(dirname {output})
+        """
+        
+rule phylophlanMeta:
+    input:
+        f'/home/zorrilla/workspace/european/dna_bins'
+    output:
+        directory(f'/home/zorrilla/workspace/european/phlan/dist')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/bench.txt'
+    shell:
+        """
+        cd {input}
+        cd ../
+
+        phylophlan_metagenomic -i $(basename {input}) -o $(basename {output})_dist --nproc 2 --only_input
+    
+        mv $(basename {output})_dist $(basename {output})
+        mv -r $(basename {output}) $(dirname {output})
+        """
+
+
+rule phylophlanMetaAll:
+    input:
+        lab=f'/home/zorrilla/workspace/korem/dna_bins',
+        gut=f'/home/zorrilla/workspace/european/dna_bins' ,
+        plant=f'/home/zorrilla/workspace/china_soil/dna_bins' ,
+        soil=f'/home/zorrilla/workspace/straya/dna_bins' ,
+        ocean=f'/scratch/zorrilla/dna_bins' 
+    output:
+        directory(f'/home/zorrilla/workspace/european/phlan/all')
+    benchmark:
+        f'/scratch/zorrilla/phlan/logs/allMetaBench.txt'
+    shell:
+        """
+        mkdir -p {output}
+        cd $SCRATCHDIR
+
+        mkdir allMAGs
+        cp {input.lab}/* allMAGs
+        cp {input.gut}/* allMAGs
+        cp {input.plant}/* allMAGs
+        cp {input.soil}/* allMAGs
+        cp {input.ocean}/* allMAGs
+
+        phylophlan_metagenomic -i allMAGs -o all --nproc 4 --only_input
+        mv all_distmat.tsv $(dirname {output})
+        """
+
+rule drawTree:
+    input:
+        f'/home/zorrilla/workspace/china_soil/phlan'
+    shell:
+        """
+        cd {input}
+        graphlan.py dna_bins.tre.iqtree tree.out
+        """
+
+rule makePCA:
+    input:
+        f'/home/zorrilla/workspace/european/phlan'
+    shell:
+        """
+        cd $SCRATCHDIR
+        echo -e "\nCopying files to scratch dir: $SCRATCHDIR"
+        cp {input}/*.tsv {input}/*.ids {input}/*.R .
+
+        echo -e "\nRunning nmds.R script ... "
+        Rscript nmds.R
+        rm *.tsv *.ids *.R
+
+        mkdir -p nmds
+        mv *.pdf nmds
+        mv nmds {input}
+        """
+
+rule drep:
+    input:
+        f'{config["path"]["root"]}/dna_bins'
+    output:
+        directory(f'{config["path"]["root"]}/drep_drep')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/drep_drep.benchmark.txt'
+    shell:
+        """
+        set +u;source activate drep;set -u
+        cp -r {input} $SCRATCHDIR
+        cd $SCRATCHDIR
+
+        dRep dereplicate drep_drep -g $(basename {input})/*.fa -p 48 -comp 50 -con 10
+        mv drep_drep $(dirname {input})
+        """
+
+rule drepComp:
+    input:
+        f'{config["path"]["root"]}/dna_bins'
+    output:
+        directory(f'{config["path"]["root"]}/drep_comp')
+    benchmark:
+        f'{config["path"]["root"]}/benchmarks/drep_comp.benchmark.txt'
+    shell:
+        """
+        set +u;source activate drep;set -u
+        cp -r {input} $SCRATCHDIR
+        cd $SCRATCHDIR
+
+        dRep compare drep_comp -g $(basename {input})/*.fa -p 48
+        mv drep_comp $(dirname {input})
+        """
