@@ -1208,6 +1208,7 @@ rule compositionVis:
         """
         Summarize and visualize abundance + taxonomy of MAGs across samples.
         Note: compositionVis should only be run after the gtdbtk and abundance rules.
+        To-do: add to parser
         """
     shell:
         """
