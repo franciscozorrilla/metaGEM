@@ -1197,129 +1197,49 @@ rule GTDBtkVis:
         echo "Done. "
         """
 
-
-rule classifyGenomes:
+rule compositionVis:
     input:
-        bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
-        script = f'{config["path"]["root"]}/{config["folder"]["scripts"]}/classify-genomes'
-    output:
-        #directory(f'{config["path"]["root"]}/{config["folder"]["classification"]}/{{IDs}}')
-    benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.classify-genomes.benchmark.txt'
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
-        mkdir -p {output}
-        cd $SCRATCHDIR
-        cp -r {input.script}/* {input.bins}/* .
-
-        echo "Begin classifying bins ... "
-        for bin in *.fa; do
-            echo -e "\nClassifying $bin ... "
-            $PWD/classify-genomes $bin -t {config[cores][classify]} -o $(echo $bin|sed 's/.fa/.taxonomy/')
-            cp *.taxonomy {output}
-            rm *.taxonomy
-            rm $bin 
-        done
-        echo "Done classifying bins. "
-        """
-
-rule taxonomyVis:
-    input: 
-        f'{config["path"]["root"]}/{config["folder"]["classification"]}'
-    output: 
-        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/classification.stats',
-        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/taxonomyVis.pdf'
-    message:
-        """
-        Generate bar plot with most common taxa (n>15) and density plots with mapping statistics.
-        """
-    shell:
-        """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
-        cd {input}
-
-        echo -e "\nBegin reading classification result files ... \n"
-        for folder in */;do 
-
-            for file in $folder*.taxonomy;do
-
-                # Define sample ID to append to start of each bin name in summary file
-                sample=$(echo $folder|sed 's|/||')
-
-                # Define bin name with sample ID, shorten metaWRAP naming scheme (orig/permissive/strict)
-                fasta=$(echo $file | sed 's|^.*/||' | sed 's/.taxonomy//g' | sed 's/orig/o/g' | sed 's/permissive/p/g' | sed 's/strict/s/g' | sed "s/^/$sample./g");
-
-                # Extract NCBI ID 
-                NCBI=$(less $file | grep NCBI | cut -d ' ' -f4);
-
-                # Extract consensus taxonomy
-                tax=$(less $file | grep tax | sed 's/Consensus taxonomy: //g');
-
-                # Extract consensus motus
-                motu=$(less $file | grep mOTUs | sed 's/Consensus mOTUs: //g');
-
-                # Extract number of detected genes
-                detect=$(less $file | grep detected | sed 's/Number of detected genes: //g');
-
-                # Extract percentage of agreeing genes
-                percent=$(less $file | grep agreeing | sed 's/Percentage of agreeing genes: //g' | sed 's/%//g');
-
-                # Extract number of mapped genes
-                map=$(less $file | grep mapped | sed 's/Number of mapped genes: //g');
-                
-                # Extract COG IDs, need to use set +e;...;set -e to avoid erroring out when reading .taxonomy result file for bin with no taxonomic annotation
-                set +e
-                cog=$(less $file | grep COG | cut -d$'\t' -f1 | tr '\n' ',' | sed 's/,$//g');
-                set -e
-                
-                # Display and store extracted results
-                echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog"
-                echo -e "$fasta \t $NCBI \t $tax \t $motu \t $detect \t $map \t $percent \t $cog" >> classification.stats;
-            
-            done;
-        
-        done
-
-        echo -e "\nDone generating classification.stats summary file, moving to stats/ directory and running taxonomyVis.R script ... "
-        mv classification.stats {config[path][root]}/{config[folder][stats]}
-        cd {config[path][root]}/{config[folder][stats]}
-
-        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][taxonomyVis]}
-        rm Rplots.pdf # Delete redundant pdf file
-        echo "Done. "
-        """
-
-
-rule parseTaxAb:
-    input:
-        taxonomy = rules.taxonomyVis.output.text ,
+        taxonomy = f'{config["path"]["root"]}/{config["folder"]["classification"]}' ,
         abundance = f'{config["path"]["root"]}/{config["folder"]["abundance"]}'
     output:
-        directory(f'{config["path"]["root"]}/MAG.table')
+        #file = f'{config["path"]["root"]}/{config["folder"]["stats"]}/composition.tsv',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/compositionVis.pdf'
     message:
         """
-        Parses an abundance table with MAG taxonomy for rows and samples for columns.
-        Note: parseTaxAb should only be run after the classifyGenomes, taxonomyVis, and abundance rules.
+        Summarize and visualize abundance + taxonomy of MAGs across samples.
+        Note: compositionVis should only be run after the gtdbtk and abundance rules.
         """
     shell:
         """
         set +u;source activate {config[envs][metabagpipes]};set -u
+
+        # Generate summary abundance file
+
         cd {input.abundance}
-
         for folder in */;do
-
             # Define sample ID
             sample=$(echo $folder|sed 's|/||g')
-            
             # Same as in taxonomyVis rule, modify bin names by adding sample ID and shortening metaWRAP naming scheme (orig/permissive/strict)
             paste $sample/$sample.abund | sed 's/orig/o/g' | sed 's/permissive/p/g' | sed 's/strict/s/g' | sed "s/^/$sample./g" >> abundance.stats
-       
         done
-
         mv abundance.stats {config[path][root]}/{config[folder][stats]}
-        cd {config[path][root]}/{config[folder][stats]}
 
+        # Generate summary taxonomy file
+
+        cd {input.taxonomy}
+        # Summarize GTDBtk output across samples
+        for folder in */;do 
+            samp=$(echo $folder|sed 's|^.*/||');
+            cat $folder/classify/*summary.tsv;
+        done > GTDBtk.stats
+        # Clean up stats file
+        header=$(head -n 1 GTDBtk.stats)
+        sed -i '/other_related_references(genome_id,species_name,radius,ANI,AF)/d' GTDBtk.stats
+        sed -i "1i$header" GTDBtk.stats
+        mv GTDBtk.stats {config[path][root]}/{config[folder][stats]}
+
+        cd {config[path][root]}/{config[folder][stats]}
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][compositionVis]}
         """
 
 rule extractProteinBins:
