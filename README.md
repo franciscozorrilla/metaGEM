@@ -6,29 +6,20 @@
 
 metaGEM integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WMGS datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Additional outputs include abundance estimates and taxonomic annotations.
 
-## Use cases:
+## Workflow
 
-1. Raw read QC/trimming using [fastp](https://github.com/OpenGene/fastp).
-2. Assembly using [megahit](https://github.com/voutcn/megahit).
-3. Binning using:
-      * [CONCOCT](https://github.com/BinPro/CONCOCT).
-      * [metabat2](https://bitbucket.org/berkeleylab/metabat/src/master/).
-      * [maxbin2](https://sourceforge.net/projects/maxbin2/).
-4. Bin refinement using [metaWRAP](https://github.com/bxlab/metaWRAP):
-      * reconciles binning output from different tools using [CheckM](https://github.com/Ecogenomics/CheckM) and [binning_refiner](https://github.com/songweizhi/Binning_refiner).
-5. Bin reassembly using [metaWRAP](https://github.com/bxlab/metaWRAP):
-      * extracts reads corresponding to bins from each sample and re-assembles using [SPAdes](https://github.com/ablab/spades).
-6. MAG classification using [classify genomes](https://github.com/AlessioMilanese/classify-genomes) based on mOTUs2.
-7. MAG abundance:
-   * using [mOTUs2](https://github.com/motu-tool/mOTUs_v2).
-   * based on MAG-sample mapping using [bwa](https://github.com/lh3/bwa).
-8. GEM reconstruction using [CarveMe](https://github.com/cdanielmachado/carveme).
-9. GEM QC using [memote](https://github.com/opencobra/memote).
-10. GEM community simulations using [SMETANA](https://github.com/cdanielmachado/smetana).
-
-Experimental:
-
-11. MAG growth rate estimates using [GRiD](https://github.com/ohlab/GRiD).
+0. metaGEM setup
+1. Quality filter reads with [fastp](https://github.com/OpenGene/fastp)
+2. Assembly with [megahit](https://github.com/voutcn/megahit)
+3. Draft bin sets with [CONCOCT](https://github.com/BinPro/CONCOCT),[MaxBin2](https://sourceforge.net/projects/maxbin2/), and [MetaBAT2](https://sourceforge.net/projects/maxbin2/)
+4. Refine & reassemble bins with [metaWRAP](https://github.com/bxlab/metaWRAP)
+5. Taxonomic assignment with [GTDB-tk](https://github.com/Ecogenomics/GTDBTk)
+6. Relative abundances with [bwa](https://github.com/lh3/bwa) and [samtools](https://github.com/samtools/samtools)
+7. Reconstruct & evaluate genome-scale metabolic models with [CarveMe](https://github.com/cdanielmachado/carveme) and [memote](https://github.com/opencobra/memote)
+8. Species metabolic coupling analysis with [SMETANA](https://github.com/cdanielmachado/smetana)
+9. Growth rate estimation with [GRiD](https://github.com/ohlab/GRiD)
+10. Pangenome analysis with [roary](https://github.com/sanger-pathogens/Roary)
+11. Eukaryotic draft bins with [EukRep](https://github.com/patrickwest/EukRep) and [EukCC](https://github.com/Finn-Lab/EukCC)
 
 ### Usage
 
