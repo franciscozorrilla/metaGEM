@@ -123,7 +123,7 @@ GEM reconstruction and GEM community simulations require the IBM CPLEX solver, w
 
 ### Singularity
 
-A [Singularity](https://sylabs.io/docs/) recipe files is provided to build an image that can be used with HPC clusters.
+Alternatively, metaGEM can be installed with the provided [Singularity](https://sylabs.io/docs/) recipe file.
 
 ```bash
 sudo singularity --verbose build metaGEM.simg Singularity
