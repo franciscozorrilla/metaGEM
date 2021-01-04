@@ -85,25 +85,6 @@ Options:
   -c, --nCores      Specify number of cores per job
   -m, --mem         Specify memory in GB required for job
   -h, --hours       Specify number of hours to allocated to job runtime
-
-Suggested workflow:
-
-   0. metaGEM setup
-   1. Quality filter reads with fastp
-   2. Assembly with megahit
-   3. Draft bin sets with CONCOCT,MaxBin2, and MetaBAT2
-   4. Refine & reassemble bins with metaWRAP
-   5. Taxonomic assignment with GTDB-tk
-   6. Relative abundances with bwa and samtools
-   7. Reconstruct & evaluate genome-scale metabolic models with CarveMe and memote
-   8. Species metabolic coupling analysis with SMETANA
-   9. Growth rate estimation with GRiD
-   10. Pangenome analysis with roary
-   11. Eukaryotic draft bins with EukRep and EukCC
-
-e.g. to submit 10 short read quality filtering jobs with 2 cores + 4 GB RAM each and maximum runtime of 1 hour:
-     bash metaGEM.sh -t fastp -j 10 -c 2 -m 4 -h 1
-
 ```
 
 ## Installation
