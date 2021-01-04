@@ -79,11 +79,15 @@ Snakefile wrapper/parser for metaGEM.
                             modelVis
                             interactionVis
                             growthVis
+
   -j, --nJobs       Specify number of jobs to run in parallel
   -c, --nCores      Specify number of cores per job
-  -h, --help        Display this help and exit
-
-Example: bash metaGEM.sh -t createFolders -j 1 -c 1
+  -m, --mem         Specify memory in GB required for job
+  -h, --hours       Specify number of hours to allocated to job runtime
+  
+Example:
+     Submit 10 short read quality filtering jobs with 2 cores + 4 GB RAM each and maximum runtime of 1 hour
+     bash metaGEM.sh -t fastp -j 10 -c 2 -m 4 -h 1
 
 ```
 
