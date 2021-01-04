@@ -24,7 +24,11 @@ metaGEM integrates an array of existing bioinformatics and metabolic modeling to
 ### Usage
 
 ```
-bash metaGEM.sh [-t|--task TASK] [-j|--nJobs NUMBER OF JOBS] [-c|--cores NUMBER OF CORES] [-m|--mem GB RAM] [-h|--hours MAX RUNTIME]
+bash metaGEM.sh [-t|--task TASK] 
+                [-j|--nJobs NUMBER OF JOBS] 
+                [-c|--cores NUMBER OF CORES] 
+                [-m|--mem GB RAM] 
+                [-h|--hours MAX RUNTIME]
 ```
 
 ```
