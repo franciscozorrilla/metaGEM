@@ -1,4 +1,4 @@
-name: metabagpipes
+name: metagem
 channels:
   - ursky
   - bioconda
