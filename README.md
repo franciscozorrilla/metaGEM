@@ -24,14 +24,6 @@ metaGEM integrates an array of existing bioinformatics and metabolic modeling to
 ### Usage
 
 ```
-bash metaGEM.sh [-t|--task TASK] 
-                [-j|--nJobs NUMBER OF JOBS] 
-                [-c|--cores NUMBER OF CORES] 
-                [-m|--mem GB RAM] 
-                [-h|--hours MAX RUNTIME]
-```
-
-```
 _________________________________________________________________________/\\\\\\\\\\\\___/\\\\\\\\\\\\\\\___/\\\\____________/\\\\_        
  _______________________________________________________________________/\\\//////////___\/\\\///////////___\/\\\\\\________/\\\\\\_       
   __________________________________________/\\\________________________/\\\______________\/\\\______________\/\\\//\\\____/\\\//\\\_      
@@ -43,36 +35,48 @@ _________________________________________________________________________/\\\\\\
         _\///___\///___\///_____\//////////_______\/////______\////////\//____\////////////_____\///////////////___\///______________\///__
         
         
+Usage: bash metaGEM.sh [-t|--task TASK] 
+                       [-j|--nJobs NUMBER OF JOBS] 
+                       [-c|--cores NUMBER OF CORES] 
+                       [-m|--mem GB RAM] 
+                       [-h|--hours MAX RUNTIME]
+
 Snakefile wrapper/parser for metaGEM. 
 
- Options:
+Options:
   -t, --task        Specify task to complete:
+
                         SETUP
                             createFolders
                             downloadToy
                             organizeData
+
                         WORKFLOW
-                            fastp
-                            megahit
-                            kallisto
-                            concoct
+                            fastp 
+                            megahit 
+                            crossMap 
+                            concoct 
                             metabat
-                            maxbin
-                            binRefine
-                            binReassemble
-                            classifyGenomes
-                            abundance
-                            moveBins
+                            maxbin 
+                            binRefine 
+                            binReassemble 
+                            extractProteinBins
                             carveme
-                            organizeGems
+                            memote
+                            organizeGEMs
                             smetana
-                            memote   
+                            extractDnaBins
+                            gtdbtk
+                            abundance 
                             grid
+                            prokka
+                            roary
+
                         VISUALIZATION (in development)
+                            qfilterVis
                             assemblyVis
                             binningVis
                             taxonomyVis
-                            abundanceVis
                             modelVis
                             interactionVis
                             growthVis
@@ -81,9 +85,23 @@ Snakefile wrapper/parser for metaGEM.
   -c, --nCores      Specify number of cores per job
   -m, --mem         Specify memory in GB required for job
   -h, --hours       Specify number of hours to allocated to job runtime
-  
-Example:
-     Submit 10 short read quality filtering jobs with 2 cores + 4 GB RAM each and maximum runtime of 1 hour
+
+Suggested workflow:
+
+   0. metaGEM setup
+   1. Quality filter reads with fastp
+   2. Assembly with megahit
+   3. Draft bin sets with CONCOCT,MaxBin2, and MetaBAT2
+   4. Refine & reassemble bins with metaWRAP
+   5. Taxonomic assignment with GTDB-tk
+   6. Relative abundances with bwa and samtools
+   7. Reconstruct & evaluate genome-scale metabolic models with CarveMe and memote
+   8. Species metabolic coupling analysis with SMETANA
+   9. Growth rate estimation with GRiD
+   10. Pangenome analysis with roary
+   11. Eukaryotic draft bins with EukRep and EukCC
+
+e.g. to submit 10 short read quality filtering jobs with 2 cores + 4 GB RAM each and maximum runtime of 1 hour:
      bash metaGEM.sh -t fastp -j 10 -c 2 -m 4 -h 1
 
 ```
