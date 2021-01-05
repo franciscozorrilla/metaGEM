@@ -128,7 +128,7 @@ Alternatively, metaGEM can be installed with the provided [Singularity](https://
 sudo singularity --verbose build metaGEM.simg Singularity
 ```
 
-## Demos, tutorials, and publications
+## Resources
 
 ### Unseenbio demo
 
