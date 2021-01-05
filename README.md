@@ -127,3 +127,9 @@ Alternatively, metaGEM can be installed with the provided [Singularity](https://
 ```bash
 sudo singularity --verbose build metaGEM.simg Singularity
 ```
+
+## Please cite
+
+```
+Zorrilla, F., Patil, K. R. & Zelezniak, A. metaGEM: reconstruction of genome scale metabolic models directly from metagenomes. bioRxiv 2020.12.31.424982 (2021) doi:10.1101/2020.12.31.424982.
+```
