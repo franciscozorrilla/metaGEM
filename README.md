@@ -105,6 +105,10 @@ conda env create -f metaGEM_env.yml
 source activate metaGEM
 ```
 
+#### CPLEX
+
+GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
+
 #### metaWRAP
 
 Bin refinement and bin reassembly make use of metaWRAP modules. To avoid package conflicts, set up metaWRAP in its own environment using the provided conda specification file.
@@ -115,10 +119,6 @@ source activate metawrap
 ```
 
 CheckM is used extensively to evaluate the output of various itntermediate steps. Although the CheckM package is installed in the `metawrap` environment, the user is required to download the CheckM database and run `checkm data setRoot <db_dir>` as outlined in the [CheckM installation guide](https://github.com/Ecogenomics/CheckM/wiki/Installation#how-to-install-checkm).
-
-##### CPLEX
-
-GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
 
 ### Singularity
 
