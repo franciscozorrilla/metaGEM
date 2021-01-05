@@ -105,7 +105,7 @@ conda env create -f metaGEM_env.yml
 source activate metaGEM
 ```
 
-#### CPLEX
+##### CPLEX
 
 GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
 
