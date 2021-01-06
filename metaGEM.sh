@@ -27,7 +27,11 @@ usage() {
 
   printLogo
 
-  echo -n "Usage: bash metaGEM.sh [-t TASK] [-j NUMBER OF JOBS] [-c ALLOCATED CORES] [-m ALLOCATED GB MEMORY] [-h ALLOCATED HOURS]
+  echo -n "Usage: bash metaGEM.sh [-t|--task TASK] 
+                [-j|--nJobs NUMBER OF JOBS] 
+                [-c|--cores NUMBER OF CORES] 
+                [-m|--mem GB RAM] 
+                [-h|--hours MAX RUNTIME]
 
 Snakefile wrapper/parser for metaGEM. 
 
@@ -42,20 +46,17 @@ Snakefile wrapper/parser for metaGEM.
                         WORKFLOW
                             fastp 
                             megahit 
-
                             crossMap 
                             concoct 
                             metabat
                             maxbin 
                             binRefine 
                             binReassemble 
-
                             extractProteinBins
                             carveme
                             memote
                             organizeGEMs
                             smetana
-
                             extractDnaBins
                             gtdbtk
                             abundance 
@@ -77,19 +78,24 @@ Snakefile wrapper/parser for metaGEM.
   -m, --mem         Specify memory in GB required for job
   -h, --hours       Specify number of hours to allocated to job runtime
 
-Suggested workflow: (OUTDATED, NEED TO UPDATE)
-    1. QC of raw data (fastp)
-    2. Assembly into contigs (megahit)
-    3. Binning into MAGs (kallisto, concoct, metabat, maxbin, binRefine, binReassemble)
-    4. CarveMe setup (extractProteinBins)
-    5. Generation of GEMs (carveme, memote)
-    6. SMETANA setup (organizeGems)
-    7. Microbial community simulation (smetana)
-    8. MAG taxonomoic classification (classifyGenomes)
-    9. MAG abundance calculation (abundance)
-    10. MAG growth rate estimation (grid)
+Suggested workflow:
 
-Example: bash metaGEM.sh -t createFolders -j 1 -c 1
+    0. metaGEM setup
+    1. Quality filter reads with fastp
+    2. Assembly with megahit
+    3. Draft bin sets with CONCOCT,MaxBin2, and MetaBAT2
+    4. Refine & reassemble bins with metaWRAP
+    5. Taxonomic assignment with GTDB-tk
+    6. Relative abundances with bwa and samtools
+    7. Reconstruct & evaluate genome-scale metabolic models with CarveMe and memote
+    8. Species metabolic coupling analysis with SMETANA
+    9. Growth rate estimation with GRiD
+    10. Pangenome analysis with roary
+    11. Eukaryotic draft bins with EukRep and EukCC
+
+
+e.g. to submit 10 short read quality filtering jobs with 2 cores + 4 GB RAM each and maximum runtime of 1 hour:
+     bash metaGEM.sh -t fastp -j 10 -c 2 -m 4 -h 1
 
 "
 }

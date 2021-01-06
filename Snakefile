@@ -8,7 +8,7 @@ def get_ids_from_path_pattern(path_pattern):
                   for val in (glob.glob(path_pattern))])
     return ids
 
-# Make sure that final_bins/ folder contains all bins in single folder for binIDs
+
 gemIDs = get_ids_from_path_pattern('GEMs/*.xml')
 binIDs = get_ids_from_path_pattern('protein_bins/*.faa')
 IDs = get_ids_from_path_pattern('qfiltered/*')
@@ -23,7 +23,7 @@ rule all:
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
-        The metaBAGpipes.sh parser is presently hardcoded to edit line 22 of this Snakefile to expand target rules accordingly,
+        The metaGEM.sh parser is presently hardcoded to edit line 22 of this Snakefile to expand target rules accordingly,
         therefore adding/removing any lines before this message will likely result in parser malfunction.
         """
     shell:
