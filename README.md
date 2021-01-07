@@ -87,40 +87,56 @@ Options:
   -h, --hours       Specify number of hours to allocated to job runtime
 ```
 
-## Installation
+## Automated installation
 
-```bash
+Clone this repository to your HPC or local computer and run the `env_setup.sh` script:
+
+```
 git clone https://github.com/franciscozorrilla/metaGEM.git
+cd metaGEM
+bash env_setup.sh
 ```
 
-### Conda
+This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokkaroary`, which will be activated as required by Snakemake.
 
-#### metaGEM
-
-A [conda](https://conda.io/en/latest/) specification file is provided to install required packages inside an
-environment called `metaGEM`.
-
-```bash
-conda env create -f metaGEM_env.yml
-source activate metaGEM
-```
-
-##### CPLEX
-
-GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
-
-#### metaWRAP
-
-Bin refinement and bin reassembly make use of metaWRAP modules. To avoid package conflicts, set up metaWRAP in its own environment using the provided conda specification file.
-
-```bash
-conda env create -f metaWRAP_env.yml
-source activate metawrap
-```
+### CheckM
 
 CheckM is used extensively to evaluate the output of various itntermediate steps. Although the CheckM package is installed in the `metawrap` environment, the user is required to download the CheckM database and run `checkm data setRoot <db_dir>` as outlined in the [CheckM installation guide](https://github.com/Ecogenomics/CheckM/wiki/Installation#how-to-install-checkm).
 
-### Singularity
+### CPLEX
+
+Unfortunately CPLEX cannot be automatically installed in the `env_setup.sh` script, you must install this dependency manually within the metagem conda environment. GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
+
+## Manual installation
+
+You can manually set up the environments with the following chunks of code.
+
+### metaGEM
+
+```
+conda create -n metagem mamba
+source activate metagem
+mamba install python snakemake fastp megahit bwa samtools=1.9 kallisto concoct=1.1 metabat2 maxbin2 gtdbtk eukrep eukcc smeg motus
+pip install --user memote carveme smetana
+```
+
+### metaWRAP
+
+```
+conda create -n metawrap
+source activate metawrap
+conda install -c ursky metawrap-mg=1.3.2
+```
+
+### prokka-roary
+
+```
+conda create -n prokkaroary
+source activate prokkaroary
+conda install prokka roary
+```
+
+## Singularity
 
 Alternatively, metaGEM can be installed with the provided [Singularity](https://sylabs.io/docs/) recipe file.
 
