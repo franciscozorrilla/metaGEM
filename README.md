@@ -97,11 +97,11 @@ cd metaGEM
 bash env_setup.sh
 ```
 
-This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokkaroary`, which will be activated as required by Snakemake.
+This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokkaroary`, which will be activated as required by Snakemake jobs.
 
 ### CheckM
 
-CheckM is used extensively to evaluate the output of various itntermediate steps. Although the CheckM package is installed in the `metawrap` environment, the user is required to download the CheckM database and run `checkm data setRoot <db_dir>` as outlined in the [CheckM installation guide](https://github.com/Ecogenomics/CheckM/wiki/Installation#how-to-install-checkm).
+CheckM is used extensively to evaluate the output of various intermediate steps. Although the CheckM package is installed in the `metawrap` environment, the user is required to download the CheckM database and run `checkm data setRoot <db_dir>` as outlined in the [CheckM installation guide](https://github.com/Ecogenomics/CheckM/wiki/Installation#how-to-install-checkm).
 
 ### CPLEX
 
