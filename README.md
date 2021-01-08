@@ -105,7 +105,7 @@ CheckM is used extensively to evaluate the output of various intermediate steps.
 
 ### CPLEX
 
-Unfortunately CPLEX cannot be automatically installed in the `env_setup.sh` script, you must install this dependency manually within the metagem conda environment. GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://developer.ibm.com/docloud/blog/2019/07/04/cplex-optimization-studio-for-students-and-academics/). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
+Unfortunately CPLEX cannot be automatically installed in the `env_setup.sh` script, you must install this dependency manually within the metagem conda environment. GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://www.ibm.com/academic/home). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
 
 ## Manual installation
 
