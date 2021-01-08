@@ -2,4 +2,4 @@
 * text=auto
 
 # Lineage .ms files throw off code proportions 
-*.ms linguist-documentation
+Tutorial/* linguist-documentation
