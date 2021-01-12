@@ -177,4 +177,3 @@ metaGEM: reconstruction of genome scale metabolic models directly from metagenom
 Francisco Zorrilla, Kiran R. Patil, Aleksej Zelezniak
 bioRxiv 2020.12.31.424982; doi: https://doi.org/10.1101/2020.12.31.424982 
 ```
-<script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script><div class="altmetric-embed" data-badge-type="donut" data-altmetric-id="97058624"></div>
