@@ -1,7 +1,6 @@
 # metaGEM
 
-## What is it?
-A Snakemake-based workflow to generate high quality metagenome assembled genomes from short read paired-end data, reconstruct genome scale metabolic models, and perform community metabolic interaction simulations on high performance computing clusters.
+> A Snakemake-based workflow to generate high quality metagenome assembled genomes from short read paired-end data, reconstruct genome scale metabolic models, and perform community metabolic interaction simulations on high performance computing clusters.
 
 ![metawrapfigs_v2 002](https://user-images.githubusercontent.com/35606471/103545679-ceb71580-4e99-11eb-9862-084115121980.jpeg)
 
