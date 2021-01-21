@@ -8,7 +8,7 @@ while true; do
     read -p "Do you wish to download and set up metaGEM conda environment? (y/n)" yn
     case $yn in
         [Yy]* ) echo "conda env create -f metaGEM_env.yml && source activate metagem && pip install --user memote carveme smetana && conda deactivate"|bash; break;;
-        [Nn]* ) echo -e "\nSkipping metawrap env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
+        [Nn]* ) echo -e "\nSkipping metaGEM env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
@@ -23,10 +23,10 @@ while true; do
 done
 
 while true; do
-    read -p "Do you wish to download and set up metawrap conda environment? (y/n)" yn
+    read -p "Do you wish to download and set up metaWRAP conda environment? (y/n)" yn
     case $yn in
         [Yy]* ) echo "conda env create -f metaWRAP_env.yml"|bash; break;;
-        [Nn]* ) echo -e "\nSkipping metawrap env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
+        [Nn]* ) echo -e "\nSkipping metaWRAP env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
