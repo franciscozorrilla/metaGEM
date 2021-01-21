@@ -1248,7 +1248,7 @@ rule organizeGEMs:
         f'{config["path"]["root"]}/{config["folder"]["refined"]}'
     message:
         """
-        Organizes GEMs into sample specific subfolders. 
+        Organizes GEMs into sample specific subfolders, assumes that the refined_bins folder has sample-specific subfolders. 
         Necessary to run smetana per sample using the IDs wildcard.
         """
     shell:

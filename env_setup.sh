@@ -1,33 +1,53 @@
 #!/bin/bash
 
-echo -e "\n==============================================\n
-    		metaGEM setup\n
-==============================================\n"
+echo -e "\n============================================================================================\n
+        		    		metaGEM setup\n
+============================================================================================\n"
 
-echo -e "Creating metagem conda environment and installing tools ... \n"
-conda env create -f metaGEM_env.yml
+while true; do
+    read -p "Do you wish to download and set up metaGEM conda environment? (y/n)" yn
+    case $yn in
+        [Yy]* ) echo "conda env create -f metaGEM_env.yml && source activate metagem && pip install --user memote carveme smetana && conda deactivate"|bash; break;;
+        [Nn]* ) echo -e "\nSkipping metawrap env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
-echo -e "Installing remaining tools via pip ... \n"
-source activate metagem
-pip install --user memote carveme smetana
+while true; do
+    read -p "Do you wish to download the GTDB-tk database (~25 Gb)? (y/n)" yn
+    case $yn in
+        [Yy]* ) echo "download-db.sh"|bash; break;;
+        [Nn]* ) echo -e "\nSkipping GTDB-tk database download, note that you will need this for taxonomic classification of MAGs.\n"; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
-echo -e "Downloading GTDB-tk database, requires ~25 Gb ... \n"
-download-db.sh
+while true; do
+    read -p "Do you wish to download and set up metawrap conda environment? (y/n)" yn
+    case $yn in
+        [Yy]* ) echo "conda env create -f metaWRAP_env.yml"|bash; break;;
+        [Nn]* ) echo -e "\nSkipping metawrap env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
-echo -e "Done creating metagem conda environment!\n"
-conda deactivate
+while true; do
+    read -p "Do you wish to download the CheckM database (~275 Mb)? (y/n)" yn
+    case $yn in
+        [Yy]* ) echo "wget https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz"|bash; break;;
+        [Nn]* ) echo -e "\nSkipping CheckM database download, note that you will need this for bin refinement & reassembly.\n"; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
-echo -e "Creating metawrap conda environment and installing tools ... \n"
-conda env create -f metaWRAP_env.yml
+while true; do
+    read -p "Do you wish to download and set up prokka + roary conda environment? (y/n)" yn
+    case $yn in
+        [Yy]* ) echo "conda env create -f prokkaroary_env.yml"|bash; break;;
+        [Nn]* ) echo -e "\nSkipping CheckM database download, note that you will need this for bin refinement & reassembly.\n"; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
-echo -e "Downloading CheckM database, requires ~275 Mb ... \n"
-wget https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz
-
-echo -e "Done creating metawrap conda environment!\n"
-
-echo -e "Creating prokka + roary conda environment and installing tools ... \n"
-conda env create -f prokkaroary_env.yml
-
-echo -e "Done creating prokka + roary conda environment!\n"
-
-echo -e "Please ensure that the installation directory is present in your $PATH variable if any installation issues arise."
+echo 'Please ensure that the installation directory is present in your $PATH variable if installation issues arise with any tools.'
+echo ""
