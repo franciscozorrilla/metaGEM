@@ -136,14 +136,6 @@ source activate prokkaroary
 conda install prokka roary
 ```
 
-## Singularity
-
-Alternatively, metaGEM can be installed with the provided [Singularity](https://sylabs.io/docs/) recipe file.
-
-```bash
-sudo singularity --verbose build metaGEM.simg Singularity
-```
-
 ## Tutorial
 
 metaGEM can be used to explore your own gut microbiome based on at-home-test-kit seqencing data from services such as [unseen bio](https://unseenbio.com/). The [following demo](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the metaGEM workflow on two unseenbio samples.
