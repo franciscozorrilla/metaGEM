@@ -148,7 +148,7 @@ sudo singularity --verbose build metaGEM.simg Singularity
 
 metaGEM can be used to explore your own gut microbiome based on at-home-test-kit seqencing data from services such as [unseen bio](https://unseenbio.com/). The [following demo](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the metaGEM workflow on two unseenbio samples.
 
-### Publications
+## Publications
 
 The metaGEM workflow has been used in some capacity in the following publications:
 
