@@ -1,9 +1,0 @@
-bin	completeness	contamination	GC	lineage	N50	size	binner
-bin.1	20.68	0.0	0.499	Bacteria	4286	934955	binsB
-bin.2	24.64	1.754	0.449	Bacteria	3952	927586	binsB
-bin.3	5.263	0.0	0.366	Bacteria	11451	700527	binsB
-bin.4	83.32	1.815	0.397	Streptococcus	8096	1772398	binsB
-bin.5	95.71	1.449	0.418	Lachnospiraceae	34796	2511780	binsB
-bin.6	98.65	0.335	0.387	Clostridiales	46531	2095859	binsB
-bin.7	15.86	0.743	0.380	Bacteroidales	3606	821769	binsB
-bin.8	5.172	0.0	0.419	Bacteria	3409	226681	binsB

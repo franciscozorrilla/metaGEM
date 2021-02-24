@@ -1,9 +1,0 @@
-Bin Id	Marker lineage	# genomes	# markers	# marker sets	0	1	2	3	4	5+	Completeness	Contamination	Strain heterogeneity
-sample1.001	root (UID1)	5656	56	24	56	0	0	0	0	0	0.00	0.00	0.00
-sample1.002	o__Clostridiales (UID1212)	172	263	149	2	145	94	20	2	0	98.66	61.87	0.00
-sample1.003	k__Bacteria (UID203)	5449	104	58	7	66	19	12	0	0	87.93	15.19	0.00
-sample1.004	f__Lachnospiraceae (UID1286)	57	420	207	23	283	100	13	1	0	95.88	32.27	2.07
-sample1.005	k__Bacteria (UID203)	5449	104	58	83	18	3	0	0	0	29.31	5.17	0.00
-sample1.006	k__Bacteria (UID203)	5449	103	57	13	56	20	9	4	1	80.88	30.82	9.78
-sample1.007	o__Clostridiales (UID1212)	172	263	149	167	70	22	4	0	0	35.19	7.02	8.82
-sample1.008	k__Bacteria (UID203)	5449	103	57	68	29	6	0	0	0	38.29	4.34	0.00

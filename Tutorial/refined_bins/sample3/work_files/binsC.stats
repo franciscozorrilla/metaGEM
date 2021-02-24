@@ -1,7 +1,0 @@
-bin	completeness	contamination	GC	lineage	N50	size	binner
-sample3.001	98.24	39.02	0.336	Bacteria	44181	3501895	binsC
-sample3.002	96.39	39.10	0.613	Bacteria	4473	3029585	binsC
-sample3.003	92.94	35.92	0.549	Bacteria	3356	4341120	binsC
-sample3.004	50.85	27.61	0.443	Bacteria	1662	3589661	binsC
-sample3.005	95.67	51.65	0.492	Clostridia	3291	2773229	binsC
-sample3.006	19.75	5.607	0.391	Archaea	1718	2247873	binsC

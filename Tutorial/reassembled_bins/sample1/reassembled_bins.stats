@@ -1,6 +1,0 @@
-bin	completeness	contamination	GC	lineage	N50	size
-bin.1.permissive	80.66	0.330	0.397	Streptococcus	9347	1730805
-bin.2.permissive	63.85	1.679	0.472	Bacteroidales	3048	2258820
-bin.3.permissive	99.32	0.335	0.386	Clostridiales	32881	2057949
-bin.4.permissive	94.99	0.966	0.418	Lachnospiraceae	29092	2498405
-bin.5.orig	60.92	1.565	0.420	Clostridiales	1728	1123060
