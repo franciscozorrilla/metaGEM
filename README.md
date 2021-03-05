@@ -147,7 +147,9 @@ metaGEM can even be used to explore your own gut microbiome sequencing data from
 
 ## Active Development
 
-Are you sad that your favorite binner didn't make it into the metaGEM workflow? Have you developed a new bioinformatics tool that you would like to see incorporated into metaGEM? Want alternative tools for certain tasks or even new additional features? We want to hear from you! If you want to see any new additional or alternative tools incorporated into the metaGEM workflow please do not hesitate to raise an issue or create a pull request. Snakemake allows workflows to be very flexible, and adding new rules is as easy as filling out the following template:
+Are you sad that your favorite binner didn't make it into the metaGEM workflow? Have you developed a new bioinformatics tool that you would like to see incorporated into metaGEM? Want alternative tools for certain tasks or even new additional features? We want to hear from you! 
+
+If you want to see any new additional or alternative tools incorporated into the metaGEM workflow please do not hesitate to raise an issue or create a pull request. Snakemake allows workflows to be very flexible, and adding new rules is as easy as filling out the following template and adding it to the Snakefile:
 
 ```
 rule package-name:
