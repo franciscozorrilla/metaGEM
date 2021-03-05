@@ -22,7 +22,7 @@ Core:
 
 Bonus:
 
-9. Growth rate estimation with [GRiD](https://github.com/ohlab/GRiD), soon to be replaced by [SMEG](https://github.com/ohlab/SMEG) or [CoPTR](https://github.com/tyjo/coptr)
+9. Growth rate estimation with [GRiD](https://github.com/ohlab/GRiD), [SMEG](https://github.com/ohlab/SMEG) or [CoPTR](https://github.com/tyjo/coptr)
 10. Pangenome analysis with [roary](https://github.com/sanger-pathogens/Roary)
 11. Eukaryotic draft bins with [EukRep](https://github.com/patrickwest/EukRep) and [EukCC](https://github.com/Finn-Lab/EukCC)
 
