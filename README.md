@@ -143,7 +143,33 @@ conda install prokka roary
 
 ## Tutorial
 
-metaGEM can be used to explore your own gut microbiome based on at-home-test-kit seqencing data from services such as [unseen bio](https://unseenbio.com/). The [following demo](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the metaGEM workflow on two unseenbio samples.
+metaGEM can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following demo](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the metaGEM workflow on two unseenbio samples.
+
+## Active Development
+
+Are you sad that your favorite binner didn't make it into the metaGEM workflow? Have you developed a new bioinformatics tool that you would like to see incorporated into metaGEM? Want alternative tools for certain tasks or even new additional features? We want to hear from you! If you want to see any new additional or alternative tools incorporated into the metaGEM workflow please do not hesitate to raise an issue or create a pull request. Snakemake allows workflows to be very flexible, and adding new rules is as easy as filling out the following template:
+
+```
+rule package-name:
+    input:
+        rules.rulename.output
+    output:
+        f'{config["path"]["root"]}/{config["folder"]["X"]}/{{IDs}}/output.file'
+    message:
+        """
+        Helpful and descriptive message detailing goal of this rule/package.
+        """
+    shell:
+        """
+        # Well documented command line instructions go here
+        
+        # Load conda environment 
+        set +u;source activate {config[envs][metabagpipes]};set -u;
+
+        # Run tool
+        package-name -i {input} -o {output}
+        """
+```
 
 ## Publications
 
