@@ -166,7 +166,7 @@ rule package-name:
         # Well documented command line instructions go here
         
         # Load conda environment 
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][package]};set -u;
 
         # Run tool
         package-name -i {input} -o {output}
