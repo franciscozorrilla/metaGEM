@@ -32,6 +32,7 @@ usage() {
                 [-c|--cores NUMBER OF CORES] 
                 [-m|--mem GB RAM] 
                 [-h|--hours MAX RUNTIME]
+                [-l|--local]
 
 Snakefile wrapper/parser for metaGEM. 
 
@@ -77,6 +78,7 @@ Snakefile wrapper/parser for metaGEM.
   -c, --nCores      Specify number of cores per job
   -m, --mem         Specify memory in GB required for job
   -h, --hours       Specify number of hours to allocated to job runtime
+  -l, --local       Run jobs on local machine for non-cluster usage
 
 Suggested workflow:
 
@@ -166,7 +168,7 @@ snakePrep() {
     snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
 }
 
-# Submit login node function
+# Submit login node function, note that is only works for rules with no wildcard expansion
 submitLogin() {
 
     echo "No need to parse Snakefile for target rule: $task ... "
@@ -190,8 +192,35 @@ submitLogin() {
 
 }
 
-# Submit cluster function
+# Submit local function, similar to submitLogin() but can handle wildcard expanded rules for non-cluster usage
+submitLocal() {
 
+    # Parse Snakefile rule all (line 22 of Snakefile) input to match output of desired target rule stored in "$string". Note: Hardcoded line number.
+    echo "Parsing Snakefile to target rule: $task ... "
+    sed  -i "22s~^.*$~        $string~" Snakefile
+
+    checkParams
+
+    snakeConfig
+
+    echo "Unlocking snakemake ... "
+    snakemake --unlock -j 1
+
+    echo -e "\nDry-running snakemake jobs ... "
+    snakemake all -n
+
+    while true; do
+        read -p "Do you wish to submit this batch of jobs on your local machine? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "nohup snakemake all -j 1 -k &"|bash; break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+}
+
+# Submit cluster function
 submitCluster() {
 
     # Parse Snakefile rule all (line 22 of Snakefile) input to match output of desired target rule stored in "$string". Note: Hardcoded line number.
@@ -291,70 +320,134 @@ parse() {
   if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] || [ $task == "abundanceVis" ] || [ $task == "extractProteinBins" ] || [ $task == "extractDnaBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
     submitLogin
 
- # Parse snakefile for cluster jobs
+ # Parse snakefile for cluster/local jobs
   elif [ $task == "fastp" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_1.fastq.gz", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "megahit" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["assemblies"]+"/{IDs}/contigs.fasta.gz", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "crossMap" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{IDs}/cov", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "concoct" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{IDs}/{IDs}.concoct-bins", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "metabat" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["metabat"]+"/{IDs}/{IDs}.metabat-bins", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "maxbin" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "binRefine" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["refined"]+"/{IDs}", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "binReassemble" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "gtdbtk" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["classification"]+"/{IDs}", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "abundance" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["abundance"]+"/{IDs}", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "carveme" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["GEMs"]+"/{binIDs}.xml", binIDs = binIDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "smetana" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["SMETANA"]+"/{IDs}_detailed.tsv", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "memote" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["memote"]+"/{gemIDs}", gemIDs = gemIDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "grid" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["GRiD"]+"/{IDs}", IDs = IDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "prokka" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["pangenome"]+"/prokka/unorganized/{binIDs}", binIDs = binIDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   elif [ $task == "roary" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["pangenome"]+"/roary/{speciesIDs}/", speciesIDs = speciesIDs)'
-    submitCluster
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
 
   else
     echo "Task not recognized."
@@ -377,6 +470,7 @@ else
         -c|--nCores) shift; ncores=${1} ;;
         -m|--mem) shift; mem=${1} ;;
         -h|--hours) shift; hours=${1} ;;
+        -l|--local) shift; local=true;;
         --endopts) shift; break ;;
         * ) echo "Unknown option(s) provided, please read helpfile ... " && usage && exit 1;;
       esac
