@@ -8,7 +8,7 @@
 
 ## Tutorial
 
-metaGEM can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the metaGEM workflow on two unseenbio samples.
+`metaGEM` can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the `metaGEM` workflow on two unseenbio samples.
 
 ## Wiki
 
@@ -18,7 +18,7 @@ Please check out the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) f
 
 ### Core
 
-0. metaGEM setup
+0. `metaGEM` setup
 1. Quality filter reads with [fastp](https://github.com/OpenGene/fastp)
 2. Assembly with [megahit](https://github.com/voutcn/megahit)
 3. Draft bin sets with [CONCOCT](https://github.com/BinPro/CONCOCT), [MaxBin2](https://sourceforge.net/projects/maxbin2/), and [MetaBAT2](https://sourceforge.net/projects/maxbin2/)
@@ -118,9 +118,9 @@ Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/me
 
 ## Active Development
 
-Are you sad that your favorite binner didn't make it into the metaGEM workflow? Have you developed a new bioinformatics tool that you would like to see incorporated into metaGEM? Want alternative tools for certain tasks or even new additional features? We want to hear from you! 
+Are you sad that your favorite binner didn't make it into the `metaGEM` workflow? Have you developed a new bioinformatics tool that you would like to see incorporated into `metaGEM`? Want alternative tools for certain tasks or even new additional features? We want to hear from you! 
 
-If you want to see any new additional or alternative tools incorporated into the metaGEM workflow please do not hesitate to raise an issue or create a pull request. Snakemake allows workflows to be very flexible, and adding new rules is as easy as filling out the following template and adding it to the Snakefile:
+If you want to see any new additional or alternative tools incorporated into the `metaGEM` workflow please do not hesitate to raise an issue or create a pull request. Snakemake allows workflows to be very flexible, and adding new rules is as easy as filling out the following template and adding it to the Snakefile:
 
 ```
 rule package-name:
@@ -146,7 +146,7 @@ rule package-name:
 
 ## Publications
 
-The metaGEM workflow has been used in some capacity in the following publications:
+The `metaGEM` workflow has been used in some capacity in the following publications:
 
 ```
 Plastic-degrading potential across the global microbiome correlates with recent pollution trends
