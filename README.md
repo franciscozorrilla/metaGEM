@@ -10,6 +10,10 @@ metaGEM integrates an array of existing bioinformatics and metabolic modeling to
 
 metaGEM can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the metaGEM workflow on two unseenbio samples.
 
+## Wiki
+
+Please check out the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
+
 ## Workflow
 
 ### Core
