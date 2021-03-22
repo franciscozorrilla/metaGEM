@@ -11,7 +11,7 @@ def get_ids_from_path_pattern(path_pattern):
 
 gemIDs = get_ids_from_path_pattern('GEMs/*.xml')
 binIDs = get_ids_from_path_pattern('protein_bins/*.faa')
-IDs = get_ids_from_path_pattern('qfiltered/*')
+IDs = get_ids_from_path_pattern('dataset/*')
 speciesIDs = get_ids_from_path_pattern('pangenome/speciesBinIDs/*.txt')
 DATA_READS_1 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_R1.fastq.gz'
 DATA_READS_2 = f'{config["path"]["root"]}/{config["folder"]["data"]}/{{IDs}}/{{IDs}}_R2.fastq.gz'
@@ -36,7 +36,7 @@ rule createFolders:
         config["path"]["root"]
     message:
         """
-        Very simple rule to check that the metaBAGpipes.sh parser, Snakefile, and config.yaml file are set up correctly. 
+        Very simple rule to check that the metaGEM.sh parser, Snakefile, and config.yaml file are set up correctly. 
         Generates folders from config.yaml config file, not strictly necessary to run this rule.
         """
     shell:
@@ -151,7 +151,7 @@ rule qfilter:
         R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R2.fastq.gz' 
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname {output.R1})
 
         fastp --thread {config[cores][fastp]} \
@@ -173,7 +173,7 @@ rule qfilterVis:
         plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/qfilterVis.pdf'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname {output.text})
         cd {input}
 
@@ -215,7 +215,7 @@ rule megahit:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.megahit.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cd $SCRATCHDIR
 
         echo -n "Copying qfiltered reads to $SCRATCHDIR ... "
@@ -253,7 +253,7 @@ rule assemblyVis:
         plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/assemblyVis.pdf',
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname {output.text})
         cd {input}
     
@@ -302,7 +302,7 @@ rule crossMap:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cd $SCRATCHDIR
         cp {input.contigs} .
 
@@ -387,7 +387,7 @@ rule kallistoIndex:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname {output})
         cd $SCRATCHDIR        
 
@@ -424,7 +424,7 @@ rule crossMap3:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cd $SCRATCHDIR
 
         echo -e "\nCopying assembly index {input.index} and reads {input.R1} {input.R2} to $SCRATCHDIR"
@@ -461,7 +461,7 @@ rule kallisto2concoctTable:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname {output})
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
             --samplenames <(for s in {input}*; do echo $s|sed 's|^.*/||'; done) \
@@ -479,7 +479,7 @@ rule concoct:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.concoct.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname $(dirname {output}))
         cd $SCRATCHDIR
         cp {input.contigs} {input.table} $SCRATCHDIR
@@ -526,7 +526,7 @@ rule metabat:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cp {input.assembly} {input.R1} {input.R2} $SCRATCHDIR
         mkdir -p $(dirname {output})
         cd $SCRATCHDIR
@@ -583,7 +583,7 @@ rule metabatCross:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.metabat.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cp {input.assembly} {input.depth}/*.all.depth $SCRATCHDIR
         mkdir -p $(dirname {output})
         cd $SCRATCHDIR
@@ -606,7 +606,7 @@ rule maxbin:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cp -r {input.assembly} {input.R1} {input.R2} $SCRATCHDIR
         mkdir -p $(dirname {output})
         cd $SCRATCHDIR
@@ -639,7 +639,7 @@ rule maxbinCross:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cp -r {input.assembly} {input.depth}/*.depth $SCRATCHDIR
         mkdir -p $(dirname {output})
         cd $SCRATCHDIR
@@ -743,7 +743,7 @@ rule binningVis:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         
         # READ CONCOCT BINS
 
@@ -893,7 +893,7 @@ rule abundance:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p {output}
         cd $SCRATCHDIR
 
@@ -1075,7 +1075,7 @@ rule compositionVis:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u
+        set +u;source activate {config[envs][metagem]};set -u
 
         # Generate summary abundance file
 
@@ -1140,8 +1140,8 @@ rule carveme:
         """
     shell:
         """
-        echo "Activating {config[envs][metabagpipes]} conda environment ... "
-        set +u;source activate {config[envs][metabagpipes]};set -u
+        echo "Activating {config[envs][metagem]} conda environment ... "
+        set +u;source activate {config[envs][metagem]};set -u
         
         mkdir -p $(dirname {output})
         mkdir -p logs
@@ -1174,7 +1174,7 @@ rule modelVis:
         """
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u;
+        set +u;source activate {config[envs][metagem]};set -u;
         cd {input}
 
         echo -e "\nBegin reading models ... \n"
@@ -1273,7 +1273,7 @@ rule smetana:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.smetana.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u
+        set +u;source activate {config[envs][metagem]};set -u
         mkdir -p {config[path][root]}/{config[folder][SMETANA]}
         cp {config[path][root]}/{config[folder][scripts]}/{config[scripts][carveme]} {input}/*.xml $SCRATCHDIR
         cd $SCRATCHDIR
@@ -1311,7 +1311,7 @@ rule memote:
         f'{config["path"]["root"]}/benchmarks/{{gemIDs}}.memote.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u
+        set +u;source activate {config[envs][metagem]};set -u
         module load git
 
         mkdir -p {output}
@@ -1339,7 +1339,7 @@ rule grid:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.grid.benchmark.txt'
     shell:
         """
-        set +u;source activate {config[envs][metabagpipes]};set -u
+        set +u;source activate {config[envs][metagem]};set -u
 
         cp -r {input.bins} {input.R1} {input.R2} $SCRATCHDIR
         cd $SCRATCHDIR
@@ -1389,7 +1389,7 @@ rule prokka:
         f'{config["path"]["root"]}/benchmarks/{{binIDs}}.prokka.benchmark.txt'
     shell:
         """
-        set +u;source activate prokkaroary;set -u
+        set +u;source activate {config[envs][prokkaroary]};set -u
         mkdir -p $(dirname $(dirname {output}))
         mkdir -p $(dirname {output})
 
@@ -1411,7 +1411,7 @@ rule roary:
         f'{config["path"]["root"]}/benchmarks/{{speciesIDs}}.roary.benchmark.txt'
     shell:
         """
-        set +u;source activate prokkaroary;set -u
+        set +u;source activate {config[envs][prokkaroary]};set -u
         mkdir -p $(dirname {output})
         cd $SCRATCHDIR
         cp -r {input} .

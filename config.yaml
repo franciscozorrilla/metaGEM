@@ -73,6 +73,7 @@ params:
     roaryI: 90
     roaryCD: 90
 envs:
-    metabagpipes: metabagpipesFinal
+    metagem: metagem
     metawrap: metawrap
+    prokkaroary: prokkaroary
     
