@@ -45,6 +45,7 @@ Usage: bash metaGEM.sh [-t|--task TASK]
                        [-c|--cores NUMBER OF CORES] 
                        [-m|--mem GB RAM] 
                        [-h|--hours MAX RUNTIME]
+                       [-l|--local]
 
 Snakefile wrapper/parser for metaGEM. 
 
@@ -90,6 +91,7 @@ Options:
   -c, --nCores      Specify number of cores per job
   -m, --mem         Specify memory in GB required for job
   -h, --hours       Specify number of hours to allocated to job runtime
+  -l, --local       Run jobs on local machine for non-cluster usage
 ```
 
 ## Automated installation
