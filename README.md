@@ -16,7 +16,7 @@ metaGEM can even be used to explore your own gut microbiome sequencing data from
 
 ## Workflow
 
-Core:
+### Core
 
 0. metaGEM setup
 1. Quality filter reads with [fastp](https://github.com/OpenGene/fastp)
@@ -28,7 +28,7 @@ Core:
 7. Reconstruct & evaluate genome-scale metabolic models with [CarveMe](https://github.com/cdanielmachado/carveme) and [memote](https://github.com/opencobra/memote)
 8. Species metabolic coupling analysis with [SMETANA](https://github.com/cdanielmachado/smetana)
 
-Bonus:
+### Bonus
 
 9. Growth rate estimation with [GRiD](https://github.com/ohlab/GRiD), [SMEG](https://github.com/ohlab/SMEG) or [CoPTR](https://github.com/tyjo/coptr)
 10. Pangenome analysis with [roary](https://github.com/sanger-pathogens/Roary)
