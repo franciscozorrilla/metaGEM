@@ -21,7 +21,7 @@ Core:
 0. metaGEM setup
 1. Quality filter reads with [fastp](https://github.com/OpenGene/fastp)
 2. Assembly with [megahit](https://github.com/voutcn/megahit)
-3. Draft bin sets with [CONCOCT](https://github.com/BinPro/CONCOCT),[MaxBin2](https://sourceforge.net/projects/maxbin2/), and [MetaBAT2](https://sourceforge.net/projects/maxbin2/)
+3. Draft bin sets with [CONCOCT](https://github.com/BinPro/CONCOCT), [MaxBin2](https://sourceforge.net/projects/maxbin2/), and [MetaBAT2](https://sourceforge.net/projects/maxbin2/)
 4. Refine & reassemble bins with [metaWRAP](https://github.com/bxlab/metaWRAP)
 5. Taxonomic assignment with [GTDB-tk](https://github.com/Ecogenomics/GTDBTk)
 6. Relative abundances with [bwa](https://github.com/lh3/bwa) and [samtools](https://github.com/samtools/samtools)
@@ -114,42 +114,7 @@ bash env_setup.sh
 
 This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokkaroary`, which will be activated as required by Snakemake jobs.
 
-### CheckM
-
-CheckM is used extensively to evaluate the output of various intermediate steps. Although the CheckM package is installed in the `metawrap` environment, the user is required to download the CheckM database and run `checkm data setRoot <db_dir>` as outlined in the [CheckM installation guide](https://github.com/Ecogenomics/CheckM/wiki/Installation#how-to-install-checkm).
-
-### CPLEX
-
-Unfortunately CPLEX cannot be automatically installed in the `env_setup.sh` script, you must install this dependency manually within the metagem conda environment. GEM reconstruction and GEM community simulations require the IBM CPLEX solver, which is [free to download with an academic license](https://www.ibm.com/academic/home). Refer to the [CarveMe](https://carveme.readthedocs.io/en/latest/installation.html) and [SMETANA](https://smetana.readthedocs.io/en/latest/installation.html) installation instructions for further information or troubleshooting. Note: CPLEX v.12.8 is recommended.
-
-## Manual installation
-
-You can manually set up the environments with the following chunks of code.
-
-### metaGEM
-
-```
-conda create -n metagem mamba
-source activate metagem
-mamba install python snakemake fastp megahit bwa samtools=1.9 kallisto concoct=1.1 metabat2 maxbin2 gtdbtk eukrep eukcc smeg motus
-pip install --user memote carveme smetana
-```
-
-### metaWRAP
-
-```
-conda create -n metawrap
-source activate metawrap
-conda install -c ursky metawrap-mg=1.3.2
-```
-
-### prokka-roary
-
-```
-conda create -n prokkaroary
-source activate prokkaroary
-conda install prokka roary
-```
+Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/metaGEM-setup) in the wiki for further installation instructions.
 
 ## Active Development
 
