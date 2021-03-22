@@ -18,7 +18,7 @@ bash env_setup.sh
 
 This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokkaroary`, which will be activated as required by Snakemake jobs.
 
-Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/metaGEM-setup) in the wiki for further installation instructions.
+Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Automated-metaGEM-setup) in the wiki for further installation instructions.
 
 ## Tutorial
 
