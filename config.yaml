@@ -1,5 +1,6 @@
 path:
-    root: /scratch/zorrilla/tara
+    root: /path/to/project/folder/on/your/cluster
+    scratch: /path/to/temporary/or/scratch/directory/for/intermediate/files
 folder:
     data: dataset
     logs: logs

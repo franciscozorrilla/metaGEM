@@ -45,7 +45,7 @@ rule createFolders:
         echo -e "Setting up result folders in the following work directory: $(echo {input}) \n"
 
         # Generate folders.txt by extracting folder names from config.yaml file
-        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 21|sed '/^$/d' > folders.txt # NOTE: hardcoded number (21) for folder names, increase number as new folders are introduced.
+        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 22|sed '/^$/d' > folders.txt # NOTE: hardcoded number (22) for folder names, increase number as new folders are introduced.
         
         while read line;do 
             echo "Creating $line folder ... "
@@ -216,10 +216,10 @@ rule megahit:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
 
-        echo -n "Copying qfiltered reads to $SCRATCHDIR ... "
-        cp {input.R1} {input.R2} $SCRATCHDIR
+        echo -n "Copying qfiltered reads to {config[path][scratch]} ... "
+        cp {input.R1} {input.R2} {config[path][scratch]}
         echo "done. "
 
         echo -n "Running megahit ... "
@@ -303,7 +303,7 @@ rule crossMap:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
         cp {input.contigs} .
 
         mkdir -p {output.concoct}
@@ -389,7 +389,7 @@ rule kallistoIndex:
         """
         set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname {output})
-        cd $SCRATCHDIR        
+        cd {config[path][scratch]}    
 
         sampleID=$(echo $(basename $(dirname {input})))
         echo -e "\nCopying and unzipping sample $sampleID assembly ... "
@@ -425,9 +425,9 @@ rule crossMap3:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
 
-        echo -e "\nCopying assembly index {input.index} and reads {input.R1} {input.R2} to $SCRATCHDIR"
+        echo -e "\nCopying assembly index {input.index} and reads {input.R1} {input.R2} to {config[path][scratch]}"
         cp {input.index} {input.R1} {input.R2} .
 
         mkdir -p {output}
@@ -481,8 +481,8 @@ rule concoct:
         """
         set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname $(dirname {output}))
-        cd $SCRATCHDIR
-        cp {input.contigs} {input.table} $SCRATCHDIR
+        cd {config[path][scratch]}
+        cp {input.contigs} {input.table} {config[path][scratch]}
 
         echo "Unzipping assembly ... "
         gunzip $(basename {input.contigs})
@@ -527,9 +527,9 @@ rule metabat:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cp {input.assembly} {input.R1} {input.R2} $SCRATCHDIR
+        cp {input.assembly} {input.R1} {input.R2} {config[path][scratch]}
         mkdir -p $(dirname {output})
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
 
         fsampleID=$(echo $(basename $(dirname {input.assembly})))
         echo -e "\nFocal sample: $fsampleID ... "
@@ -584,9 +584,9 @@ rule metabatCross:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cp {input.assembly} {input.depth}/*.all.depth $SCRATCHDIR
+        cp {input.assembly} {input.depth}/*.all.depth {config[path][scratch]}
         mkdir -p $(dirname {output})
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
         gunzip $(basename {input.assembly})
         echo -e "\nRunning metabat2 ... "
         metabat2 -i contigs.fasta -a *.all.depth -s {config[params][metabatMin]} -v --seed {config[params][seed]} -t 0 -m {config[params][minBin]} -o $(basename $(dirname {output}))
@@ -607,9 +607,9 @@ rule maxbin:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cp -r {input.assembly} {input.R1} {input.R2} $SCRATCHDIR
+        cp -r {input.assembly} {input.R1} {input.R2} {config[path][scratch]}
         mkdir -p $(dirname {output})
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
 
         echo -e "\nUnzipping assembly ... "
         gunzip $(basename {input.assembly})
@@ -640,9 +640,9 @@ rule maxbinCross:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cp -r {input.assembly} {input.depth}/*.depth $SCRATCHDIR
+        cp -r {input.assembly} {input.depth}/*.depth {config[path][scratch]}
         mkdir -p $(dirname {output})
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
         echo -e "\nUnzipping assembly ... "
         gunzip $(basename {input.assembly})
         echo -e "\nGenerating list of depth files based on crossMap rule output ... "
@@ -671,10 +671,10 @@ rule binRefine:
         set +u;source activate {config[envs][metawrap]};set -u;
         mkdir -p $(dirname {output})
         mkdir -p {output}
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
 
-        echo "Copying bins from CONCOCT, metabat2, and maxbin2 to $SCRATCHDIR ... "
-        cp -r {input.concoct} {input.metabat} {input.maxbin} $SCRATCHDIR
+        echo "Copying bins from CONCOCT, metabat2, and maxbin2 to {config[path][scratch]} ... "
+        cp -r {input.concoct} {input.metabat} {input.maxbin} {config[path][scratch]}
 
         echo "Renaming bin folders to avoid errors with metaWRAP ... "
         mv $(basename {input.concoct}) $(echo $(basename {input.concoct})|sed 's/-bins//g')
@@ -709,8 +709,8 @@ rule binReassemble:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
         mkdir -p $(dirname {output})
-        cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} $SCRATCHDIR
-        cd $SCRATCHDIR
+        cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} {config[path][scratch]}
+        cd {config[path][scratch]}
         
         echo "Running metaWRAP bin reassembly ... "
         metaWRAP reassemble_bins -o $(basename {output}) \
@@ -895,9 +895,9 @@ rule abundance:
         """
         set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p {output}
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
 
-        echo -e "\nCopying quality filtered paired end reads and generated MAGs to SCRATCHDIR ... "
+        echo -e "\nCopying quality filtered paired end reads and generated MAGs to {config[path][scratch]} ... "
         cp {input.R1} {input.R2} {input.bins}/* .
 
         echo -e "\nConcatenating all bins into one FASTA file ... "
@@ -1007,10 +1007,13 @@ rule GTDBtk:
         """
     shell:
         """
-        set +u;source activate gtdbtk-tmp;set -u;
-        export GTDBTK_DATA_PATH=/g/scb2/patil/zorrilla/conda/envs/gtdbtk/share/gtdbtk-1.1.0/db/
+        set +u;source activate {config[envs][metagem]};set -u;
+        
+        # In case you GTDBTk is not properly configured you may need to export the GTDBTK_DATA_PATH variable,
+        # just uncomment the following line and fill in the path to your GTDBTk database:
+        # export GTDBTK_DATA_PATH=/path/to/the/gtdbtk/database/you/downloaded
 
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
         cp -r {input} .
 
         gtdbtk classify_wf --genome_dir $(basename {input}) --out_dir GTDBtk -x fa --cpus {config[cores][gtdbtk]}
@@ -1146,8 +1149,8 @@ rule carveme:
         mkdir -p $(dirname {output})
         mkdir -p logs
 
-        cp {input.bin} {input.media} $SCRATCHDIR
-        cd $SCRATCHDIR
+        cp {input.bin} {input.media} {config[path][scratch]}
+        cd {config[path][scratch]}
         
         echo "Begin carving GEM ... "
         carve -g {config[params][carveMedia]} \
@@ -1209,10 +1212,10 @@ rule ECvis:
         """
     shell:
         """
-        echo -e "\nCopying GEMs from specified input directory to SCRATCHDIR ... "
-        cp -r {input} $SCRATCHDIR
+        echo -e "\nCopying GEMs from specified input directory to {config[path][scratch]} ... "
+        cp -r {input} {config[path][scratch]}
 
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
         mkdir ecfiles
 
         while read model; do
@@ -1275,8 +1278,8 @@ rule smetana:
         """
         set +u;source activate {config[envs][metagem]};set -u
         mkdir -p {config[path][root]}/{config[folder][SMETANA]}
-        cp {config[path][root]}/{config[folder][scripts]}/{config[scripts][carveme]} {input}/*.xml $SCRATCHDIR
-        cd $SCRATCHDIR
+        cp {config[path][root]}/{config[folder][scripts]}/{config[scripts][carveme]} {input}/*.xml {config[path][scratch]}
+        cd {config[path][scratch]}
         
         smetana -o $(basename {input}) --flavor fbc2 \
             --mediadb media_db.tsv -m {config[params][smetanaMedia]} \
@@ -1315,8 +1318,8 @@ rule memote:
         module load git
 
         mkdir -p {output}
-        cp {input} $SCRATCHDIR
-        cd $SCRATCHDIR
+        cp {input} {config[path][scratch]}
+        cd {config[path][scratch]}
 
         memote report snapshot --skip test_find_metabolites_produced_with_closed_bounds --skip test_find_metabolites_consumed_with_closed_bounds --skip test_find_metabolites_not_produced_with_open_bounds --skip test_find_metabolites_not_consumed_with_open_bounds --skip test_find_incorrect_thermodynamic_reversibility --filename $(echo $(basename {input})|sed 's/.xml/.html/') *.xml
         memote run --skip test_find_metabolites_produced_with_closed_bounds --skip test_find_metabolites_consumed_with_closed_bounds --skip test_find_metabolites_not_produced_with_open_bounds --skip test_find_metabolites_not_consumed_with_open_bounds --skip test_find_incorrect_thermodynamic_reversibility *.xml
@@ -1341,8 +1344,8 @@ rule grid:
         """
         set +u;source activate {config[envs][metagem]};set -u
 
-        cp -r {input.bins} {input.R1} {input.R2} $SCRATCHDIR
-        cd $SCRATCHDIR
+        cp -r {input.bins} {input.R1} {input.R2} {config[path][scratch]}
+        cd {config[path][scratch]}
 
         cat *.gz > $(basename $(dirname {input.bins})).fastq.gz
         rm $(basename {input.R1}) $(basename {input.R2})
@@ -1393,8 +1396,8 @@ rule prokka:
         mkdir -p $(dirname $(dirname {output}))
         mkdir -p $(dirname {output})
 
-        cp {input} $SCRATCHDIR
-        cd $SCRATCHDIR
+        cp {input} {config[path][scratch]}
+        cd {config[path][scratch]}
 
         id=$(echo $(basename {input})|sed "s/.fa//g")
         prokka -locustag $id --cpus {config[cores][prokka]} --centre MAG --compliant -outdir prokka/$id -prefix $id $(basename {input})
@@ -1413,7 +1416,7 @@ rule roary:
         """
         set +u;source activate {config[envs][prokkaroary]};set -u
         mkdir -p $(dirname {output})
-        cd $SCRATCHDIR
+        cd {config[path][scratch]}
         cp -r {input} .
                 
         roary -s -p {config[cores][roary]} -i {config[params][roaryI]} -cd {config[params][roaryCD]} -f yes_al -e -v $(basename {input})/*.gff

@@ -123,6 +123,7 @@ snakeConfig() {
     # Show config.yaml params
     echo -e "\nPlease verify parameters set in the config.yaml file: \n"
     paste config.yaml
+    echo -e "\nPlease pay close attention to make sure that your paths are properly configured!"
 
     while true; do
         read -p "Do you wish to proceed with this config.yaml file? (y/n)" yn
