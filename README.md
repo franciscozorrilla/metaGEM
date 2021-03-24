@@ -11,9 +11,10 @@
 Clone this repository to your HPC or local computer and run the `env_setup.sh` script:
 
 ```
-git clone https://github.com/franciscozorrilla/metaGEM.git
-cd metaGEM
-bash env_setup.sh
+git clone https://github.com/franciscozorrilla/metaGEM.git # Download metaGEM repo
+cd metaGEM # Move into metaGEM directory
+rm -r .git # Remove ~250 Mb of uneeded git history files
+bash env_setup.sh # Run automated setup script
 ```
 
 This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokkaroary`, which will be activated as required by Snakemake jobs.
