@@ -1,5 +1,0 @@
-# Auto detect text files and perform LF normalization
-* text=auto
-
-# Lineage .ms files throw off code proportions 
-Tutorial/* linguist-documentation
