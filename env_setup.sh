@@ -44,7 +44,7 @@ while true; do
     read -p "Do you wish to download and set up prokka + roary conda environment? (y/n)" yn
     case $yn in
         [Yy]* ) echo "conda env create -f envs/prokkaroary_env.yml"|bash; break;;
-        [Nn]* ) echo -e "\nSkipping CheckM database download, note that you will need this for bin refinement & reassembly.\n"; break;;
+        [Nn]* ) echo -e "\nSkipping prokka-roary env setup, note that you will need this for pangenome analysis of MAGs.\n"; break;;
         * ) echo "Please answer yes or no.";;
     esac
 done
