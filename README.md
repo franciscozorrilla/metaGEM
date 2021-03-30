@@ -29,7 +29,7 @@ Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Qu
 
 Please check out the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
 
-## 🔄 Workflow
+## :wrench: Workflow
 
 ### Core
 
@@ -86,7 +86,7 @@ Jan Zrimec, Mariia Kokina, Sara Jonasson, Francisco Zorrilla, Aleksej Zelezniak
 bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558 
 ```
 
-## ✅ Please cite
+## :heavy_check_mark: Please cite
 
 ```
 metaGEM: reconstruction of genome scale metabolic models directly from metagenomes
