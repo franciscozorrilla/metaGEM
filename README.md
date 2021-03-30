@@ -6,7 +6,7 @@
 
 `metaGEM` integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of interrogating social interactions in bacterial communities of the human gut microbiome. From WMGS datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations of cross feeding interactions within sample based communities. Additional outputs include abundance estimates, taxonomic assignment, growth rate estimation, pangenome analysis, and eukaryotic MAG identification.
 
-## Quickstart
+## :bulb: Quickstart
 
 Clone this repository to your HPC or local computer and run the `env_setup.sh` script:
 
@@ -21,15 +21,15 @@ This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokka
 
 Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further installation instructions.
 
-## Tutorial
+## :school_satchel: Tutorial
 
 `metaGEM` can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the `metaGEM` workflow on two unseenbio samples.
 
-## Wiki
+## :book: Wiki
 
 Please check out the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
 
-## Workflow
+## 🔄 Workflow
 
 ### Core
 
@@ -48,7 +48,7 @@ Please check out the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) f
 10. Pangenome analysis with [roary](https://github.com/sanger-pathogens/Roary)
 11. Eukaryotic draft bins with [EukRep](https://github.com/patrickwest/EukRep) and [EukCC](https://github.com/Finn-Lab/EukCC)
 
-## Active Development
+## :construction: Active Development
 
 Are you sad that your favorite binner didn't make it into the `metaGEM` workflow? Have you developed a new bioinformatics tool that you would like to see incorporated into `metaGEM`? Want alternative tools for certain tasks or even new additional features? We want to hear from you! 
 
@@ -76,7 +76,7 @@ rule package-name:
         """
 ```
 
-## Publications
+## :paperclip: Publications
 
 The `metaGEM` workflow has been used in some capacity in the following publications:
 
@@ -86,7 +86,7 @@ Jan Zrimec, Mariia Kokina, Sara Jonasson, Francisco Zorrilla, Aleksej Zelezniak
 bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558 
 ```
 
-## Please cite
+## ✅ Please cite
 
 ```
 metaGEM: reconstruction of genome scale metabolic models directly from metagenomes
