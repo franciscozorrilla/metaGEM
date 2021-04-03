@@ -1,4 +1,4 @@
-# :gem: `metaGEM` :microbe:
+# :microbe: `metaGEM` :gem:
 
 > A Snakemake-based workflow to generate high quality prokaryotic metagenome assembled genomes from short read paired-end data, reconstruct genome scale metabolic models, and perform community metabolic interaction simulations on high performance computing clusters.
 
