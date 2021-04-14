@@ -101,4 +101,4 @@ Please reach out with any comments, concerns, or discussions regarding `metaGEM`
 * Twitter: [@metagenomez](https://twitter.com/metagenomez)
 * LinkedIn: [@fzorrilla94](https://www.linkedin.com/in/fzorrilla94/)
 * Email: fz274@cam.ac.uk
-* Gitter: [metaGEM](https://gitter.im/metaGEM/community)
+* Gitter: [@metaGEM](https://gitter.im/metaGEM/community)
