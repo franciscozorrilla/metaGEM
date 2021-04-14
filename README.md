@@ -78,7 +78,7 @@ rule package-name:
 
 ## :paperclip: Publications
 
-The `metaGEM` workflow has been used in some capacity in the following publications:
+The `metaGEM` workflow was used in the following publication(s):
 
 ```
 Plastic-degrading potential across the global microbiome correlates with recent pollution trends
