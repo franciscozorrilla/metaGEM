@@ -1,3 +1,5 @@
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
+
 # :microbe: `metaGEM` :gem:
 
 > A workflow to predict metabolic interactions within microbial communities directly from metagenomic data.
