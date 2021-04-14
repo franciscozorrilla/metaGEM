@@ -21,7 +21,7 @@ bash env_setup.sh # Run automated setup script
 
 Congratulations, you can now start using `metaGEM`!
 
-Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further installation instructions.
+Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further configuration instructions.
 
 ## :school_satchel: Tutorial
 
