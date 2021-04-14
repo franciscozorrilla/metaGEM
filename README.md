@@ -29,7 +29,7 @@ Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Qu
 
 ## :book: Wiki
 
-Please check out the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
+Refer to the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
 
 ## :wrench: Workflow
 
