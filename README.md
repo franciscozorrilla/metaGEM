@@ -52,7 +52,7 @@ Please check out the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) f
 
 ## :construction: Active Development
 
-Have you developed a new bioinformatics tool that you would like to see incorporated into `metaGEM`? If you want to see any new additional or alternative tools incorporated into the `metaGEM` workflow please raise an issue or create a pull request. Snakemake allows workflows to be very flexible, so adding new rules is as easy as filling out the following template and adding it to the Snakefile:
+If you want to see any new additional or alternative tools incorporated into the `metaGEM` workflow please raise an issue or create a pull request. Snakemake allows workflows to be very flexible, so adding new rules is as easy as filling out the following template and adding it to the Snakefile:
 
 ```
 rule package-name:
