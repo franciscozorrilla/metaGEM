@@ -19,7 +19,7 @@ rm -r .git # Remove ~250 Mb of uneeded git history files
 bash env_setup.sh # Run automated setup script
 ```
 
-This script will set up 3 conda environments, `metagem`, `metawrap`, and `prokkaroary`, which will be activated as required by Snakemake jobs.
+Congratulations, you can now start using `metaGEM`!
 
 Please see the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further installation instructions.
 
