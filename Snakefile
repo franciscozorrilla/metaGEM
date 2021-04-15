@@ -45,7 +45,7 @@ rule createFolders:
         echo -e "Setting up result folders in the following work directory: $(echo {input}) \n"
 
         # Generate folders.txt by extracting folder names from config.yaml file
-        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 22|sed '/^$/d' > folders.txt # NOTE: hardcoded number (22) for folder names, increase number as new folders are introduced.
+        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 22|sed '/^$/d' > folders.txt # NOTE: hardcoded numbers (tail 4, head 22) for folder names, increase number as new folders are introduced.
         
         while read line;do 
             echo "Creating $line folder ... "
@@ -110,12 +110,12 @@ rule organizeData:
     message:
         """
         Sorts paired end raw reads into sample specific sub folders within the dataset folder specified in the config.yaml file.
-        Assumes all samples are present in abovementioned dataset folder.
+        Assumes all samples are present in dataset folder.
         
         Note: This rule is meant to be run on real datasets. 
-        Do not run for toy dataset, as downloadToy rule above sorts the downloaded data already.
+        downloadToy rule above sorts the downloaded data already.
 
-        Assumes file names have format: SAMPLEID_1|2.fastq.gz, e.g. ERR599026_2.fastq.gz
+        Assumes file names have format: SAMPLEID_R1|R2.fastq.gz, e.g. ERR599026_R2.fastq.gz
         """
     shell:
         """

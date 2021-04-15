@@ -34,7 +34,8 @@ usage() {
                 [-h|--hours MAX RUNTIME]
                 [-l|--local]
 
-Snakefile wrapper/parser for metaGEM. 
+Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/franciscozorrilla/metaGEM.
+Please cite: doi.org/10.1101/2020.12.31.424982
 
  Options:
   -t, --task        Specify task to complete:
@@ -43,6 +44,7 @@ Snakefile wrapper/parser for metaGEM.
                             createFolders
                             downloadToy
                             organizeData
+                            check
 
                         WORKFLOW
                             fastp 
@@ -66,6 +68,7 @@ Snakefile wrapper/parser for metaGEM.
                             roary
 
                         VISUALIZATION (in development)
+                            stats
                             qfilterVis
                             assemblyVis
                             binningVis
@@ -80,26 +83,62 @@ Snakefile wrapper/parser for metaGEM.
   -h, --hours       Specify number of hours to allocated to job runtime
   -l, --local       Run jobs on local machine for non-cluster usage
 
-Suggested workflow:
-
-    0. metaGEM setup
-    1. Quality filter reads with fastp
-    2. Assembly with megahit
-    3. Draft bin sets with CONCOCT,MaxBin2, and MetaBAT2
-    4. Refine & reassemble bins with metaWRAP
-    5. Taxonomic assignment with GTDB-tk
-    6. Relative abundances with bwa and samtools
-    7. Reconstruct & evaluate genome-scale metabolic models with CarveMe and memote
-    8. Species metabolic coupling analysis with SMETANA
-    9. Growth rate estimation with GRiD
-    10. Pangenome analysis with roary
-    11. Eukaryotic draft bins with EukRep and EukCC
-
-
-e.g. to submit 10 short read quality filtering jobs with 2 cores + 4 GB RAM each and maximum runtime of 1 hour:
-     bash metaGEM.sh -t fastp -j 10 -c 2 -m 4 -h 1
-
 "
+}
+
+# Run check task
+run_check() {
+
+# run createFolders rule to create folders in case any of them are missing
+snakemake createFolders -j1
+
+# search for folders and files with .gz extension within dataset folder
+count_files=$(find dataset -name "*.gz"|wc -l)
+count_samp=$(ls dataset|grep -v gz|wc -l)
+if [[ "$count_files" -eq 0 ]]; then
+    echo "There are no sequencing files (*.gz) in the dataset folder!\nPlease download or move your paired end files into sample specific subfolders within the dataset folder."
+elif [[ "$count_samp" -eq 0 && "$count_files" -ne 0 ]]; then 
+    echo "Detected $count_files unorganized files (*.gz) in dataset folder, running organizeData rule ... "
+    snakemake organizeData -j1
+elif [[ "$count_samp" -ne 0 && "$count_files" -ne 0 ]]; then
+    echo "Files appear to be organized into sample specific subdirectories within the dataset folder."
+    echo "Printing sample IDs for user verification: "
+    ls dataset|grep -v gz
+fi
+
+# check if conda environments are present
+envcheck1=$(conda info --envs|grep -w metagem|wc -l)
+envcheck2=$(conda info --envs|grep -w metawrap|wc -l)
+envcheck3=$(conda info --envs|grep -w prokkaroary|wc -l)
+
+echo -ne "Searching for metaGEM conda environment ... "
+if [[ "$envcheck1" -ge 1 ]]; then
+    echo "detected!"
+else
+    echo "not detected, please run the env_setup.sh script!"
+fi
+
+echo -ne "Searching for metaWRAP conda environment ... "
+if [[ "$envcheck2" -ge 1 ]]; then
+    echo "detected!"
+else
+    echo "not detected, please run the env_setup.sh script!"
+fi
+
+echo -ne "Searching for prokka-roary conda environment ... "
+if [[ "$envcheck3" -ge 1 ]]; then
+    echo "detected!"
+else
+    echo "not detected, please run the env_setup.sh script!"
+fi
+
+}
+
+
+# Run stats task
+run_stats() {
+
+
 }
 
 # Prompt user to confirm input parameters/options
@@ -320,6 +359,12 @@ parse() {
   # No need to parse snakefile for login node jobs, submit the following locally
   if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] || [ $task == "abundanceVis" ] || [ $task == "extractProteinBins" ] || [ $task == "extractDnaBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
     submitLogin
+
+  elif [ $task == "check" ]; then
+    run_check
+
+  elif [ $task == "stats" ]; then
+    run_stats
 
  # Parse snakefile for cluster/local jobs
   elif [ $task == "fastp" ]; then
