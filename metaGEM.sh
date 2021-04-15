@@ -107,7 +107,7 @@ count_files=$(find dataset -name "*.gz"|wc -l)
 count_samp=$(ls dataset|grep -v gz|wc -l)
 if [[ "$count_files" -eq 0 ]]; then
     echo -e "\nThere are no sequencing files (*.gz) in the dataset folder!"
-    echo -e "\nPlease download or move your paired end files into sample specific subfolders within the dataset folder."
+    echo -e "Please download or move your paired end files into sample specific subfolders within the dataset folder.\n"
 elif [[ "$count_samp" -eq 0 && "$count_files" -ne 0 ]]; then 
     echo -e "\nDetected $count_files unorganized files (*.gz) in dataset folder, running organizeData rule ... "
     snakemake organizeData -j1
@@ -138,9 +138,9 @@ fi
 echo -ne "Searching for prokka-roary conda environment ... "
 envcheck3=$(conda info --envs|grep -w prokkaroary|wc -l)
 if [[ "$envcheck3" -ge 1 ]]; then
-    echo "detected!"
+    echo -e "detected!\n"
 else
-    echo "not detected, please run the env_setup.sh script!"
+    echo -e "not detected, please run the env_setup.sh script!\n"
 fi
 
 }
@@ -148,7 +148,7 @@ fi
 # Run stats task
 run_stats() {
 
-echo -e "\nChecking status of current metaGEM analysis ... \n"
+echo -e "Checking status of current metaGEM analysis ... \n"
 
 #dataset: count subfolders to determine total number of samples
 nsamp=$(ls -d dataset/*/|wc -l)
@@ -201,7 +201,7 @@ echo "GEM Reports: $nmemo / $ngems models samples ... "
     
 #simulations: count .tsv files
 nsmet=$(find memote -name "*.gz"|wc -l)
-echo "GEM Reports: $nsmet / $ngemsamp communities simulated ... \n"
+echo -e "GEM Reports: $nsmet / $ngemsamp communities simulated ... \n"
 
 }
 
