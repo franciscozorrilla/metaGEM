@@ -95,7 +95,7 @@ if [[ "$nFolders" -le 20 ]]; then
     while true; do
         read -p "Some folders appear to be missing, do you wish to run the createFolders ? (y/n)" yn
         case $yn in
-            [Yy]* ) snakemake createFolders -j1; break;;
+            [Yy]* ) echo "Running the createFolders snakefile rule ... " && snakemake createFolders -j1; break;;
             [Nn]* ) echo "Skipping folder creation ... ";;
             * ) echo "Please answer yes or no.";;
         esac
@@ -106,7 +106,8 @@ fi
 count_files=$(find dataset -name "*.gz"|wc -l)
 count_samp=$(ls dataset|grep -v gz|wc -l)
 if [[ "$count_files" -eq 0 ]]; then
-    echo "There are no sequencing files (*.gz) in the dataset folder!\nPlease download or move your paired end files into sample specific subfolders within the dataset folder."
+    echo "There are no sequencing files (*.gz) in the dataset folder!"
+    echo "Please download or move your paired end files into sample specific subfolders within the dataset folder."
 elif [[ "$count_samp" -eq 0 && "$count_files" -ne 0 ]]; then 
     echo "Detected $count_files unorganized files (*.gz) in dataset folder, running organizeData rule ... "
     snakemake organizeData -j1
@@ -147,10 +148,10 @@ fi
 # Run stats task
 run_stats() {
 
-echo "Checking status of current metaGEM analysis ... "
+echo "\nChecking status of current metaGEM analysis ... \n"
 
 #dataset: count subfolders to determine total number of samples
-nsamp=$(ls -d */|wc -l)
+nsamp=$(ls -d dataset/*/|wc -l)
 echo "Raw data: $nsamp samples were identified in the dataset folder ... "
 
 #qfilter: count .json report files
@@ -200,7 +201,7 @@ echo "GEM Reports: $nmemo / $ngems models samples ... "
     
 #simulations: count .tsv files
 nsmet=$(find memote -name "*.gz"|wc -l)
-echo "GEM Reports: $nsmet / $ngemsamp communities simulated ... "
+echo "GEM Reports: $nsmet / $ngemsamp communities simulated ... \n"
 
 }
 
@@ -415,7 +416,7 @@ parse() {
   printLogo
 
   # Set root folder
-  echo "Setting current directory to root ... "
+  echo -e "Setting current directory to root ... \n"
   root=$(pwd)
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
