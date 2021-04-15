@@ -106,23 +106,21 @@ fi
 count_files=$(find dataset -name "*.gz"|wc -l)
 count_samp=$(ls dataset|grep -v gz|wc -l)
 if [[ "$count_files" -eq 0 ]]; then
-    echo "There are no sequencing files (*.gz) in the dataset folder!"
-    echo "Please download or move your paired end files into sample specific subfolders within the dataset folder."
+    echo -e "\nThere are no sequencing files (*.gz) in the dataset folder!"
+    echo -e "\nPlease download or move your paired end files into sample specific subfolders within the dataset folder."
 elif [[ "$count_samp" -eq 0 && "$count_files" -ne 0 ]]; then 
-    echo "Detected $count_files unorganized files (*.gz) in dataset folder, running organizeData rule ... "
+    echo -e "\nDetected $count_files unorganized files (*.gz) in dataset folder, running organizeData rule ... "
     snakemake organizeData -j1
 elif [[ "$count_samp" -ne 0 && "$count_files" -ne 0 ]]; then
-    echo "Files appear to be organized into sample specific subdirectories within the dataset folder."
-    echo "Printing sample IDs for user verification: "
+    echo -e "\nFiles appear to be organized into sample specific subdirectories within the dataset folder."
+    echo -e "\nPrinting sample IDs for user verification: "
     ls dataset|grep -v gz
 fi
 
 # check if conda environments are present
-envcheck1=$(conda info --envs|grep -w metagem|wc -l)
-envcheck2=$(conda info --envs|grep -w metawrap|wc -l)
-envcheck3=$(conda info --envs|grep -w prokkaroary|wc -l)
 
 echo -ne "Searching for metaGEM conda environment ... "
+envcheck1=$(conda info --envs|grep -w metagem|wc -l)
 if [[ "$envcheck1" -ge 1 ]]; then
     echo "detected!"
 else
@@ -130,6 +128,7 @@ else
 fi
 
 echo -ne "Searching for metaWRAP conda environment ... "
+envcheck2=$(conda info --envs|grep -w metawrap|wc -l)
 if [[ "$envcheck2" -ge 1 ]]; then
     echo "detected!"
 else
@@ -137,6 +136,7 @@ else
 fi
 
 echo -ne "Searching for prokka-roary conda environment ... "
+envcheck3=$(conda info --envs|grep -w prokkaroary|wc -l)
 if [[ "$envcheck3" -ge 1 ]]; then
     echo "detected!"
 else
@@ -148,7 +148,7 @@ fi
 # Run stats task
 run_stats() {
 
-echo "\nChecking status of current metaGEM analysis ... \n"
+echo -e "\nChecking status of current metaGEM analysis ... \n"
 
 #dataset: count subfolders to determine total number of samples
 nsamp=$(ls -d dataset/*/|wc -l)
