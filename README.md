@@ -10,13 +10,10 @@
 
 ## :bulb: Quickstart
 
-Clone this repository to your HPC or local computer and run the `env_setup.sh` script:
+You can start using `metaGEM` with just one line of code:
 
 ```
-git clone https://github.com/franciscozorrilla/metaGEM.git # Download metaGEM repo
-cd metaGEM # Move into metaGEM directory
-rm -r .git # Remove ~250 Mb of uneeded git history files
-bash env_setup.sh # Run automated setup script
+git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM && rm -r .git && bash env_setup.sh
 ```
 
 Congratulations, you can now start using `metaGEM`!
