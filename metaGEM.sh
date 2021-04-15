@@ -90,7 +90,17 @@ Please cite: doi.org/10.1101/2020.12.31.424982
 run_check() {
 
 # run createFolders rule to create folders in case any of them are missing
-snakemake createFolders -j1
+nFolders=$(ls -d */|wc -l)
+if [[ "$nFolders" -le 20 ]]; then
+    while true; do
+        read -p "Some folders appear to be missing, do you wish to run the createFolders ? (y/n)" yn
+        case $yn in
+            [Yy]* ) snakemake createFolders -j1; break;;
+            [Nn]* ) echo "Skipping folder creation ... ";;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+fi
 
 # search for folders and files with .gz extension within dataset folder
 count_files=$(find dataset -name "*.gz"|wc -l)
@@ -134,10 +144,63 @@ fi
 
 }
 
-
 # Run stats task
 run_stats() {
 
+echo "Checking status of current metaGEM analysis ... "
+
+#dataset: count subfolders to determine total number of samples
+nsamp=$(ls -d */|wc -l)
+echo "Raw data: $nsamp samples were identified in the dataset folder ... "
+
+#qfilter: count .json report files
+nqfilt=$(find qfiltered -name "*.json"|wc -l)
+echo "Quality filtering: $nqfilt / $nsamp samples processed ... "
+    
+#assembly: count .gz fasta files
+nassm=$(find assemblies -name "*.gz"|wc -l)
+echo "Assembly: $nassm / $nsamp samples processed ... "
+    
+#concoct: count *concoct-bins subfolders
+nconc=$(find concoct -name "*.concoct-bins"|wc -l)
+echo "Binning (CONCOCT): $nassm / $nsamp samples processed ... "
+    
+#maxbin2: count *maxbin-bins subfolders
+nmaxb=$(find maxbin -name "*.maxbin-bins"|wc -l)
+echo "Binning (MaxBin2): $nmaxb / $nsamp samples processed ... "
+    
+#metabat2: count *metabat-bins subfolders
+nmetab=$(find metabat -name "*.metabat-bins"|wc -l)
+echo "Binning (MetaBAT2): $nmetab / $nsamp samples processed ... "
+
+#metawrap_refine: count subfolders
+nmwref=$(ls -d refined_bins/*|wc -l)
+echo "Bin refinement: $nmwref / $nsamp samples processed ... "
+    
+#metawrap_reassemble: count subfolders, also determine total number of final MAGs across samples
+nmwrea=$(ls -d reassembled_bins/*|wc -l)
+echo "Bin reassembly: $nmwrea / $nsamp samples processed ... "
+
+#taxonomy: count subfolders
+ntax=$(ls -d GTDBtk/*|wc -l)
+echo "Taxonomy: $ntax / $nsamp samples processed ... "
+    
+#abundances: count subfolders
+nabund=$(ls -d abundance/*|wc -l)
+echo "Abundance: $nabund / $nsamp samples processed ... "
+    
+#models: count subfolders for sample progress and count .xml GEM files for total models generated
+ngems=$(find GEMs -name "*xml"|wc -l)
+ngemsamp=$(ls -d GEMs/*|wc -l)
+echo "GEMs: $ngems models generated from $ngemsamp samples ... "
+    
+#model reports: count subfolders
+nmemo=$(find memote -name "*.gz"|wc -l)
+echo "GEM Reports: $nmemo / $ngems models samples ... "
+    
+#simulations: count .tsv files
+nsmet=$(find memote -name "*.gz"|wc -l)
+echo "GEM Reports: $nsmet / $ngemsamp communities simulated ... "
 
 }
 
