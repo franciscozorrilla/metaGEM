@@ -89,7 +89,35 @@ Please cite: doi.org/10.1101/2020.12.31.424982
 # Run check task
 run_check() {
 
+# check if conda environments are present
+echo -ne "Searching for metaGEM conda environment ... "
+envcheck1=$(conda info --envs|grep -w metagem|wc -l)
+if [[ "$envcheck1" -ge 1 ]]; then
+    echo "detected!"
+    echo "Activating metagem env ... "
+    source activate metagem
+else
+    echo "not detected, please run the env_setup.sh script!"
+fi
+
+echo -ne "Searching for metaWRAP conda environment ... "
+envcheck2=$(conda info --envs|grep -w metawrap|wc -l)
+if [[ "$envcheck2" -ge 1 ]]; then
+    echo "detected!"
+else
+    echo "not detected, please run the env_setup.sh script!"
+fi
+
+echo -ne "Searching for prokka-roary conda environment ... "
+envcheck3=$(conda info --envs|grep -w prokkaroary|wc -l)
+if [[ "$envcheck3" -ge 1 ]]; then
+    echo -e "detected!\n"
+else
+    echo -e "not detected, please run the env_setup.sh script!\n"
+fi
+
 # run createFolders rule to create folders in case any of them are missing
+echo -e "Checking folders in workspace $pwd ... "
 nFolders=$(ls -d */|wc -l)
 if [[ "$nFolders" -le 20 ]]; then
     while true; do
@@ -115,32 +143,6 @@ elif [[ "$count_samp" -ne 0 && "$count_files" -ne 0 ]]; then
     echo -e "\nFiles appear to be organized into sample specific subdirectories within the dataset folder."
     echo -e "\nPrinting sample IDs for user verification: "
     ls dataset|grep -v gz
-fi
-
-# check if conda environments are present
-
-echo -ne "Searching for metaGEM conda environment ... "
-envcheck1=$(conda info --envs|grep -w metagem|wc -l)
-if [[ "$envcheck1" -ge 1 ]]; then
-    echo "detected!"
-else
-    echo "not detected, please run the env_setup.sh script!"
-fi
-
-echo -ne "Searching for metaWRAP conda environment ... "
-envcheck2=$(conda info --envs|grep -w metawrap|wc -l)
-if [[ "$envcheck2" -ge 1 ]]; then
-    echo "detected!"
-else
-    echo "not detected, please run the env_setup.sh script!"
-fi
-
-echo -ne "Searching for prokka-roary conda environment ... "
-envcheck3=$(conda info --envs|grep -w prokkaroary|wc -l)
-if [[ "$envcheck3" -ge 1 ]]; then
-    echo -e "detected!\n"
-else
-    echo -e "not detected, please run the env_setup.sh script!\n"
 fi
 
 }
