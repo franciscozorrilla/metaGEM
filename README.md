@@ -38,9 +38,7 @@ Usage: bash metaGEM.sh [-t|--task TASK]
                        [-m|--mem GB RAM] 
                        [-h|--hours MAX RUNTIME]
                        [-l|--local]
-
-Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/franciscozorrilla/metaGEM.
-
+                       
  Options:
   -t, --task        Specify task to complete:
 
