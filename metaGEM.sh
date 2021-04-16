@@ -37,7 +37,7 @@ usage() {
 
 Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/franciscozorrilla/metaGEM.
 
- Options:
+Options:
   -t, --task        Specify task to complete:
 
                         SETUP
@@ -46,7 +46,7 @@ Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/
                             organizeData
                             check
 
-                        WORKFLOW
+                        CORE WORKFLOW
                             fastp 
                             megahit 
                             crossMap 
@@ -62,10 +62,14 @@ Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/
                             smetana
                             extractDnaBins
                             gtdbtk
-                            abundance 
+                            abundance
+
+                        BONUS
                             grid
                             prokka
                             roary
+                            eukrep
+                            eukcc
 
                         VISUALIZATION (in development)
                             stats
