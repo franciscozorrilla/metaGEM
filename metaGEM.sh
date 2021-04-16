@@ -93,7 +93,7 @@ run_check() {
 #check if conda is installed/available
 condatest=$(conda list|wc -l)
 if [[ "$condatest" -eq 0 ]]; then
-    echo "WARNING: Conda is not available! Please load your cluster's conda module or install locally." && exit
+    echo -e "WARNING: Conda is not available! Please load your cluster's conda module or install locally.\n" && exit
 fi
 
 # check if conda environments are present
@@ -425,7 +425,7 @@ parse() {
   printLogo
 
   # Set root folder
-  echo -e "Setting current directory to root ... \n"
+  echo -e "Setting current directory to root in config.yaml file ... \n"
   root=$(pwd)
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
