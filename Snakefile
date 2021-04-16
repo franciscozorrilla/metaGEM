@@ -19,7 +19,7 @@ focal = get_ids_from_path_pattern('dataset/*')
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{IDs}}/contigs.fasta.gz', IDs=IDs)
+        expand(f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R1.fastq.gz', IDs=IDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
