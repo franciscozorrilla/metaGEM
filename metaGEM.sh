@@ -91,17 +91,20 @@ Please cite: doi.org/10.1101/2020.12.31.424982
 run_check() {
 
 #check if conda is installed/available
+echo -ne "Checking if Conda is available ... "
 condatest=$(conda list|wc -l)
 if [[ "$condatest" -eq 0 ]]; then
     echo -e "WARNING: Conda is not available! Please load your cluster's conda module or install locally.\n" && exit
+elif [[ "$condatest" -gt 0 ]]
+    condav=$(conda --version|cut -d ' ' -f2)
+    echo -e "detected version $condav!"
 fi
 
 # check if conda environments are present
 echo -ne "Searching for metaGEM conda environment ... "
 envcheck1=$(conda info --envs|grep -w metagem|wc -l)
 if [[ "$envcheck1" -ge 1 ]]; then
-    echo "detected!"
-    echo "Activating metagem env ... "
+    echo "detected! Activating metagem env ... "
     source activate metagem
 else
     echo "not detected, please run the env_setup.sh script!"
