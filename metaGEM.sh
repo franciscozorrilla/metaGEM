@@ -131,7 +131,7 @@ if [[ "$nFolders" -le 20 ]]; then
         read -p "Some folders appear to be missing, do you wish to run the createFolders Snakefile rule? (y/n)" yn
         case $yn in
             [Yy]* ) echo "Running the createFolders snakefile rule ... " && snakemake createFolders -j1; break;;
-            [Nn]* ) echo "Skipping folder creation ... ";; exit ;;
+            [Nn]* ) echo "Skipping folder creation ... "; break;;
             * ) echo "Please answer yes or no.";;
         esac
     done
