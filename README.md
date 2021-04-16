@@ -29,14 +29,12 @@ bash metaGEM.sh
 ```
 ```
 Usage: bash metaGEM.sh [-t|--task TASK] 
-                    [-j|--nJobs NUMBER OF JOBS] 
-                    [-c|--cores NUMBER OF CORES] 
-                    [-m|--mem GB RAM] 
-                    [-h|--hours MAX RUNTIME]
-                    [-l|--local]
-
-Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/franciscozorrilla/metaGEM.
-
+                       [-j|--nJobs NUMBER OF JOBS] 
+                       [-c|--cores NUMBER OF CORES] 
+                       [-m|--mem GB RAM] 
+                       [-h|--hours MAX RUNTIME]
+                       [-l|--local]
+               
  Options:
   -t, --task        Specify task to complete:
 
@@ -67,7 +65,7 @@ Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/
                             prokka
                             roary
 
-                        VISUALIZATION (in development)
+                        VISUALIZATION
                             stats
                             qfilterVis
                             assemblyVis
