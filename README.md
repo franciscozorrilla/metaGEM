@@ -24,9 +24,7 @@ bash metaGEM.sh --task check
 
 Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further configuration instructions.
 
-## :school_satchel: Tutorial & Usage
-
-`metaGEM` can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the `metaGEM` workflow on two unseenbio samples.
+## 🔧 Usage
 
 Run `metaGEM` without any arguments to see usage instructions:
 
@@ -88,11 +86,15 @@ Usage: bash metaGEM.sh [-t|--task TASK]
   -l, --local       Run jobs on local machine for non-cluster usage
 ```
 
+## :school_satchel: Tutorial
+
+`metaGEM` can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the `metaGEM` workflow on two unseenbio samples.
+
 ## :book: Wiki
 
 Refer to the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
 
-## :wrench: Workflow
+## 🐍 Workflow
 
 ### Core
 
