@@ -2,7 +2,7 @@
 
 # `metaGEM` :gem:
 
-> An easy-to-use workflow to predict metabolic interactions within microbial communities directly from metagenomic data.
+> An easy-to-use workflow to generate context specific genome-scale metabolic models and predict metabolic interactions within microbial communities directly from metagenomic data.
 
 ![metawrapfigs_v2 002](https://user-images.githubusercontent.com/35606471/103545679-ceb71580-4e99-11eb-9862-084115121980.jpeg)
 
@@ -38,7 +38,7 @@ Usage: bash metaGEM.sh [-t|--task TASK]
                        [-m|--mem GB RAM] 
                        [-h|--hours MAX RUNTIME]
                        [-l|--local]
-               
+                       
  Options:
   -t, --task        Specify task to complete:
 
@@ -48,7 +48,7 @@ Usage: bash metaGEM.sh [-t|--task TASK]
                             organizeData
                             check
 
-                        WORKFLOW
+                        CORE WORKFLOW
                             fastp 
                             megahit 
                             crossMap 
@@ -64,12 +64,16 @@ Usage: bash metaGEM.sh [-t|--task TASK]
                             smetana
                             extractDnaBins
                             gtdbtk
-                            abundance 
+                            abundance
+
+                        BONUS
                             grid
                             prokka
                             roary
+                            eukrep
+                            eukcc
 
-                        VISUALIZATION
+                        VISUALIZATION (in development)
                             stats
                             qfilterVis
                             assemblyVis
