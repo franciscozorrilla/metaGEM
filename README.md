@@ -86,7 +86,7 @@ Usage: bash metaGEM.sh [-t|--task TASK]
   -l, --local       Run jobs on local machine for non-cluster usage
 ```
 
-## :school_satchel: Tutorial
+## 💩 Tutorial
 
 `metaGEM` can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the `metaGEM` workflow on two unseenbio samples.
 
