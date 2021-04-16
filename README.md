@@ -16,9 +16,75 @@ You can start using `metaGEM` with just one line of code:
 git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM && rm -r .git && bash env_setup.sh
 ```
 
-Congratulations, you can now start using `metaGEM`!
+Congratulations, you can now start using `metaGEM`! Verify your installation by using the `check` task:
+
+```
+bash metaGEM.sh --task check
+```
 
 Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further configuration instructions.
+
+## 🔧 Usage
+
+Run `metaGEM` without any arguments to see usage instructions:
+
+```
+bash metaGEM.sh
+```
+```
+Usage: bash metaGEM.sh [-t|--task TASK] 
+                       [-j|--nJobs NUMBER OF JOBS] 
+                       [-c|--cores NUMBER OF CORES] 
+                       [-m|--mem GB RAM] 
+                       [-h|--hours MAX RUNTIME]
+                       [-l|--local]
+               
+ Options:
+  -t, --task        Specify task to complete:
+
+                        SETUP
+                            createFolders
+                            downloadToy
+                            organizeData
+                            check
+
+                        WORKFLOW
+                            fastp 
+                            megahit 
+                            crossMap 
+                            concoct 
+                            metabat
+                            maxbin 
+                            binRefine 
+                            binReassemble 
+                            extractProteinBins
+                            carveme
+                            memote
+                            organizeGEMs
+                            smetana
+                            extractDnaBins
+                            gtdbtk
+                            abundance 
+                            grid
+                            prokka
+                            roary
+
+                        VISUALIZATION
+                            stats
+                            qfilterVis
+                            assemblyVis
+                            binningVis
+                            taxonomyVis
+                            modelVis
+                            interactionVis
+                            growthVis
+
+  -j, --nJobs       Specify number of jobs to run in parallel
+  -c, --nCores      Specify number of cores per job
+  -m, --mem         Specify memory in GB required for job
+  -h, --hours       Specify number of hours to allocated to job runtime
+  -l, --local       Run jobs on local machine for non-cluster usage
+```
 
 ## :school_satchel: Tutorial
 
@@ -28,7 +94,7 @@ Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wik
 
 Refer to the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
 
-## :wrench: Workflow
+## 🐍 Workflow
 
 ### Core
 
