@@ -22,11 +22,12 @@ Congratulations, you can now start using `metaGEM`! Verify your installation by 
 bash metaGEM.sh --task check
 ```
 
-To see usage instructions run `metaGEM` without any arguments:
+Run `metaGEM` without any arguments to see usage instructions:
 
 ```
 bash metaGEM.sh
-
+```
+```
 Usage: bash metaGEM.sh [-t|--task TASK] 
                     [-j|--nJobs NUMBER OF JOBS] 
                     [-c|--cores NUMBER OF CORES] 
