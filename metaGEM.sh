@@ -168,6 +168,7 @@ elif [[ "$count_samp" -ne 0 && "$count_files" -ne 0 ]]; then
     echo -e "\nFiles appear to be organized into sample specific subdirectories within the dataset folder."
     echo -e "\nPrinting sample IDs for user verification: "
     ls dataset|grep -v gz
+    echo ""
 fi
 
 }
