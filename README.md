@@ -2,7 +2,7 @@
 
 # `metaGEM` :gem:
 
-> An easy-to-use workflow to predict metabolic interactions within microbial communities directly from metagenomic data.
+> An easy-to-use workflow to generate context specific genome-scale metabolic models and predict metabolic interactions within microbial communities directly from metagenomic data.
 
 ![metawrapfigs_v2 002](https://user-images.githubusercontent.com/35606471/103545679-ceb71580-4e99-11eb-9862-084115121980.jpeg)
 
