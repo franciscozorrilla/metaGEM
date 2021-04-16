@@ -90,6 +90,12 @@ Please cite: doi.org/10.1101/2020.12.31.424982
 # Run check task
 run_check() {
 
+#check if conda is installed/available
+condatest=$(conda list|wc -l)
+if [[ "$condatest" -eq 0 ]]; then
+    echo "WARNING: Conda is not available! Please load your cluster's conda module or install locally." && exit
+fi
+
 # check if conda environments are present
 echo -ne "Searching for metaGEM conda environment ... "
 envcheck1=$(conda info --envs|grep -w metagem|wc -l)
@@ -122,10 +128,10 @@ echo -e "Checking folders in workspace $pwd ... "
 nFolders=$(ls -d */|wc -l)
 if [[ "$nFolders" -le 20 ]]; then
     while true; do
-        read -p "Some folders appear to be missing, do you wish to run the createFolders ? (y/n)" yn
+        read -p "Some folders appear to be missing, do you wish to run the createFolders Snakefile rule? (y/n)" yn
         case $yn in
             [Yy]* ) echo "Running the createFolders snakefile rule ... " && snakemake createFolders -j1; break;;
-            [Nn]* ) echo "Skipping folder creation ... ";;
+            [Nn]* ) echo "Skipping folder creation ... ";; exit ;;
             * ) echo "Please answer yes or no.";;
         esac
     done
