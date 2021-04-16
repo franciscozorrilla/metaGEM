@@ -29,14 +29,13 @@ usage() {
   printLogo
 
   echo -n "Usage: bash metaGEM.sh [-t|--task TASK] 
-                [-j|--nJobs NUMBER OF JOBS] 
-                [-c|--cores NUMBER OF CORES] 
-                [-m|--mem GB RAM] 
-                [-h|--hours MAX RUNTIME]
-                [-l|--local]
+                    [-j|--nJobs NUMBER OF JOBS] 
+                    [-c|--cores NUMBER OF CORES] 
+                    [-m|--mem GB RAM] 
+                    [-h|--hours MAX RUNTIME]
+                    [-l|--local]
 
 Snakefile wrapper/parser for metaGEM, for more details visit https://github.com/franciscozorrilla/metaGEM.
-Please cite: doi.org/10.1101/2020.12.31.424982
 
  Options:
   -t, --task        Specify task to complete:
