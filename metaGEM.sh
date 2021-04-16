@@ -147,7 +147,7 @@ if [[ "$count_files" -eq 0 ]]; then
     echo -e "\nThere are no sequencing files (*.gz) in the dataset folder!"
     echo -e "Please download or move your paired end files into sample specific subfolders within the dataset folder.\n"
     while true; do
-        read -p "Do you wish to download a 3 sample dataset using the downloadToy Snakefile rule? ~1.5 GB of storage required (y/n)" yn
+        read -p "Do you wish to download a 3 sample dataset using the downloadToy Snakefile rule? ~1.8 GB of storage required (y/n)" yn
         case $yn in
             [Yy]* ) echo "Running the downloadToy snakefile rule ... " && snakemake downloadToy -j1; break;;
             [Nn]* ) echo "Skipping toy dataset download ... "; break;;
