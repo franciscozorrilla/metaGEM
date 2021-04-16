@@ -16,7 +16,11 @@ You can start using `metaGEM` with just one line of code:
 git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM && rm -r .git && bash env_setup.sh
 ```
 
-Congratulations, you can now start using `metaGEM`!
+Congratulations, you can now start using `metaGEM`! You can check your installation by using the `check` task:
+
+```
+bash metaGEM.sh --task check
+```
 
 Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further configuration instructions.
 
