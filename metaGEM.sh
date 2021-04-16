@@ -146,9 +146,24 @@ count_samp=$(ls dataset|grep -v gz|wc -l)
 if [[ "$count_files" -eq 0 ]]; then
     echo -e "\nThere are no sequencing files (*.gz) in the dataset folder!"
     echo -e "Please download or move your paired end files into sample specific subfolders within the dataset folder.\n"
+    while true; do
+        read -p "Do you wish to download a small sample dataset using the downloadToy Snakefile rule? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "Running the downloadToy snakefile rule ... " && snakemake downloadToy -j1; break;;
+            [Nn]* ) echo "Skipping toy dataset download ... "; break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 elif [[ "$count_samp" -eq 0 && "$count_files" -ne 0 ]]; then 
     echo -e "\nDetected $count_files unorganized files (*.gz) in dataset folder, running organizeData rule ... "
-    snakemake organizeData -j1
+    while true; do
+        read -p "Do you wish to organize your samples using the organizeData Snakefile rule? (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "Running the organizeData snakefile rule ... " && snakemake organizeData -j1; break;;
+            [Nn]* ) echo "Skipping toy dataset download ... "; break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 elif [[ "$count_samp" -ne 0 && "$count_files" -ne 0 ]]; then
     echo -e "\nFiles appear to be organized into sample specific subdirectories within the dataset folder."
     echo -e "\nPrinting sample IDs for user verification: "
