@@ -63,42 +63,42 @@ rule downloadToy:
         f'{config["path"]["root"]}/{config["folder"]["scripts"]}/{config["scripts"]["toy"]}'
     message:
         """
-        Downloads toy dataset into config.yaml data folder and organizes into sample-specific sub-folders.
-        Requires download_toydata.txt to be present in scripts folder.
-        Modify this rule to download a real dataset by replacing the links in the download_toydata.txt file with links to files from your dataset of intertest.
+        Downloads toy samples into dataset folder and organizes into sample-specific sub-folders.
+        Download a real dataset by replacing the links in the download_toydata.txt file with links to files from your dataset of intertest.
+        Note: Make sure that the only underscores (e.g. _) that appear in the filenames are between the sample ID and R1/R2 identifier.
         """
     shell:
         """
         cd {config[path][root]}/{config[folder][data]}
 
         # Download each link in download_toydata.txt
-        echo -e "\nBegin downloading toy dataset ... \n"
+        echo -e "\nBegin downloading toy dataset ... "
         while read line;do 
             wget $line;
         done < {input}
-        echo -e "\nDone donwloading dataset.\n"
+        echo -e "\nDone donwloading dataset."
         
         # Rename downloaded files, this is only necessary for toy dataset (will cause error if used for real dataset)
         echo -ne "\nRenaming downloaded files ... "
         for file in *;do 
-            mv $file ./$(echo $file|sed 's/?download=1//g');
+            mv $file ./$(echo $file|sed 's/?download=1//g'|sed 's/_/_R/g');
         done
         echo -e " done. \n"
 
         # Organize data into sample specific sub-folders
 
-        echo -ne "\nGenerating list of unique sample IDs ... "
+        echo -ne "Generating list of unique sample IDs ... "
         for file in *.gz; do 
             echo $file; 
         done | sed 's/_.*$//g' | sed 's/.fastq.gz//g' | uniq > ID_samples.txt
-        echo -e " done.\n $(less ID_samples.txt|wc -l) samples identified.\n"
+        echo -e " done.\n $(less ID_samples.txt|wc -l) samples identified."
 
         echo -ne "\nOrganizing downloaded files into sample specific sub-folders ... "
         while read line; do 
             mkdir -p $line; 
             mv $line*.gz $line; 
         done < ID_samples.txt
-        echo -e " done. \n"
+        echo " done."
         
         rm ID_samples.txt
         """
