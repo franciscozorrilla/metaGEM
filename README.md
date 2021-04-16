@@ -22,6 +22,8 @@ Congratulations, you can now start using `metaGEM`! Verify your installation by 
 bash metaGEM.sh --task check
 ```
 
+Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further configuration instructions.
+
 Run `metaGEM` without any arguments to see usage instructions:
 
 ```
@@ -81,8 +83,6 @@ Usage: bash metaGEM.sh [-t|--task TASK]
   -h, --hours       Specify number of hours to allocated to job runtime
   -l, --local       Run jobs on local machine for non-cluster usage
 ```
-
-Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further configuration instructions.
 
 ## :school_satchel: Tutorial
 
