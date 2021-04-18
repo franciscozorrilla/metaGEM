@@ -10,7 +10,7 @@
 
 ## :bulb: Quickstart
 
-You can start using `metaGEM` with just one line of code:
+You can set up and start using `metaGEM` with just one line of code:
 
 ```
 git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM && rm -r .git && bash env_setup.sh
