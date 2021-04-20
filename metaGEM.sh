@@ -94,7 +94,7 @@ Options:
 run_check() {
 
 #check if conda is installed/available
-echo -ne "Checking if Conda is available ... "
+echo -ne "Checking if conda is available ... "
 condatest=$(conda list|wc -l)
 if [[ "$condatest" -eq 0 ]]; then
     echo -e "WARNING: Conda is not available! Please load your cluster's conda module or install locally.\n" && exit
