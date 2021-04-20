@@ -22,7 +22,7 @@ echo -ne "Checking if Conda is available ... "
 condatest=$(conda list|wc -l)
 
 if [[ "$condatest" -eq 0 ]]; then
-    echo -e "WARNING: Conda is not available! Please load your cluster's conda module or install locally and re-run the env_setup.sh script using:\nbash env_setup.sh\n" && exit
+    echo -e "\nWARNING: Conda is not available! Please load your cluster's conda module or install locally and re-run the env_setup.sh script using:\n\nbash env_setup.sh\n" && exit
 elif [[ "$condatest" -gt 0 ]]; then
     condav=$(conda --version|cut -d ' ' -f2)
     echo -e "detected version $condav!"
