@@ -28,27 +28,34 @@ elif [[ "$condatest" -gt 0 ]]; then
     echo -e "detected version $condav!"
 fi
 
-#check if mamba env is available
-echo -ne "Checking if mamba is available ... "
+#check if mamba or mamba env are available
+echo -ne "Checking if mamba environment is available ... "
 mambatest=$(mamba --version|wc -l)
-if [[ "$mambatest" -eq 0 ]]; then
-   while true; do
-    read -p "Do you wish to install mamba? Highly recommended for faster environment setup (y/n)" yn
-    case $yn in
-        [Yy]* ) echo "conda deactivate && conda install mamba -n base -c conda-forge"|bash; break;;
-        [Nn]* ) echo -e "\nPlease set up mamba before proceeding.\n"; exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
-elif [[ "$mambatest" -gt 0 ]]; then
-    mambav=$(mamba --version|head -n1|cut -d ' ' -f2)
-    echo -e "detected version $mambav!\n"
+mambaenv=$(conda info --envs|grep -w mamba|wc -l)
+
+if [[ "$mambaenv" -ge 1 ]]; then
+    if [[ "$mambatest" -ge 1 ]]; then
+        #mamba env installed and activated
+        mambav=$(mamba --version|head -n1|cut -d ' ' -f2) && echo -e "detected version $mambav!\n"
+    else
+        #mamba env installed but not activated
+        source activate mamba && echo "activated mamba environment!"
+    fi
+else
+    while true; do
+        read -p "Do you wish to create an environment for mamba installation? This is highly recommended for faster setup (y/n)" yn
+        case $yn in
+            [Yy]* ) echo "conda deactivate && conda install mamba -n mamba -c conda-forge"|bash; break;;
+            [Nn]* ) echo -e "\nPlease set up mamba before proceeding.\n"; exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 fi
 
 while true; do
     read -p "Do you wish to download and set up metaGEM conda environment? (y/n)" yn
     case $yn in
-        [Yy]* ) echo "mamba env create -f envs/metaGEM_env.yml && pip install --user memote carveme smetana && conda deactivate && echo "|bash; break;;
+        [Yy]* ) echo "mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml && pip install --user memote carveme smetana && source deactivate && echo "|bash; break;;
         [Nn]* ) echo -e "\nSkipping metaGEM env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
         * ) echo "Please answer yes or no.";;
     esac
@@ -66,7 +73,7 @@ done
 while true; do
     read -p "Do you wish to download and set up metaWRAP conda environment? (y/n)" yn
     case $yn in
-        [Yy]* ) echo "mamba env create -f envs/metaWRAP_env.yml"|bash; break;;
+        [Yy]* ) echo "mamba env create --prefix ./envs/metawrap -f envs/metaWRAP_env.yml"|bash; break;;
         [Nn]* ) echo -e "\nSkipping metaWRAP env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
         * ) echo "Please answer yes or no.";;
     esac
@@ -84,7 +91,7 @@ done
 while true; do
     read -p "Do you wish to download and set up prokka + roary conda environment? (y/n)" yn
     case $yn in
-        [Yy]* ) echo "mamba env create -f envs/prokkaroary_env.yml"|bash; break;;
+        [Yy]* ) echo "mamba env create --prefix ./envs/prokkaroary -f envs/prokkaroary_env.yml"|bash; break;;
         [Nn]* ) echo -e "\nSkipping prokka-roary env setup, note that you will need this for pangenome analysis of MAGs.\n"; break;;
         * ) echo "Please answer yes or no.";;
     esac

@@ -74,7 +74,7 @@ params:
     roaryI: 90
     roaryCD: 90
 envs:
-    metagem: metagem
-    metawrap: metawrap
-    prokkaroary: prokkaroary
+    metagem: envs/metagem
+    metawrap: envs/metawrap
+    prokkaroary: envs/prokkaroary
     
