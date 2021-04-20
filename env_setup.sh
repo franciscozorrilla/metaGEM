@@ -35,7 +35,7 @@ if [[ "$mambatest" -eq 0 ]]; then
    echo "\nCreating mamba environment for faster installation ... " && conda create -n mamba mamba && source activate mamba
 elif [[ "$mambatest" -gt 0 ]]; then
     source activate mamba && mambav=$(mamba --version|head -n1|cut -d ' ' -f2)
-    echo -e "detected version $mambav!"
+    echo -e "detected version $mambav!\n"
 fi
 
 while true; do
