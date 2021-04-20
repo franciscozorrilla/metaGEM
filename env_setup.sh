@@ -29,12 +29,19 @@ elif [[ "$condatest" -gt 0 ]]; then
 fi
 
 #check if mamba env is available
-echo -ne "Checking if mamba environment is set up ... "
-mambatest=$(conda info --envs|grep mamba|wc -l)
+echo -ne "Checking if mamba is available ... "
+mambatest=$(mamba --version|wc -l)
 if [[ "$mambatest" -eq 0 ]]; then
-   echo "\nCreating mamba environment for faster installation ... " && conda create -n mamba mamba && source activate mamba
+   while true; do
+    read -p "Do you wish to install mamba? Highly recommended for faster environment setup (y/n)" yn
+    case $yn in
+        [Yy]* ) echo "conda deactivate && conda install mamba -n base -c conda-forge"|bash; break;;
+        [Nn]* ) echo -e "\nPlease set up mamba before proceeding.\n"; exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 elif [[ "$mambatest" -gt 0 ]]; then
-    source activate mamba && mambav=$(mamba --version|head -n1|cut -d ' ' -f2)
+    mambav=$(mamba --version|head -n1|cut -d ' ' -f2)
     echo -e "detected version $mambav!\n"
 fi
 
