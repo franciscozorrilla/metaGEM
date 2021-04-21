@@ -1,13 +1,13 @@
+# `metaGEM` :gem:
+
+> An easy-to-use workflow to generate context specific genome-scale metabolic models and predict metabolic interactions within microbial communities directly from metagenomic data.
+
 [![DOI](https://img.shields.io/badge/DOI-10.1101%2F2020.12.31.424982%20-critical)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
 [![Build Status](https://travis-ci.org/franciscozorrilla/metaGEM.svg?branch=master)](https://travis-ci.org/franciscozorrilla/metaGEM)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/franciscozorrilla/metaGEM/blob/master/LICENSE)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 [![DOI](https://zenodo.org/badge/137376259.svg)](https://zenodo.org/badge/latestdoi/137376259)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
-
-# `metaGEM` :gem:
-
-> An easy-to-use workflow to generate context specific genome-scale metabolic models and predict metabolic interactions within microbial communities directly from metagenomic data.
 
 ![metawrapfigs_v2 002](https://user-images.githubusercontent.com/35606471/103545679-ceb71580-4e99-11eb-9862-084115121980.jpeg)
 
