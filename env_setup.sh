@@ -45,7 +45,7 @@ else
     while true; do
         read -p "Do you wish to create an environment for mamba installation? This is recommended for faster setup (y/n)" yn
         case $yn in
-            [Yy]* ) echo "conda deactivate && conda install mamba -n mamba -c conda-forge"|bash; break;;
+            [Yy]* ) echo "conda deactivate && conda create -n mamba mamba -c conda-forge"|bash; break;;
             [Nn]* ) echo -e "\nPlease set up mamba before proceeding.\n"; exit;;
             * ) echo "Please answer yes or no.";;
         esac
@@ -55,7 +55,7 @@ fi
 while true; do
     read -p "Do you wish to download and set up metaGEM conda environment? (y/n)" yn
     case $yn in
-        [Yy]* ) echo "mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml && source activate envs/metagem && pip install --user memote carveme smetana && source deactivate && echo "|bash; break;;
+        [Yy]* ) echo "mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml && source activate envs/metagem && pip install --user memote carveme smetana && source deactivate && source activate mamba && echo "|bash; break;;
         [Nn]* ) echo -e "\nSkipping metaGEM env setup, note that you will need this for refinement & reassembly of MAGs.\n"; break;;
         * ) echo "Please answer yes or no.";;
     esac
