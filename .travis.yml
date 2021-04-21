@@ -25,6 +25,8 @@ install:
  - mamba env create --prefix ./envs/metawrap -f envs/metaWRAP_env.yml
  # set up prokka-roary
  - mamba env create --prefix ./envs/prokkaroary -f envs/prokkaroary_env.yml
+ # set root dir
+ - echo -e "Setting current directory to root in config.yaml file ... \n" && root=$(pwd) && sed  -i "2s~/.*$~$root~" config.yaml
 
 script:
  - source activate envs/metagem
