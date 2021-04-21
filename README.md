@@ -1,5 +1,6 @@
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+ 
 # `metaGEM` :gem:
 
 > An easy-to-use workflow to generate context specific genome-scale metabolic models and predict metabolic interactions within microbial communities directly from metagenomic data.
