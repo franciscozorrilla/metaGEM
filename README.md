@@ -2,6 +2,9 @@
 [![Build Status](https://travis-ci.org/franciscozorrilla/metaGEM.svg?branch=master)](https://travis-ci.org/franciscozorrilla/metaGEM)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/franciscozorrilla/metaGEM/blob/master/LICENSE)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
+[![DOI](https://zenodo.org/badge/137376259.svg)](https://zenodo.org/badge/latestdoi/137376259)
+
+
 
 # `metaGEM` :gem:
 
