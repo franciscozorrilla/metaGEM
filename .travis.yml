@@ -15,7 +15,7 @@ install:
  # clone metagem repo
  - git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM
  # set up mamba
- - conda create -n mamba --prefix ./envs/mamba mamba -c conda-forge && source activate envs/mamba
+ - conda create --prefix ./envs/mamba mamba -c conda-forge && source activate envs/mamba
  # set up metagem
  - mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
  - source activate envs/metagem 
