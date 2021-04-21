@@ -43,7 +43,7 @@ if [[ "$mambaenv" -ge 1 ]]; then
     fi
 else
     while true; do
-        read -p "Do you wish to create an environment for mamba installation? This is highly recommended for faster setup (y/n)" yn
+        read -p "Do you wish to create an environment for mamba installation? This is recommended for faster setup (y/n)" yn
         case $yn in
             [Yy]* ) echo "conda deactivate && conda install mamba -n mamba -c conda-forge"|bash; break;;
             [Nn]* ) echo -e "\nPlease set up mamba before proceeding.\n"; exit;;
