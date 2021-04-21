@@ -1,7 +1,7 @@
 [![DOI](https://img.shields.io/badge/DOI-10.1101%2F2020.12.31.424982%20-critical)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
 [![Build Status](https://travis-ci.org/franciscozorrilla/metaGEM.svg?branch=master)](https://travis-ci.org/franciscozorrilla/metaGEM)
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/franciscozorrilla/metaGEM/blob/master/LICENSE)
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 
 # `metaGEM` :gem:
 
