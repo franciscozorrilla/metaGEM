@@ -13,7 +13,7 @@ install:
  - conda config --set always_yes yes --set changeps1 no
  - conda update -q conda
  # set up mamba
- - conda create -q -n mamba mamba
+ - conda install mamba -n mamba -c conda-forge
  # clone metagem repo
  - git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM
  # set up metagem
