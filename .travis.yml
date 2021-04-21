@@ -1,0 +1,36 @@
+language: python
+python:
+  # We don't actually use the Travis Python, but this keeps it organized.
+  - "3.8.6"
+
+install:
+  # set up conda
+  - sudo apt-get update
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # set up mamba
+  - conda create -q -n mamba mamba
+  # clone metagem repo
+  git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM
+  # set up metagem
+  - mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
+  - source activate envs/metagem 
+  - pip install --user memote carveme smetana
+  - source deactivate
+  # set up metawrap
+  - mamba env create --prefix ./envs/metawrap -f envs/metaWRAP_env.yml
+  # set up prokka-roary
+  - mamba env create --prefix ./envs/prokkaroary -f envs/prokkaroary_env.yml
+
+script:
+  - source activate envs/metagem
+  # run createFolders
+  - snakemake createFolders -j1
+  # run downloadToy
+  - snakemake downloadToy -j1
+  # run fastp
+  - snakemake all -j1
