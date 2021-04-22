@@ -170,7 +170,7 @@ Jan Zrimec, Mariia Kokina, Sara Jonasson, Francisco Zorrilla, Aleksej Zelezniak
 bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558 
 ```
 
-[![arxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.13.422558%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.13.422558v2.article-metrics)
+[![arxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.13.422558%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.13.422558v2.full)
 
 ## :heavy_check_mark: Please cite
 
