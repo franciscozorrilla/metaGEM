@@ -27,6 +27,9 @@ install:
  - mamba env create --prefix ./envs/prokkaroary -f envs/prokkaroary_env.yml
  # set root dir
  - echo -e "Setting current directory to root in config.yaml file ... \n" && root=$(pwd) && sed  -i "2s~/.*$~$root~" config.yaml
+ # set scratch dir
+ - mkdir -p tmp
+ - echo -e "Setting tmp directory in config.yaml file ... \n" && scratch=$(pwd|sed 's|$|/tmp|g') && sed  -i "3s~/.*$~$scratch~" config.yaml
 
 script:
  - source activate envs/metagem
