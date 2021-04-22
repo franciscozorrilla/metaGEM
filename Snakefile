@@ -151,17 +151,37 @@ rule qfilter:
         R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R2.fastq.gz' 
     shell:
         """
+        echo -e "Activating {config[envs][metagem]} conda environment ... "
         set +u;source activate {config[envs][metagem]};set -u;
+
+        # This is just to make sure that output folder exists
         mkdir -p $(dirname {output.R1})
 
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{{wildcards.IDs}} ... "
+        mkdir -p {config[path][scratch]}/{{wildcards.IDs}}
+        cd {config[path][scratch]}/{{wildcards.IDs}}
+
+        echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{{wildcards.IDs}} ... "
+        cp {input.R1} {input.R2} .
+
+        echo -e "Appending .raw to temporary input files to avoid name conflict ... "
+        mv $(basename {input.R1}) $(echo ($basename {input.R1})).fastq.gz.raw
+        mv $(basename {input.R2}) $(echo ($basename {input.R2})).fastq.gz.raw
+
         fastp --thread {config[cores][fastp]} \
-            -i {input.R1} \
-            -I {input.R2} \
-            -o {output.R1} \
-            -O {output.R2} \
+            -i $(echo ($basename {input.R1})).fastq.gz.raw \
+            -I $(echo ($basename {input.R2})).fastq.gz.raw \
+            -o $(basename {output.R1}) \
+            -O $(basename {output.R2}) \
             -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json \
             -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
 
+        echo -e "Moving output files $(basename {output.R1}) and $(basename {output.R2}) to $(dirname {output.R1})"
+        mv $(basename {output.R1}) $(basename {output.R2}) $(dirname {output.R1})
+
+        echo -e "Note that you must manually clean up these temporary directories if your scratch directory points to a static location instead of variable with a job specific location ... "
+
+        echo -e "Done quality filtering sample {{wildcards.IDs}}"
         """
 
 
@@ -216,10 +236,13 @@ rule megahit:
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
-        cd {config[path][scratch]}
+        mkdir -p $(dirname {output})
 
-        echo -n "Copying qfiltered reads to {config[path][scratch]} ... "
-        cp {input.R1} {input.R2} {config[path][scratch]}
+        mkdir -p {config[path][scratch]}/{{wildcards.IDs}}
+        cd {config[path][scratch]}/{{wildcards.IDs}}
+
+        echo -n "Copying qfiltered reads to {config[path][scratch]}/{{wildcards.IDs}} ... "
+        cp {input.R1} {input.R2} .
         echo "done. "
 
         echo -n "Running megahit ... "
@@ -240,9 +263,9 @@ rule megahit:
 
         echo "Zipping and moving assembly ... "
         gzip contigs.fasta
-        mkdir -p $(dirname {output})
         mv contigs.fasta.gz $(dirname {output})
         echo "Done. "
+
         """
 
 rule assemblyVis:
