@@ -31,6 +31,8 @@ Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wik
 
 ## 🔧 Usage
 
+You can try out `metaGEM` on the cloud by following along this google colab notebook [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
+
 Run `metaGEM` without any arguments to see usage instructions:
 
 ```
@@ -170,7 +172,7 @@ bioRxiv 2020.12.31.424982; doi: https://doi.org/10.1101/2020.12.31.424982
 
 Please reach out with any comments, concerns, or discussions regarding `metaGEM`.
 
-* Gitter: [@metaGEM](https://gitter.im/metaGEM/community)
+* Gitter: [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 * Twitter: [@metagenomez](https://twitter.com/metagenomez)
 * LinkedIn: [@fzorrilla94](https://www.linkedin.com/in/fzorrilla94/)
 * Email: fz274@cam.ac.uk
