@@ -160,18 +160,21 @@ rule qfilter:
         echo -e "\nCreating temporary directory {config[path][scratch]}/{{wildcards.IDs}} ... "
         mkdir -p {config[path][scratch]}/{{wildcards.IDs}}
         cd {config[path][scratch]}/{{wildcards.IDs}}
-        $pwd
+        pwd
+        ls -al
 
         echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{{wildcards.IDs}} ... "
         cp {input.R1} {input.R2} .
+        pwd
+        ls -al
 
         echo -e "Appending .raw to temporary input files to avoid name conflict ... "
         mv $(basename {input.R1}) $(basename {input.R1}).fastq.gz.raw
         mv $(basename {input.R2}) $(basename {input.R2}).fastq.gz.raw
 ßßß
         fastp --thread {config[cores][fastp]} \
-            -i $(echo ($basename {input.R1})).fastq.gz.raw \
-            -I $(echo ($basename {input.R2})).fastq.gz.raw \
+            -i $basename {input.R1}).fastq.gz.raw \
+            -I $basename {input.R2}).fastq.gz.raw \
             -o $(basename {output.R1}) \
             -O $(basename {output.R2}) \
             -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json \
