@@ -33,7 +33,9 @@ Congratulations, you can now start using `metaGEM`! Verify your installation by 
 bash metaGEM.sh --task check
 ```
 
-Please consult the [setup page](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart) in the wiki for further configuration instructions.
+Please consult the setup page in the wiki for further configuration instructions.
+
+[![installation](https://img.shields.io/badge/metaGEM-Installation-%2331a354)](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart)
 
 ## 🔧 Usage
 
