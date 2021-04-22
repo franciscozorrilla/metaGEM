@@ -174,6 +174,11 @@ elif [[ "$count_samp" -ne 0 && "$count_files" -ne 0 ]]; then
     echo ""
 fi
 
+# scratch dir
+echo -e "\nPlease remember to set the scratch/ path in the config.yaml file"
+echo 'Ideally this path should be set to a job-specific variable that points to a location on your cluster for high I/O operations (e.g. $SCRATCH or $TMPDIR)'
+echo "However, it can also be a static directory and metaGEM will create job specific subdirectories automatically."
+
 }
 
 # Run stats task
