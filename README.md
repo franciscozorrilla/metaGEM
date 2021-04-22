@@ -99,11 +99,11 @@ Usage: bash metaGEM.sh [-t|--task TASK]
 
 ## 💩 Tutorial
 
-`metaGEM` can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial](https://github.com/franciscozorrilla/unseenbio_metaGEM) showcases the `metaGEM` workflow on two unseenbio samples.
+`metaGEM` can even be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The [following tutorial] showcases the `metaGEM` workflow on two unseenbio samples [![Tutorial](https://img.shields.io/badge/Tutorial-metaGEM-%23d8b365)](https://github.com/franciscozorrilla/unseenbio_metaGEM)
 
 ## :book: Wiki
 
-Refer to the [wiki](https://github.com/franciscozorrilla/metaGEM/wiki) for additional usage tips, frequently asked questions, and implementation details. 
+Refer to the wiki for additional usage tips, frequently asked questions, and implementation details [![wiki](https://img.shields.io/badge/wiki-metaGEM-%232b8cbe)](https://github.com/franciscozorrilla/metaGEM/wiki)
 
 ## 🐍 Workflow
 
