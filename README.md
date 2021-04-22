@@ -15,7 +15,7 @@
 
 ## ☁️ Try it now
 
-You can try out `metaGEM` on the cloud by following along the google colab notebook.
+You can analyze a toy dataset using `metaGEM` by following along the google colab notebook on the cloud.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
 
