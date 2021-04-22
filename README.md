@@ -173,7 +173,7 @@ bioRxiv 2020.12.31.424982; doi: https://doi.org/10.1101/2020.12.31.424982
 Please reach out with any comments, concerns, or discussions regarding `metaGEM`.
 
 * Gitter [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
-* Twitter: [![Twitter](https://img.shields.io/badge/Twitter-%40metagenomez-lightblue)](https://twitter.com/metagenomez)
+* Twitter [![Twitter](https://img.shields.io/badge/Twitter-%40metagenomez-lightblue)](https://twitter.com/metagenomez)
 * LinkedIn [![LinkedIn](https://img.shields.io/badge/LinkedIn-fzorrilla94-blue)](https://www.linkedin.com/in/fzorrilla94/)
-* Email: fz274@cam.ac.uk
+* Email fz274@cam.ac.uk
 
