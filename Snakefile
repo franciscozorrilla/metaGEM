@@ -165,8 +165,8 @@ rule qfilter:
         cp {input.R1} {input.R2} .
 
         echo -e "Appending .raw to temporary input files to avoid name conflict ... "
-        mv $(basename {input.R1}) $(echo ($basename {input.R1})).fastq.gz.raw
-        mv $(basename {input.R2}) $(echo ($basename {input.R2})).fastq.gz.raw
+        mv $(echo $(basename {input.R1})) $(echo ($basename {input.R1})).fastq.gz.raw
+        mv $(echo $(basename {input.R2})) $(echo ($basename {input.R2})).fastq.gz.raw
 
         fastp --thread {config[cores][fastp]} \
             -i $(echo ($basename {input.R1})).fastq.gz.raw \
