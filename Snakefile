@@ -160,6 +160,7 @@ rule qfilter:
         echo -e "\nCreating temporary directory {config[path][scratch]}/{{wildcards.IDs}} ... "
         mkdir -p {config[path][scratch]}/{{wildcards.IDs}}
         cd {config[path][scratch]}/{{wildcards.IDs}}
+        $pwd
 
         echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{{wildcards.IDs}} ... "
         cp {input.R1} {input.R2} .
