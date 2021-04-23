@@ -261,7 +261,7 @@ rule megahit:
         cd {config[path][scratch]}/{config[folder][assemblies]}/${{idvar}}
 
         # Copy files
-        echo -n "Copying qfiltered reads to {config[path][scratch]}/{{wildcards.IDs}} ... "
+        echo -n "Copying qfiltered reads to {config[path][scratch]}/${{idvar}} ... "
         cp {input.R1} {input.R2} .
         echo "done. "
 
