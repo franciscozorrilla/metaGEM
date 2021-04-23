@@ -165,7 +165,6 @@ rule qfilter:
 
         # Move into scratch dir
         cd {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}}
-        pwd
 
         # Copy files
         echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}} ... "
@@ -175,6 +174,7 @@ rule qfilter:
         for file in *.gz; do mv -- "$file" "${{file}}.raw.gz"; done
 
         # Run fastp
+        echo -n "Running fastp ... "
         fastp --thread {config[cores][fastp]} \
             -i *R1*raw.gz \
             -I *R2*raw.gz \
@@ -187,8 +187,10 @@ rule qfilter:
         echo -e "Moving output files $(basename {output.R1}) and $(basename {output.R2}) to $(dirname {output.R1})"
         mv $(basename {output.R1}) $(basename {output.R2}) $(dirname {output.R1})
 
+        # Warning
         echo -e "Note that you must manually clean up these temporary directories if your scratch directory points to a static location instead of variable with a job specific location ... "
 
+        # Done message
         echo -e "Done quality filtering sample ${{idvar}}"
         """
 
@@ -243,17 +245,28 @@ rule megahit:
         f'{config["path"]["root"]}/benchmarks/{{IDs}}.megahit.benchmark.txt'
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
         mkdir -p $(dirname {output})
 
-        mkdir -p {config[path][scratch]}/{{wildcards.IDs}}
-        cd {config[path][scratch]}/{{wildcards.IDs}}
+        # This is just to make sure that output folder exists
+        mkdir -p $(dirname {output})
 
+        # Make job specific scratch dir
+        idvar=$(echo $(basename $(dirname {output})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][assemblies]}/${{idvar}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][assemblies]}/${{idvar}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][assemblies]}/${{idvar}}
+
+        # Copy files
         echo -n "Copying qfiltered reads to {config[path][scratch]}/{{wildcards.IDs}} ... "
         cp {input.R1} {input.R2} .
         echo "done. "
 
-        echo -n "Running megahit ... "
+        # Run megahit
+        echo -n "Running METGAHIT ... "
         megahit -t {config[cores][megahit]} \
             --presets {config[params][assemblyPreset]} \
             --verbose \
@@ -263,17 +276,21 @@ rule megahit:
             -o tmp;
         echo "done. "
 
+        # Rename assembly
         echo "Renaming assembly ... "
         mv tmp/final.contigs.fa contigs.fasta
         
+        # Remove spaces from contig headers and replace with hyphens
         echo "Fixing contig header names: replacing spaces with hyphens ... "
         sed -i 's/ /-/g' contigs.fasta
 
+        # Zip and move assembly to output folder
         echo "Zipping and moving assembly ... "
         gzip contigs.fasta
         mv contigs.fasta.gz $(dirname {output})
-        echo "Done. "
 
+        # Done message
+        echo -e "Done assembling quality filtered reads for sample ${{idvar}}"
         """
 
 rule assemblyVis:
