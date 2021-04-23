@@ -162,21 +162,22 @@ rule qfilter:
         idvar=$(echo $(basename $(dirname {output.R1}))|sed 's/_R1.fastq.gz//g')
         echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}} ... "
         mkdir -p {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}}
+
+        # Move into scratch dir
         cd {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}}
         pwd
 
-        # Copy files to new scratch dir
+        # Copy files
         echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}} ... "
         cp {input.R1} {input.R2} .
-        ls -al
 
         echo -e "Appending .raw to temporary input files to avoid name conflict ... "
-        for file in *.gz; do mv -- "$file" "${{file}}.raw"; done
+        for file in *.gz; do mv -- "$file" "${{file}}.raw.gz"; done
 
         # Run fastp
         fastp --thread {config[cores][fastp]} \
-            -i $(basename {input.R1}).raw \
-            -I $(basename {input.R2}).raw \
+            -i *R1*raw.gz \
+            -I *R2*raw.gz \
             -o $(basename {output.R1}) \
             -O $(basename {output.R2}) \
             -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json \
@@ -188,7 +189,7 @@ rule qfilter:
 
         echo -e "Note that you must manually clean up these temporary directories if your scratch directory points to a static location instead of variable with a job specific location ... "
 
-        echo -e "Done quality filtering sample {{wildcards.IDs}}"
+        echo -e "Done quality filtering sample ${{idvar}}"
         """
 
 
