@@ -175,8 +175,8 @@ rule qfilter:
 
         # Run fastp
         fastp --thread {config[cores][fastp]} \
-            -i $basename {input.R1}).raw \
-            -I $basename {input.R2}).raw \
+            -i $(basename {input.R1}).raw \
+            -I $(basename {input.R2}).raw \
             -o $(basename {output.R1}) \
             -O $(basename {output.R2}) \
             -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json \
