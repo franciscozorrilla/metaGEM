@@ -171,9 +171,8 @@ rule qfilter:
         ls -al
 
         echo -e "Appending .raw to temporary input files to avoid name conflict ... "
-        mv $(basename {input.R1}) $(basename {input.R1}).raw
-        mv $(basename {input.R2}) $(basename {input.R2}).raw
-        
+        for file in *.gz; do mv -- "$file" "${file}.raw"; done
+
         # Run fastp
         fastp --thread {config[cores][fastp]} \
             -i $basename {input.R1}).raw \
