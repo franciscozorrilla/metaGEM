@@ -151,35 +151,39 @@ rule qfilter:
         R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R2.fastq.gz' 
     shell:
         """
+        # Activate metagem environment
         echo -e "Activating {config[envs][metagem]} conda environment ... "
         set +u;source activate {config[envs][metagem]};set -u;
 
         # This is just to make sure that output folder exists
         mkdir -p $(dirname {output.R1})
 
-        echo -e "\nCreating temporary directory {config[path][scratch]}/{{wildcards.IDs}} ... "
-        mkdir -p {config[path][scratch]}/{{wildcards.IDs}}
-        cd {config[path][scratch]}/{{wildcards.IDs}}
+        # Make job specific scratch dir
+        idvar=$(echo $(basename $(dirname {output.R1}))|sed 's/_R1.fastq.gz//g')
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][qfiltered]}/${idvar} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][qfiltered]}/${idvar}
+        cd {config[path][scratch]}/{config[folder][qfiltered]}/${idvar}
         pwd
-        ls -al
 
-        echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{{wildcards.IDs}} ... "
+        # Copy files to new scratch dir
+        echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{config[folder][qfiltered]}/${idvar} ... "
         cp {input.R1} {input.R2} .
-        pwd
         ls -al
 
         echo -e "Appending .raw to temporary input files to avoid name conflict ... "
-        mv $(basename {input.R1}) $(basename {input.R1}).fastq.gz.raw
-        mv $(basename {input.R2}) $(basename {input.R2}).fastq.gz.raw
+        mv $(basename {input.R1}) $(basename {input.R1}).raw
+        mv $(basename {input.R2}) $(basename {input.R2}).raw
         
+        # Run fastp
         fastp --thread {config[cores][fastp]} \
-            -i $basename {input.R1}).fastq.gz.raw \
-            -I $basename {input.R2}).fastq.gz.raw \
+            -i $basename {input.R1}).raw \
+            -I $basename {input.R2}).raw \
             -o $(basename {output.R1}) \
             -O $(basename {output.R2}) \
             -j $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).json \
             -h $(dirname {output.R1})/$(echo $(basename $(dirname {output.R1}))).html
 
+        # Move output files to root dir
         echo -e "Moving output files $(basename {output.R1}) and $(basename {output.R2}) to $(dirname {output.R1})"
         mv $(basename {output.R1}) $(basename {output.R2}) $(dirname {output.R1})
 
