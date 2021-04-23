@@ -160,13 +160,13 @@ rule qfilter:
 
         # Make job specific scratch dir
         idvar=$(echo $(basename $(dirname {output.R1}))|sed 's/_R1.fastq.gz//g')
-        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][qfiltered]}/${idvar} ... "
-        mkdir -p {config[path][scratch]}/{config[folder][qfiltered]}/${idvar}
-        cd {config[path][scratch]}/{config[folder][qfiltered]}/${idvar}
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}}
+        cd {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}}
         pwd
 
         # Copy files to new scratch dir
-        echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{config[folder][qfiltered]}/${idvar} ... "
+        echo -e "Copying {input.R1} and {input.R2} to {config[path][scratch]}/{config[folder][qfiltered]}/${{idvar}} ... "
         cp {input.R1} {input.R2} .
         ls -al
 
