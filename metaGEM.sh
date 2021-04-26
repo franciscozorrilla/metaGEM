@@ -49,7 +49,8 @@ Options:
                         CORE WORKFLOW
                             fastp 
                             megahit 
-                            crossMap 
+                            crossMapSeries
+                            crossMapParallel 
                             concoct 
                             metabat
                             maxbin 
@@ -483,7 +484,7 @@ parse() {
         submitCluster
     fi
 
-  elif [ $task == "crossMap" ]; then
+  elif [ $task == "crossMapSeries" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{IDs}/cov", IDs = IDs)'
     if [ $local == "true" ]; then
         submitLocal

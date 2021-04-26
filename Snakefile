@@ -332,7 +332,7 @@ rule assemblyVis:
         #rm Rplots.pdf
         """
 
-rule crossMap:  
+rule crossMapSeries:  
     input:
         contigs = rules.megahit.output,
         reads = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}'
@@ -341,22 +341,34 @@ rule crossMap:
         metabat = directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/cov'),
         maxbin = directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/cov')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.crossMap.benchmark.txt'
+        f'{config["path"]["root"]}/benchmarks/{{IDs}}.crossMapSeries.benchmark.txt'
     message:
         """
+        Cross map in seies:
         Use this approach to provide all 3 binning tools with cross-sample coverage information.
         Will likely provide superior binning results, but may no be feasible for datasets with 
         many large samples such as the tara oceans dataset. 
         """
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        cd {config[path][scratch]}
-        cp {input.contigs} .
 
+        # Create output folders
         mkdir -p {output.concoct}
         mkdir -p {output.metabat}
         mkdir -p {output.maxbin}
+
+        # Make job specific scratch dir
+        idvar=$(echo $(basename $(dirname {output.concoct})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][crossMap]}/${{idvar}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][crossMap]}/${{idvar}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][crossMap]}/${{idvar}}
+
+        # Copy files
+        cp {input.contigs} .
 
         # Define the focal sample ID, fsample: 
         # The one sample's assembly that all other samples' read will be mapped against in a for loop
