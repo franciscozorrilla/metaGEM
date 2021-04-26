@@ -1,4 +1,4 @@
-# `metaGEM` :gem:
+# :gem: `metaGEM`
 
 > An easy-to-use workflow for generating context specific genome-scale metabolic models and predicting metabolic interactions within microbial communities directly from metagenomic data.
 
