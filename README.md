@@ -9,7 +9,7 @@
 [![DOI](https://img.shields.io/badge/Zenodo-10.5281%2F4707723-blue)](https://zenodo.org/badge/latestdoi/137376259)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
 
-![metawrapfigs_final3 004](https://user-images.githubusercontent.com/35606471/116462292-333f1b80-a861-11eb-9833-67e08bc862c2.png)
+![metawrapfigs_final4 001](https://user-images.githubusercontent.com/35606471/116464538-004a5700-a864-11eb-8845-825aef5a9a44.png)
 
 `metaGEM` integrates an array of existing bioinformatics and metabolic modeling tools using Snakemake, for the purpose of predicting metabolic interactions within bacterial communities of microbiomes. From whole metagenome shotgun datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations. Additional outputs include abundance estimates, taxonomic assignment, growth rate estimation, pangenome analysis, and eukaryotic MAG identification. The workflow diagram highlights the most important tasks in the core workflow on the left-hand column, whiel the auxiliary or supplementary tools are displayed on the right-hand column.
 
