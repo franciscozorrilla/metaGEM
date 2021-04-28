@@ -19,3 +19,5 @@ dependencies:
   - r-ggplot2>=3.3.3
   - samtools>=1.9
   - snakemake>=5.31.1
+  - r-gridextra>=2.2.1
+  - r-dplyr>=0.7.5
