@@ -4,7 +4,7 @@
 
 [![DOI](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.31.424982%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
 [![Build Status](https://travis-ci.org/franciscozorrilla/metaGEM.svg?branch=master)](https://travis-ci.org/franciscozorrilla/metaGEM)
-[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/franciscozorrilla/metaGEM/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/franciscozorrilla/metaGEM)](https://github.com/franciscozorrilla/metaGEM/blob/master/LICENSE)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 [![DOI](https://img.shields.io/badge/Zenodo-10.5281%2F4707723-blue)](https://zenodo.org/badge/latestdoi/137376259)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
