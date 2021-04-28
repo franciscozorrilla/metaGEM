@@ -440,10 +440,10 @@ rule kallistoIndex:
     output:
         f'{config["path"]["root"]}/kallistoIndex/{{focal}}/index.kaix'
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{focal}}.crossMap3.benchmark.txt'
+        f'{config["path"]["root"]}/benchmarks/{{focal}}.crossMapParallel.benchmark.txt'
     message:
         """
-        Needed for the crossMap3 implementation, which uses kalliso for fast mapping instead of bwa.
+        Needed for the crossMapParallel implementation, which uses kalliso for fast mapping instead of bwa.
         """
     shell:
         """
@@ -467,7 +467,7 @@ rule kallistoIndex:
         """
 
 
-rule crossMap3:  
+rule crossMapParallel:  
     input:
         index = f'{config["path"]["root"]}/kallistoIndex/{{focal}}/index.kaix',
         R1 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R1.fastq.gz',
@@ -475,10 +475,10 @@ rule crossMap3:
     output:
         directory(f'{config["path"]["root"]}/kallisto/{{focal}}/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{focal}}.{{IDs}}.crossMap3.benchmark.txt'
+        f'{config["path"]["root"]}/benchmarks/{{focal}}.{{IDs}}.crossMapParallel.benchmark.txt'
     message:
         """
-        This rule is an alternative implementation of crossMap/crossMap2, using kallisto 
+        This rule is an alternative implementation of crossMapSeries, using kallisto 
         instead of bwa for mapping operations. This implementation is recommended for
         large datasets.
         """
@@ -501,7 +501,7 @@ rule crossMap3:
         mv abundance.tsv.gz {output}
         """
 
-rule gatherCrossMap3: 
+rule gatherCrossMapParallel: 
     input:
         expand(f'{config["path"]["root"]}/kallisto/{{focal}}/{{IDs}}', focal = focal , IDs = IDs)
     shell:
@@ -516,7 +516,7 @@ rule kallisto2concoctTable:
         f'{config["path"]["root"]}/concoct_input/{{focal}}_concoct_inputtableR.tsv' 
     message:
         """
-        This rule is necessary for the crossMap3 implementation subworkflow.
+        This rule is necessary for the crossMapParallel implementation subworkflow.
         It summarizes the individual concoct input tables for a given focal sample.
         """
     shell:
@@ -581,7 +581,7 @@ rule metabat:
     message:
         """
         Implementation of metabat where only coverage information from the focal sample is used
-        for binning. Use with the crossMap3 subworkflow, where cross sample coverage information
+        for binning. Use with the crossMapParallel subworkflow, where cross sample coverage information
         is only used by CONCOCT.
         """
     shell:
@@ -705,7 +705,7 @@ rule maxbinCross:
         cd {config[path][scratch]}
         echo -e "\nUnzipping assembly ... "
         gunzip $(basename {input.assembly})
-        echo -e "\nGenerating list of depth files based on crossMap rule output ... "
+        echo -e "\nGenerating list of depth files based on crossMapSeries rule output ... "
         find . -name "*.depth" > abund.list
         
         echo -e "\nRunning maxbin2 ... "
