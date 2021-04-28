@@ -201,7 +201,7 @@ echo "Assembly: $nassm / $nsamp samples processed ... "
     
 #concoct: count *concoct-bins subfolders
 nconc=$(find concoct -name "*.concoct-bins"|wc -l)
-echo "Binning (CONCOCT): $nassm / $nsamp samples processed ... "
+echo "Binning (CONCOCT): $nconc / $nsamp samples processed ... "
     
 #maxbin2: count *maxbin-bins subfolders
 nmaxb=$(find maxbin -name "*.maxbin-bins"|wc -l)
