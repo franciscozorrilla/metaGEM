@@ -625,18 +625,29 @@ rule metabat:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.metabat.benchmark.txt'
     message:
         """
-        Implementation of metabat where only coverage information from the focal sample is used
+        Implementation of metabat2 where only coverage information from the focal sample is used
         for binning. Use with the crossMapParallel subworkflow, where cross sample coverage information
         is only used by CONCOCT.
         """
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        cp {input.assembly} {input.R1} {input.R2} {config[path][scratch]}
-        mkdir -p $(dirname {output})
-        cd {config[path][scratch]}
 
+        # Create output folder
+        mkdir -p {output}
+
+        # Make job specific scratch dir
         fsampleID=$(echo $(basename $(dirname {input.assembly})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}}
+
+        # Copy files
+        cp {input.assembly} {input.R1} {input.R2} .
+
         echo -e "\nFocal sample: $fsampleID ... "
 
         echo "Renaming and unzipping assembly ... "
@@ -665,6 +676,7 @@ rule metabat:
         echo -e "\nDeleting no-longer-needed bam file ... "
         rm $id.bam
 
+        # Run metabat2
         echo -e "\nRunning metabat2 ... "
         metabat2 -i $fsampleID.fa $id.sort -s \
             {config[params][metabatMin]} \
@@ -674,7 +686,7 @@ rule metabat:
 
         rm $fsampleID.fa
 
-        mkdir -p {output}
+        # Move files to output dir
         mv *.fa {output}
         """
 
@@ -688,14 +700,31 @@ rule metabatCross:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.metabat.benchmark.txt'
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        cp {input.assembly} {input.depth}/*.all.depth {config[path][scratch]}
-        mkdir -p $(dirname {output})
-        cd {config[path][scratch]}
+
+        # Create output folder
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        fsampleID=$(echo $(basename $(dirname {input.assembly})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}}
+
+        # Copy files to tmp
+        cp {input.assembly} {input.depth}/*.all.depth .
+
+        # Unzip assembly
         gunzip $(basename {input.assembly})
+
+        # Run metabat2
         echo -e "\nRunning metabat2 ... "
         metabat2 -i contigs.fasta -a *.all.depth -s {config[params][metabatMin]} -v --seed {config[params][seed]} -t 0 -m {config[params][minBin]} -o $(basename $(dirname {output}))
-        mkdir -p {output}
+
+        # Move result files to output dir
         mv *.fa {output}
         """
 
