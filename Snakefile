@@ -28,7 +28,7 @@ rule all:
         """
     shell:
         """
-        echo {input}
+        echo "Gathering {input} ... "
         """
 
 rule createFolders:
@@ -45,7 +45,7 @@ rule createFolders:
         echo -e "Setting up result folders in the following work directory: $(echo {input}) \n"
 
         # Generate folders.txt by extracting folder names from config.yaml file
-        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 22|sed '/^$/d' > folders.txt # NOTE: hardcoded numbers (tail 4, head 22) for folder names, increase number as new folders are introduced.
+        paste config.yaml |cut -d':' -f2|tail -n +4|head -n 25|sed '/^$/d' > folders.txt # NOTE: hardcoded numbers (tail 4, head 25) for folder names, increase number as new folders are introduced.
         
         while read line;do 
             echo "Creating $line folder ... "
@@ -242,7 +242,7 @@ rule megahit:
     output:
         f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{IDs}}/contigs.fasta.gz'
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.megahit.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.megahit.benchmark.txt'
     shell:
         """
         # Activate metagem environment
@@ -341,7 +341,7 @@ rule crossMapSeries:
         metabat = directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/cov'),
         maxbin = directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/cov')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.crossMapSeries.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.crossMapSeries.benchmark.txt'
     message:
         """
         Cross map in seies:
@@ -438,22 +438,35 @@ rule kallistoIndex:
     input:
         f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{focal}}/contigs.fasta.gz'
     output:
-        f'{config["path"]["root"]}/kallistoIndex/{{focal}}/index.kaix'
+        f'{config["path"]["root"]}/{config["folder"]["kallistoIndex"]}/{{focal}}/index.kaix'
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{focal}}.crossMapParallel.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{focal}}.kallistoIndex.benchmark.txt'
     message:
         """
         Needed for the crossMapParallel implementation, which uses kalliso for fast mapping instead of bwa.
+        Saves a lot of computational power/time to only create once and re-use for each job.
         """
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        mkdir -p $(dirname {output})
-        cd {config[path][scratch]}    
 
+        # Create output folder
+        mkdir -p $(dirname {output})
+
+        # Make job specific scratch dir
         sampleID=$(echo $(basename $(dirname {input})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config["folder"]["kallistoIndex"]}/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config["folder"]["kallistoIndex"]}/${{sampleID}}
+        
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config["folder"]["kallistoIndex"]}/${{sampleID}}
+
+        # Copy files
         echo -e "\nCopying and unzipping sample $sampleID assembly ... "
         cp {input} .
+
+        # Rename files
         mv $(basename {input}) $(echo $sampleID|sed 's/$/.fa.gz/g')
         gunzip $(echo $sampleID|sed 's/$/.fa.gz/g')
 
@@ -469,13 +482,13 @@ rule kallistoIndex:
 
 rule crossMapParallel:  
     input:
-        index = f'{config["path"]["root"]}/kallistoIndex/{{focal}}/index.kaix',
+        index = f'{config["path"]["root"]}/{config["folder"]["kallistoIndex"]}/{{focal}}/index.kaix',
         R1 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R1.fastq.gz',
         R2 = f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R2.fastq.gz'
     output:
-        directory(f'{config["path"]["root"]}/kallisto/{{focal}}/{{IDs}}')
+        directory(f'{config["path"]["root"]}/{config["folder"]["kallisto"]}/{{focal}}/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{focal}}.{{IDs}}.crossMapParallel.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{focal}}.{{IDs}}.crossMapParallel.benchmark.txt'
     message:
         """
         This rule is an alternative implementation of crossMapSeries, using kallisto 
@@ -484,45 +497,65 @@ rule crossMapParallel:
         """
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        cd {config[path][scratch]}
 
-        echo -e "\nCopying assembly index {input.index} and reads {input.R1} {input.R2} to {config[path][scratch]}"
-        cp {input.index} {input.R1} {input.R2} .
-
+        # Create output folder
         mkdir -p {output}
 
+        # Make job specific scratch dir
+        focal=$(echo $(basename $(dirname {input.index})))
+        mapping=$(echo $(basename $(dirname {input.R1})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config["folder"]["kallisto"]}/${{focal}}_${{mapping}} ... "
+        mkdir -p {config[path][scratch]}/{config["folder"]["kallisto"]}/${{focal}}_${{mapping}}
+
+        # Move into tmp dir
+        cd {config[path][scratch]}/{config["folder"]["kallisto"]}/${{focal}}_${{mapping}}
+
+        # Copy files
+        echo -e "\nCopying assembly index {input.index} and reads {input.R1} {input.R2} to $(pwd) ... "
+        cp {input.index} {input.R1} {input.R2} .
+
+        # Run kallisto
         echo -e "\nRunning kallisto ... "
         kallisto quant --threads {config[cores][crossMap]} --plaintext -i index.kaix -o . $(basename {input.R1}) $(basename {input.R2})
         
+        # Zip file
         echo -e "\nZipping abundance file ... "
         gzip abundance.tsv
 
+        # Move mapping file out output folder
         mv abundance.tsv.gz {output}
         """
 
 rule gatherCrossMapParallel: 
     input:
-        expand(f'{config["path"]["root"]}/kallisto/{{focal}}/{{IDs}}', focal = focal , IDs = IDs)
+        expand(f'{config["path"]["root"]}/{config["folder"]["kallisto"]}/{{focal}}/{{IDs}}', focal = focal , IDs = IDs)
     shell:
         """
-        echo idk
+        echo "Gathering cross map jobs ..." 
         """
 
 rule kallisto2concoctTable: 
     input:
-        f'{config["path"]["root"]}/kallisto/{{focal}}/'
+        f'{config["path"]["root"]}/{config["folder"]["kallisto"]}/{{focal}}/'
     output: 
-        f'{config["path"]["root"]}/concoct_input/{{focal}}_concoct_inputtableR.tsv' 
+        #f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{focal}}/cov/coverage_table.tsv'
     message:
         """
         This rule is necessary for the crossMapParallel implementation subworkflow.
         It summarizes the individual concoct input tables for a given focal sample.
+        Note: silence output if not using parallel mapping approach
         """
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
+
+        # Create output folder
         mkdir -p $(dirname {output})
+
+        # Compile individual mapping results into coverage table for given assembly
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
             --samplenames <(for s in {input}*; do echo $s|sed 's|^.*/||'; done) \
             $(find {input} -name "*.gz") > {output}
@@ -536,7 +569,7 @@ rule concoct:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{IDs}}/{{IDs}}.concoct-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.concoct.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.concoct.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
@@ -577,7 +610,7 @@ rule metabat:
     output:
         #directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.metabat.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.metabat.benchmark.txt'
     message:
         """
         Implementation of metabat where only coverage information from the focal sample is used
@@ -640,7 +673,7 @@ rule metabatCross:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.metabat.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.metabat.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
@@ -663,7 +696,7 @@ rule maxbin:
     output:
         #directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.maxbin.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
@@ -696,7 +729,7 @@ rule maxbinCross:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.maxbin.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.maxbin.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u;
@@ -725,7 +758,7 @@ rule binRefine:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["refined"]}/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.binRefine.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.binRefine.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
@@ -764,7 +797,7 @@ rule binReassemble:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.binReassemble.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.binReassemble.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metawrap]};set -u;
@@ -935,7 +968,7 @@ rule abundance:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["abundance"]}/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.abundance.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.abundance.benchmark.txt'
     message:
         """
         Calculate bin abundance fraction using the following:
@@ -1060,7 +1093,7 @@ rule GTDBtk:
     output:
         directory(f'{config["path"]["root"]}/GTDBtk/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.GTDBtk.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.GTDBtk.benchmark.txt'
     message:
         """
         The folder dna_bins assumes subfolders containing dna bins for refined and reassembled bins.
@@ -1195,7 +1228,7 @@ rule carveme:
     output:
         f'{config["path"]["root"]}/{config["folder"]["GEMs"]}/{{binIDs}}.xml'
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{binIDs}}.carveme.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{binIDs}}.carveme.benchmark.txt'
     message:
         """
         Make sure that the input files are ORF annotated and preferably protein fasta.
@@ -1333,7 +1366,7 @@ rule smetana:
     output:
         f'{config["path"]["root"]}/{config["folder"]["SMETANA"]}/{{IDs}}_detailed.tsv'
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.smetana.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.smetana.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u
@@ -1371,7 +1404,7 @@ rule memote:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["memote"]}/{{gemIDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{gemIDs}}.memote.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{gemIDs}}.memote.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u
@@ -1399,7 +1432,7 @@ rule grid:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["GRiD"]}/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{IDs}}.grid.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.grid.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][metagem]};set -u
@@ -1449,7 +1482,7 @@ rule prokka:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/prokka/unorganized/{{binIDs}}')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{binIDs}}.prokka.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{binIDs}}.prokka.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][prokkaroary]};set -u
@@ -1471,7 +1504,7 @@ rule roary:
     output:
         directory(f'{config["path"]["root"]}/{config["folder"]["pangenome"]}/roary/{{speciesIDs}}/')
     benchmark:
-        f'{config["path"]["root"]}/benchmarks/{{speciesIDs}}.roary.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{speciesIDs}}.roary.benchmark.txt'
     shell:
         """
         set +u;source activate {config[envs][prokkaroary]};set -u

@@ -23,6 +23,9 @@ folder:
     proteinBins: protein_bins
     dnaBins: dna_bins
     pangenome: pangenome
+    kallisto: kallisto
+    kallistoIndex: kallistoIndex
+    benchmarks: benchmarks
 scripts:
     kallisto2concoct: kallisto2concoct.py
     prepRoary: prepareRoaryInput.R
@@ -77,4 +80,3 @@ envs:
     metagem: envs/metagem
     metawrap: envs/metawrap
     prokkaroary: envs/prokkaroary
-    

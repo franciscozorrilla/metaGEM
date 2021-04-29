@@ -50,7 +50,9 @@ Options:
                             fastp 
                             megahit 
                             crossMapSeries
-                            crossMapParallel 
+                            kallistoIndex
+                            crossMapParallel
+                            kallisto2concoct
                             concoct 
                             metabat
                             maxbin 
@@ -486,6 +488,30 @@ parse() {
 
   elif [ $task == "crossMapSeries" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{IDs}/cov", IDs = IDs)'
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
+
+  elif [ $task == "kallistoIndex" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["kallistoIndex"]+"/{focal}/index.kaix", focal = focal)'
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
+
+  elif [ $task == "crossMapParallel" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["kallisto"]+"/{focal}/{IDs}", focal = focal , IDs = IDs)'
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
+
+  elif [ $task == "kallisto2concoct" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{focal}/cov/coverage_table.tsv", focal = focal)'
     if [ $local == "true" ]; then
         submitLocal
     else
