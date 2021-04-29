@@ -832,13 +832,23 @@ rule binRefine:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.binRefine.benchmark.txt'
     shell:
         """
+        # Activate metawrap environment
         set +u;source activate {config[envs][metawrap]};set -u;
-        mkdir -p $(dirname {output})
-        mkdir -p {output}
-        cd {config[path][scratch]}
 
+        # Create output folder
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        fsampleID=$(echo $(basename $(dirname {input.concoct})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][refined]}/${{fsampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][refined]}/${{fsampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][refined]}/${{fsampleID}}
+
+        # Copy files to tmp
         echo "Copying bins from CONCOCT, metabat2, and maxbin2 to {config[path][scratch]} ... "
-        cp -r {input.concoct} {input.metabat} {input.maxbin} {config[path][scratch]}
+        cp -r {input.concoct} {input.metabat} {input.maxbin} .
 
         echo "Renaming bin folders to avoid errors with metaWRAP ... "
         mv $(basename {input.concoct}) $(echo $(basename {input.concoct})|sed 's/-bins//g')
@@ -871,10 +881,22 @@ rule binReassemble:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.binReassemble.benchmark.txt'
     shell:
         """
+        # Activate metawrap environment
         set +u;source activate {config[envs][metawrap]};set -u;
-        mkdir -p $(dirname {output})
-        cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} {config[path][scratch]}
-        cd {config[path][scratch]}
+
+        # Create output folder
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        fsampleID=$(echo $(basename $(dirname {input.R1})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][reassembled]}/${{fsampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][reassembled]}/${{fsampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][reassembled]}/${{fsampleID}}
+
+        # Copy files to tmp   
+        cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} .
         
         echo "Running metaWRAP bin reassembly ... "
         metaWRAP reassemble_bins -o $(basename {output}) \
@@ -887,9 +909,12 @@ rule binReassemble:
             -x {config[params][reassembleCont]} \
             --parallel
         
+        # Cleaning up files
         rm -r metawrap_*_bins
         rm -r $(basename {output})/work_files
         rm *.fastq.gz 
+
+        # Move results to output folder
         mv * $(dirname {output})
         """
 
