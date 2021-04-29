@@ -572,10 +572,22 @@ rule concoct:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.concoct.benchmark.txt'
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        mkdir -p $(dirname $(dirname {output}))
-        cd {config[path][scratch]}
-        cp {input.contigs} {input.table} {config[path][scratch]}
+
+        # Create output folder
+        mkdir -p $(dirname {output})
+
+        # Make job specific scratch dir
+        sampleID=$(echo $(basename $(dirname {input.contigs})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][concoct]}/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][concoct]}/${{sampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][concoct]}/${{sampleID}}
+
+        # Copy files
+        cp {input.contigs} {input.table} .
 
         echo "Unzipping assembly ... "
         gunzip $(basename {input.contigs})
@@ -597,7 +609,7 @@ rule concoct:
         mkdir -p $(basename {output})
         extract_fasta_bins.py $(echo $(basename {input.contigs})|sed 's/.gz//') $(basename $(dirname {output}))_clustering_merged.csv --output_path $(basename {output})
         
-        mkdir -p $(dirname {output})
+        # Move final result files to output folder
         mv $(basename {output}) *.txt *.csv $(dirname {output})
         """
 
