@@ -740,10 +740,22 @@ rule maxbin:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.maxbin.benchmark.txt'
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        cp -r {input.assembly} {input.R1} {input.R2} {config[path][scratch]}
+
+        # Create output folder
         mkdir -p $(dirname {output})
-        cd {config[path][scratch]}
+
+        # Make job specific scratch dir
+        fsampleID=$(echo $(basename $(dirname {input.assembly})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}}
+
+        # Copy files to tmp
+        cp -r {input.assembly} {input.R1} {input.R2} .
 
         echo -e "\nUnzipping assembly ... "
         gunzip $(basename {input.assembly})
@@ -773,18 +785,36 @@ rule maxbinCross:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.maxbin.benchmark.txt'
     shell:
         """
+        # Activate metagem environment
         set +u;source activate {config[envs][metagem]};set -u;
-        cp -r {input.assembly} {input.depth}/*.depth {config[path][scratch]}
+
+        # Create output folder
         mkdir -p $(dirname {output})
-        cd {config[path][scratch]}
+
+        # Make job specific scratch dir
+        fsampleID=$(echo $(basename $(dirname {input.assembly})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}}
+
+        # Copy files to tmp
+        cp -r {input.assembly} {input.depth}/*.depth .
+
         echo -e "\nUnzipping assembly ... "
         gunzip $(basename {input.assembly})
+
         echo -e "\nGenerating list of depth files based on crossMapSeries rule output ... "
         find . -name "*.depth" > abund.list
         
         echo -e "\nRunning maxbin2 ... "
         run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -abund_list abund.list
+        
+        # Clean up un-needed files
         rm *.depth abund.list contigs.fasta
+
+        # Move files into output dir
         mkdir -p $(basename {output})
         mv *.fasta $(basename {output})
         mv * $(dirname {output})
