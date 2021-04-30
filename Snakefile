@@ -884,6 +884,9 @@ rule binReassemble:
         # Activate metawrap environment
         set +u;source activate {config[envs][metawrap]};set -u;
 
+        # Prevents spades from using just one thread
+        export OMP_NUM_THREADS={config[cores][reassemble]}
+
         # Create output folder
         mkdir -p {output}
 
