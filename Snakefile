@@ -906,8 +906,7 @@ rule binReassemble:
             -t {config[cores][reassemble]} \
             -m {config[params][reassembleMem]} \
             -c {config[params][reassembleComp]} \
-            -x {config[params][reassembleCont]} \
-            --parallel
+            -x {config[params][reassembleCont]}
         
         # Cleaning up files
         rm -r metawrap_*_bins
