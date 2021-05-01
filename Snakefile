@@ -324,12 +324,12 @@ rule assemblyVis:
         done< <(find {input} -name "*.gz")
 
         echo "Done summarizing assembly results ... \nMoving to /stats/ folder and running plotting script ... "
-        #mv assembly.stats {config[path][root]}/{config[folder][stats]}
+        mv assembly.stats {config[path][root]}/{config[folder][stats]}
         cd {config[path][root]}/{config[folder][stats]}
 
-        #Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
+        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][assemblyVis]}
         echo "Done. "
-        #rm Rplots.pdf
+        rm Rplots.pdf
         """
 
 rule crossMapSeries:  
