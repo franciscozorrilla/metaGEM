@@ -12,7 +12,7 @@ folder:
     metabat: metabat
     refined: refined_bins
     reassembled: reassembled_bins
-    classification: GTDBtk
+    classification: GTDBTk
     abundance: abundance
     GRiD: GRiD
     GEMs: GEMs
