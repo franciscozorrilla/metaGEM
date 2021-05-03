@@ -1456,14 +1456,22 @@ rule carveme:
         """
     shell:
         """
-        echo "Activating {config[envs][metagem]} conda environment ... "
-        set +u;source activate {config[envs][metagem]};set -u
-        
-        mkdir -p $(dirname {output})
-        mkdir -p logs
+        # Activate metagem environment
+        set +u;source activate {config[envs][metagem]};set -u;
 
-        cp {input.bin} {input.media} {config[path][scratch]}
-        cd {config[path][scratch]}
+        # Make sure output folder exists
+        mkdir -p $(dirname {output})
+
+        # Make job specific scratch dir
+        binID=$(echo $(basename {input})|sed 's/.faa//g')
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][GEMs]}/${{binID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][GEMs]}/${{binID}}
+
+        # Move into tmp dir
+        cd {config[path][scratch]}/{config[folder][GEMs]}/${{binID}}
+
+        # Copy files
+        cp {input.bin} {input.media} .
         
         echo "Begin carving GEM ... "
         carve -g {config[params][carveMedia]} \
@@ -1589,18 +1597,31 @@ rule smetana:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.smetana.benchmark.txt'
     shell:
         """
+        # Activate metagem env
         set +u;source activate {config[envs][metagem]};set -u
-        mkdir -p {config[path][root]}/{config[folder][SMETANA]}
-        cp {config[path][root]}/{config[folder][scripts]}/{config[scripts][carveme]} {input}/*.xml {config[path][scratch]}
-        cd {config[path][scratch]}
-        
+
+        # Make sure output folder exists
+        mkdir -p $(dirname {output})
+
+        # Make job specific scratch dir
+        sampleID=$(echo $(basename {input}))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][SMETANA]}/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][SMETANA]}/${{sampleID}}
+
+        # Move to tmp dir
+        cd {config[path][scratch]}/{config[folder][SMETANA]}/${{sampleID}}
+
+        # Copy media db and GEMs
+        cp {config[path][root]}/{config[folder][scripts]}/{config[scripts][carveme]} {input}/*.xml .
+
+        # Run SMETANA        
         smetana -o $(basename {input}) --flavor fbc2 \
             --mediadb media_db.tsv -m {config[params][smetanaMedia]} \
             --detailed \
             --solver {config[params][smetanaSolver]} -v *.xml
         
-        cp *.tsv {config[path][root]} #safety measure for backup of results in case rule fails for some reason
-        mv *.tsv $(dirname {output})
+        # Copy results to output folder
+        cp *.tsv $(dirname {output})
         """
 
 
@@ -1627,20 +1648,36 @@ rule memote:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{gemIDs}}.memote.benchmark.txt'
     shell:
         """
+        # Activate metagem env
         set +u;source activate {config[envs][metagem]};set -u
-        module load git
 
+        # Make sure output folder exists
         mkdir -p {output}
-        cp {input} {config[path][scratch]}
-        cd {config[path][scratch]}
 
+        # Make job specific scratch dir
+        gemID=$(echo $(basename {input})|sed 's/.xml//g')
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][memote]}/${{gemID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][memote]}/${{gemID}}
+
+        # Move to tmp dir
+        cd {config[path][scratch]}/{config[folder][memote]}/${{gemID}}
+
+        # Copy GEM to tmp
+        cp {input} .
+
+        # Uncomment the following line in case errors are raised about missing git module,
+        # also ensure that module name matches that of your cluster
+        # module load git
+
+        # Run memote
         memote report snapshot --skip test_find_metabolites_produced_with_closed_bounds --skip test_find_metabolites_consumed_with_closed_bounds --skip test_find_metabolites_not_produced_with_open_bounds --skip test_find_metabolites_not_consumed_with_open_bounds --skip test_find_incorrect_thermodynamic_reversibility --filename $(echo $(basename {input})|sed 's/.xml/.html/') *.xml
         memote run --skip test_find_metabolites_produced_with_closed_bounds --skip test_find_metabolites_consumed_with_closed_bounds --skip test_find_metabolites_not_produced_with_open_bounds --skip test_find_metabolites_not_consumed_with_open_bounds --skip test_find_incorrect_thermodynamic_reversibility *.xml
 
+        # Rename output file with sample ID
         mv result.json.gz $(echo $(basename {input})|sed 's/.xml/.json.gz/')
 
+        # Move results to output folder
         mv *.gz *.html {output}
-
         """
 
 
