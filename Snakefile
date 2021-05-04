@@ -1424,16 +1424,24 @@ rule compositionVis:
 
 rule extractProteinBins:
     message:
-        "Extract ORF annotated protein fasta files for each bin from reassembly checkm files."
+        """
+        Extract ORF annotated protein fasta files for each bin from reassembly checkm files,
+        place into sample specific subdirectories within protein_bins folder. 
+        """
     shell:
         """
+        # Move to root directory
         cd {config[path][root]}
+
+        # Make sure protein bins folder exists
         mkdir -p {config[folder][proteinBins]}
 
         echo -e "Begin moving and renaming ORF annotated protein fasta bins from reassembled_bins/ to protein_bins/ ... \n"
         for folder in reassembled_bins/*/;do 
-            echo "Moving bins from sample $(echo $(basename $folder)) ... "
+            #Loop through each sample
+            echo "Copying bins from sample $(echo $(basename $folder)) ... "
             for bin in $folder*reassembled_bins.checkm/bins/*;do 
+                # Loop through each bin
                 var=$(echo $bin/genes.faa | sed 's|reassembled_bins/||g'|sed 's|/reassembled_bins.checkm/bins||'|sed 's|/genes||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
                 cp $bin/*.faa {config[path][root]}/{config[folder][proteinBins]}/$var;
             done;
@@ -1714,18 +1722,27 @@ rule grid:
 
 rule extractDnaBins:
     message:
-        "Extract dna fasta files for each bin from reassembly output."
+        """
+        Extract dna fasta files for each bin from reassembly output, place into sample specific
+        subdirectories within the dna_bins folder
+        """
     shell:
         """
+        # Move into root dir
         cd {config[path][root]}
+
+        # Make sure dnaBins folder exists
         mkdir -p {config[folder][dnaBins]}
 
+        # Copy files
         echo -e "Begin copying and renaming dna fasta bins from reassembled_bins/ to dna_bins/ ... \n"
         for folder in reassembled_bins/*/;do
+            # Loop through each sample
             sample=$(echo $(basename $folder));
             mkdir -p {config[path][root]}/{config[folder][dnaBins]}/$sample
             echo "Copying bins from sample $sample ... "
             for bin in $folder*reassembled_bins/*;do 
+                # Loop through each bin
                 var=$(echo $bin| sed 's|reassembled_bins/||g'|sed 's|/|\.|g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
                 cp $bin {config[path][root]}/{config[folder][dnaBins]}/$sample/$var;
             done;
