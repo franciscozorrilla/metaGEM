@@ -818,3 +818,81 @@ M16	M16	thiog	thiog
 M16	M16	thm	thm
 M16	M16	tyr__L	tyr__L
 M16	M16	zn2	zn2
+MILK 	Milk compounds 	h2o 	H2O
+MILK 	Milk compounds 	o2 	O2
+MILK 	Milk compounds 	co2 	CO2
+MILK 	Milk compounds 	ca2 	Ca2+
+MILK 	Milk compounds 	cl 	Cl-
+MILK 	Milk compounds 	cobalt2 	Co2+
+MILK 	Milk compounds 	cu2 	Cu2+
+MILK 	Milk compounds 	fe2 	Fe2+
+MILK 	Milk compounds 	fe3 	Fe3+
+MILK 	Milk compounds 	h 	H+
+MILK 	Milk compounds 	k 	K+
+MILK 	Milk compounds 	mg2 	Mg
+MILK 	Milk compounds 	mn2 	Mn2+
+MILK 	Milk compounds 	mobd 	Molybdate
+MILK 	Milk compounds 	na1 	Na+
+MILK 	Milk compounds 	nh4 	Ammonium
+MILK 	Milk compounds 	ni2 	Ni2+
+MILK 	Milk compounds 	pi 	Phosphate
+MILK 	Milk compounds 	so4 	Sulfate
+MILK 	Milk compounds 	zn2 	Zn2+
+MILK 	Milk compounds 	ala__L 	L-Alanine
+MILK 	Milk compounds 	asn__L 	L-Asparagine
+MILK 	Milk compounds 	asp__L 	L-Aspartate
+MILK 	Milk compounds 	glu__L 	L-Glutamate
+MILK 	Milk compounds 	gln__L 	L-Glutamine
+MILK 	Milk compounds 	gly 	Glycine
+MILK 	Milk compounds 	his__L 	L-Histidine
+MILK 	Milk compounds 	ile__L 	L-Isoleucine
+MILK 	Milk compounds 	leu__L 	L-Leucine
+MILK 	Milk compounds 	lys__L 	L-Lysine
+MILK 	Milk compounds 	orn 	Ornithine
+MILK 	Milk compounds 	phe__L 	L-Phenylalanine
+MILK 	Milk compounds 	peamn 	Phylethylamine
+MILK 	Milk compounds 	pro__L 	L-Proline
+MILK 	Milk compounds 	ser__L 	L-Serine
+MILK 	Milk compounds 	thr__L 	L-Threonine
+MILK 	Milk compounds 	trp__L 	tryptophan
+MILK 	Milk compounds 	tyr__L 	L-Tyrosine
+MILK 	Milk compounds 	val__L 	L-Valine
+MILK 	Milk compounds 	lcts 	Lactose
+MILK 	Milk compounds 	glc__D 	D-Glucose
+MILK 	Milk compounds 	gal 	D-Galactose
+MILK 	Milk compounds 	gal_bD 	Beta D-Galactose
+MILK 	Milk compounds 	cit 	Citrate
+MILK 	Milk compounds 	lac__D 	D-Lactate
+MILK 	Milk compounds 	lac__L 	L-Lactate
+MILK 	Milk compounds 	for 	Formate
+MILK 	Milk compounds 	ac 	Acetate
+MILK 	Milk compounds 	oxa 	Oxalate
+MILK 	Milk compounds 	pydx 	Pyridoxal
+MILK 	Milk compounds 	cbl1 	Vitamin B12
+MILK 	Milk compounds 	thm 	Thiamin
+MILK 	Milk compounds 	pnto__R 	(R)-Pantothenate
+MILK 	Milk compounds 	fol 	Folate
+MILK 	Milk compounds 	ribflv 	Riboflavin
+MILK 	Milk compounds 	nac 	Isonicotinic acid
+MILK 	Milk compounds 	btn 	Biotin
+MILK 	Milk compounds 	but 	Butyrate
+MILK 	Milk compounds 	caproic 	Caproic acid
+MILK 	Milk compounds 	octa 	octanoate
+MILK 	Milk compounds 	dca 	decanoate
+MILK 	Milk compounds 	ddca 	dodecanoate
+MILK 	Milk compounds 	ttdca 	tetradecanoate
+MILK 	Milk compounds 	ptdca 	Pentadecanoate
+MILK 	Milk compounds 	hdca 	hexadecanoate
+MILK 	Milk compounds 	ocdca 	octadecanoate
+MILK 	Milk compounds 	arach 	arachidic acid
+MILK 	Milk compounds 	ttdcea 	Tetradecenoate (n-C14:1)
+MILK 	Milk compounds 	hdcea 	hexadecanoate (n-C16:1)
+MILK 	Milk compounds 	ocdcea 	octadecanoate (n-C18:1)
+MILK 	Milk compounds 	lnlc 	linoleic acid
+MILK 	Milk compounds 	arachd 	arachidonic acid
+MILK 	Milk compounds 	ade 	Adenine
+MILK 	Milk compounds 	gua 	Guanine
+MILK 	Milk compounds 	ins 	Inosine
+MILK 	Milk compounds 	thymd 	Thymidine
+MILK 	Milk compounds 	ura 	Uracil
+MILK 	Milk compounds 	xan 	Xanthine
