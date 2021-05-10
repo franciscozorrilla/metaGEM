@@ -1743,7 +1743,7 @@ rule extractDnaBins:
             echo "Copying bins from sample $sample ... "
             for bin in $folder*reassembled_bins/*;do 
                 # Loop through each bin
-                var=$(echo $bin| sed 's|reassembled_bins/||g'|sed 's|/|\_|g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
+                var=$(echo $bin| sed 's|reassembled_bins/||g'|sed 's|/|_|g'|sed 's/permissive/p/g'|sed 's/orig/o/g'|sed 's/strict/s/g');
                 cp $bin {config[path][root]}/{config[folder][dnaBins]}/$sample/$var;
             done;
         done
