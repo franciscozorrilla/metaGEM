@@ -1173,8 +1173,6 @@ rule abundance:
         Z = # of reads mapped to all bins in sample_k
 
         Note: 1000000 scaling factor converts length in bp to Mbp
-              Rule slightly modified for european datasets where input bins are in dna_bins_organized
-              instead of metaWRAP reassembly output folder 
 
         """
     shell:
