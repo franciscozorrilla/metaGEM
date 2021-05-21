@@ -21,7 +21,7 @@ You can analyze a toy dataset using `metaGEM` by following along the google cola
 
 ## :bulb: Installation
 
-You can set up `metaGEM` on your cluster with just one line of code:
+You can set up `metaGEM` on your cluster with just one line of code 😉:
 
 ```
 git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM && rm -r .git && bash env_setup.sh
