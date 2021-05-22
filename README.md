@@ -15,13 +15,13 @@
 
 ## 🌥️ Try it now
 
-You can analyze a toy dataset using `metaGEM` by following along the google colab notebook on the cloud.
+You can set up and use `metaGEM` on the cloud by following along the google colab notebook.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
 
 ## :bulb: Installation
 
-You can set up `metaGEM` on your cluster with just one line of code 😉:
+You can set up `metaGEM` on your cluster with just one line of code 😉
 
 ```
 git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM && rm -r .git && bash env_setup.sh
