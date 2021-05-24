@@ -1,4 +1,4 @@
-# :gem: `metaGEM`
+# 💎 `metaGEM`
 
 > An easy-to-use workflow for generating context specific genome-scale metabolic models and predicting metabolic interactions within microbial communities directly from metagenomic data.
 
@@ -13,7 +13,7 @@
 
 `metaGEM` is a Snakemake workflow that integrates an array of existing bioinformatics and metabolic modeling tools, for the purpose of predicting metabolic interactions within bacterial communities of microbiomes. From whole metagenome shotgun datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations. Additional outputs include abundance estimates, taxonomic assignment, growth rate estimation, pangenome analysis, and eukaryotic MAG identification.
 
-## 🔬 Try it now
+## 🧉 Try it now
 
 You can set up and use `metaGEM` on the cloud by following along the google colab notebook.
 
@@ -109,7 +109,7 @@ Usage: bash metaGEM.sh [-t|--task TASK]
 
 [![Tutorial](https://img.shields.io/badge/metaGEM-Tutorial-%23d8b365)](https://github.com/franciscozorrilla/unseenbio_metaGEM)
 
-## :book: Wiki
+## 🏛️ Wiki
 
 Refer to the wiki for additional usage tips, frequently asked questions, and implementation details.
 
@@ -134,7 +134,7 @@ Refer to the wiki for additional usage tips, frequently asked questions, and imp
 10. Pangenome analysis with [roary](https://github.com/sanger-pathogens/Roary)
 11. Eukaryotic draft bins with [EukRep](https://github.com/patrickwest/EukRep) and [EukCC](https://github.com/Finn-Lab/EukCC)
 
-## :construction: Active Development
+## 🏗️ Active Development
 
 If you want to see any new additional or alternative tools incorporated into the `metaGEM` workflow please raise an issue or create a pull request. Snakemake allows workflows to be very flexible, so adding new rules is as easy as filling out the following template and adding it to the Snakefile:
 
@@ -160,7 +160,7 @@ rule package-name:
         """
 ```
 
-## :paperclip: Publications
+## 📎 Publications
 
 The `metaGEM` workflow was used in the following publication(s):
 
@@ -172,7 +172,7 @@ bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558
 
 [![arxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.13.422558%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.13.422558v2.full)
 
-## :heavy_check_mark: Please cite
+## ✔️ Please cite
 
 ```
 metaGEM: reconstruction of genome scale metabolic models directly from metagenomes
