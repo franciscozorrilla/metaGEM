@@ -160,7 +160,7 @@ rule package-name:
         """
 ```
 
-## 📎 Publications
+## 🖇️ Publications
 
 The `metaGEM` workflow was used in the following publication(s):
 
@@ -172,7 +172,7 @@ bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558
 
 [![arxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.13.422558%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.13.422558v2.full)
 
-## ✔️ Please cite
+## 🍾 Please cite
 
 ```
 metaGEM: reconstruction of genome scale metabolic models directly from metagenomes
