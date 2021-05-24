@@ -1295,9 +1295,9 @@ rule GTDBTk:
     input:
         f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins'
     output:
-        directory(f'{config["path"]["root"]}/GTDBtk/{{IDs}}')
+        directory(f'{config["path"]["root"]}/GTDBTk/{{IDs}}')
     benchmark:
-        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.GTDBtk.benchmark.txt'
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.GTDBTk.benchmark.txt'
     message:
         """
         Please make sure that the GTDB-Tk database was downloaded and configured.
@@ -1327,17 +1327,17 @@ rule GTDBTk:
         # export GTDBTK_DATA_PATH=/path/to/the/gtdbtk/database/you/downloaded
 
         # Run GTDBTk
-        gtdbtk classify_wf --genome_dir $(basename $(dirname {input})) --out_dir GTDBtk -x fa --cpus {config[cores][gtdbtk]}
+        gtdbtk classify_wf --genome_dir $(basename $(dirname {input})) --out_dir GTDBTk -x fa --cpus {config[cores][gtdbtk]}
 
-        mv GTDBtk/* {output}
+        mv GTDBTk/* {output}
         """
 
 rule GTDBtkVis:
     input: 
         f'{config["path"]["root"]}'
     output: 
-        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GTDBtk.stats',
-        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GTDBtkVis.pdf'
+        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GTDBTk.stats',
+        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GTDBTkVis.pdf'
     message:
         """
         Appropriate for visualizing many samples, does not look at relative abundances.
@@ -1347,16 +1347,16 @@ rule GTDBtkVis:
         """
         cd {input}
 
-        # Summarize GTDBtk output across samples
-        for folder in GTDBtk/*;do 
+        # Summarize GTDBTk output across samples
+        for folder in GTDBTk/*;do 
             samp=$(echo $folder|sed 's|^.*/||');
             cat $folder/classify/*summary.tsv;
-        done > GTDBtk.stats
+        done > GTDBTk.stats
 
         # Clean up stats file
-        header=$(head -n 1 GTDBtk.stats)
-        sed -i '/other_related_references(genome_id,species_name,radius,ANI,AF)/d' GTDBtk.stats
-        sed -i "1i$header" GTDBtk.stats
+        header=$(head -n 1 GTDBTk.stats)
+        sed -i '/other_related_references(genome_id,species_name,radius,ANI,AF)/d' GTDBTk.stats
+        sed -i "1i$header" GTDBTk.stats
 
         # Summarize abundance estimates
         for folder in abundance/*;do 
@@ -1365,7 +1365,7 @@ rule GTDBtkVis:
         done > abundance.stats 
 
         # Move files to stats folder
-        mv GTDBtk.stats {config[path][root]}/{config[folder][stats]}
+        mv GTDBTk.stats {config[path][root]}/{config[folder][stats]}
         mv abundance.stats {config[path][root]}/{config[folder][stats]}
 
         cd {config[path][root]}/{config[folder][stats]}
@@ -1405,16 +1405,16 @@ rule compositionVis:
         # Generate summary taxonomy file
 
         cd {input.taxonomy}
-        # Summarize GTDBtk output across samples
+        # Summarize GTDBTk output across samples
         for folder in */;do 
             samp=$(echo $folder|sed 's|^.*/||');
             cat $folder/classify/*summary.tsv;
-        done > GTDBtk.stats
+        done > GTDBTk.stats
         # Clean up stats file
-        header=$(head -n 1 GTDBtk.stats)
-        sed -i '/other_related_references(genome_id,species_name,radius,ANI,AF)/d' GTDBtk.stats
-        sed -i "1i$header" GTDBtk.stats
-        mv GTDBtk.stats {config[path][root]}/{config[folder][stats]}
+        header=$(head -n 1 GTDBTk.stats)
+        sed -i '/other_related_references(genome_id,species_name,radius,ANI,AF)/d' GTDBTk.stats
+        sed -i "1i$header" GTDBTk.stats
+        mv GTDBTk.stats {config[path][root]}/{config[folder][stats]}
 
         cd {config[path][root]}/{config[folder][stats]}
         Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][compositionVis]}

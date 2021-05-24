@@ -222,7 +222,7 @@ nmwrea=$(ls -d reassembled_bins/*|wc -l)
 echo "Bin reassembly: $nmwrea / $nsamp samples processed ... "
 
 #taxonomy: count subfolders
-ntax=$(ls -d GTDBtk/*|wc -l)
+ntax=$(ls -d GTDBTk/*|wc -l)
 echo "Taxonomy: $ntax / $nsamp samples processed ... "
     
 #abundances: count subfolders
