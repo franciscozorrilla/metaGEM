@@ -15,9 +15,11 @@
 
 ## 🧉 Try it now
 
-You can set up and use `metaGEM` on the cloud by following along the google colab notebook.
+You can set up and use `metaGEM` on the cloud by following along the google colab notebook. 
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
+
+Please note that google colab does not provide the computational resources necessary to fully run `metaGEM` on a real dataset. This notebook demonstrates how to set up and use `metaGEM` by perfoming the first steps in the workflow on a toy dataset.
 
 ## ⚙️ Installation
 
