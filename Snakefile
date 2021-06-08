@@ -864,7 +864,7 @@ rule maxbinCross:
         find . -name "*.depth" > abund.list
         
         echo -e "\nRunning maxbin2 ... "
-        run_MaxBin.pl -contig contigs.fasta -out $(basename $(dirname {output})) -abund_list abund.list
+        run_MaxBin.pl -thread {config[cores][maxbin]} -contig contigs.fasta -out $(basename $(dirname {output})) -abund_list abund.list
         
         # Clean up un-needed files
         rm *.depth abund.list contigs.fasta
