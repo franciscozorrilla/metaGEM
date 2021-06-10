@@ -1327,7 +1327,7 @@ rule GTDBTk:
         # export GTDBTK_DATA_PATH=/path/to/the/gtdbtk/database/you/downloaded
 
         # Run GTDBTk
-        gtdbtk classify_wf --genome_dir $(basename $(dirname {input})) --out_dir GTDBTk -x fa --cpus {config[cores][gtdbtk]}
+        gtdbtk classify_wf --genome_dir $(basename {input}) --out_dir GTDBTk -x fa --cpus {config[cores][gtdbtk]}
 
         mv GTDBTk/* {output}
         """
