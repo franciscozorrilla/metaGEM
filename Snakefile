@@ -957,7 +957,7 @@ rule binReassemble:
         cp -r {input.refinedBins}/metawrap_*_bins {input.R1} {input.R2} .
         
         echo "Running metaWRAP bin reassembly ... "
-        metaWRAP reassemble_bins -o $(basename {output}) \
+        metaWRAP reassemble_bins --parallel -o $(basename {output}) \
             -b metawrap_*_bins \
             -1 $(basename {input.R1}) \
             -2 $(basename {input.R2}) \
