@@ -79,7 +79,7 @@ Options:
                             qfilterVis
                             assemblyVis
                             binningVis
-                            taxonomyVis
+                            compositionVis
                             modelVis
                             interactionVis
                             growthVis
@@ -460,7 +460,7 @@ parse() {
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
   # No need to parse snakefile for login node jobs, submit the following locally
-  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "taxonomyVis" ] || [ $task == "abundanceVis" ] || [ $task == "extractProteinBins" ] || [ $task == "extractDnaBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
+  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "compositionVis" ] || [ $task == "abundanceVis" ] || [ $task == "extractProteinBins" ] || [ $task == "extractDnaBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
     submitLogin
 
   elif [ $task == "check" ]; then
