@@ -1,7 +1,7 @@
 library(ggplot2)
 library(dplyr)
 
-taxonomy=read.delim("GTDBtk.stats",header=TRUE) %>% 
+taxonomy=read.delim("GTDBTk.stats",header=TRUE) %>% 
   select(user_genome,classification) %>% 
   separate(.,classification,into = c("kingdom","phylum","class","order","family","genus","species"),sep = ";")
 
