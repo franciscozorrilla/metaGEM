@@ -1,5 +1,5 @@
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
+library(tidytext)
 
 taxonomy=read.delim("GTDBTk.stats",header=TRUE) %>% 
   select(user_genome,classification) %>% 
