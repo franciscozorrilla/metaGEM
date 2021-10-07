@@ -2,7 +2,8 @@
 
 > An easy-to-use workflow for generating context specific genome-scale metabolic models and predicting metabolic interactions within microbial communities directly from metagenomic data.
 
-[![DOI](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.31.424982%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
+[![NAR](https://img.shields.io/badge/NAR-10.1093%2Fnar%2Fgkab815-critical)](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab815/6382386)
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.31.424982%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
 [![Build Status](https://travis-ci.org/franciscozorrilla/metaGEM.svg?branch=master)](https://travis-ci.org/franciscozorrilla/metaGEM)
 [![GitHub license](https://img.shields.io/github/license/franciscozorrilla/metaGEM)](https://github.com/franciscozorrilla/metaGEM/blob/master/LICENSE)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
