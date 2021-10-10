@@ -179,10 +179,11 @@ bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558
 
 ```
 metaGEM: reconstruction of genome scale metabolic models directly from metagenomes
-Francisco Zorrilla, Kiran R. Patil, Aleksej Zelezniak
-bioRxiv 2020.12.31.424982; doi: https://doi.org/10.1101/2020.12.31.424982 
-```
-[![DOI](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.31.424982%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
+Francisco Zorrilla, Filip Buric, Kiran R Patil, Aleksej Zelezniak
+Nucleic Acids Research, 2021; gkab815, https://doi.org/10.1093/nar/gkab815
+``` 
+
+[![Nucleic Acids Research](https://img.shields.io/badge/Nucleic%20Acids%20Research-10.1093%2Fnar%2Fgkab815-critical)](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab815/6382386)
 
 ## 📲 Contact
 
