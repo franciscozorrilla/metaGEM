@@ -126,7 +126,7 @@ rule organizeData:
         # Create list of unique sample IDs
         for file in *.gz; do 
             echo $file; 
-        done | sed 's/_.*$//g' | sed 's/.fastq.gz//g' | uniq > ID_samples.txt
+        done | sed 's/_[^_]*$//g' | sed 's/.fastq.gz//g' | uniq > ID_samples.txt
 
         echo -e " done.\n $(less ID_samples.txt|wc -l) samples identified.\n"
 
