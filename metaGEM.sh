@@ -460,7 +460,7 @@ parse() {
   sed  -i "2s~/.*$~$root~" config.yaml # hardcoded line for root, change the number 2 if any new lines are added to the start of config.yaml
 
   # No need to parse snakefile for login node jobs, submit the following locally
-  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "compositionVis" ] || [ $task == "abundanceVis" ] || [ $task == "extractProteinBins" ] || [ $task == "extractDnaBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "prepareRoary" ]; then
+  if [ $task == "createFolders" ] || [ $task == "downloadToy" ] || [ $task == "organizeData" ] || [ $task == "qfilterVis" ] || [ $task == "assemblyVis" ] || [ $task == "binningVis" ] || [ $task == "compositionVis" ] || [ $task == "abundanceVis" ] || [ $task == "extractProteinBins" ] || [ $task == "extractDnaBins" ] || [ $task == "organizeGEMs" ] || [ $task == "modelVis" ] || [ $task == "interactionVis" ] || [ $task == "growthVis" ] || [ $task == "binning" ] || [ $task == "binEvaluation" ] || [ $task == "prepareRoary" ]; then
     submitLogin
 
   elif [ $task == "check" ]; then
@@ -502,6 +502,14 @@ parse() {
         submitCluster
     fi
 
+  elif [ $task == "kallistoIndex" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["kallistoIndex"]+"/{focal}/index.kaix", focal = focal)'
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
+
   elif [ $task == "crossMapParallel" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["kallisto"]+"/{focal}/{IDs}", focal = focal , IDs = IDs)'
     if [ $local == "true" ]; then
@@ -510,8 +518,17 @@ parse() {
         submitCluster
     fi
 
-  elif [ $task == "kallisto2concoct" ]; then
-    string='expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{focal}/cov/coverage_table.tsv", focal = focal)'
+  elif [ $task == "run_prodigal" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["prodigal"]+"/{IDs}/{IDs}_genes.gff", IDs = IDs)'
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
+
+
+  elif [ $task == "run_blastp" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["blastp"]+"/{IDs}.xml", IDs = IDs)'
     if [ $local == "true" ]; then
         submitLocal
     else
@@ -536,6 +553,14 @@ parse() {
 
   elif [ $task == "maxbin" ]; then
     string='expand(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins", IDs = IDs)'
+    if [ $local == "true" ]; then
+        submitLocal
+    else
+        submitCluster
+    fi
+
+  elif [ $task == "binning" ]; then
+    string='expand(config["path"]["root"]+"/"+config["folder"]["benchmarks"]+"/{IDs}/{IDs}.binning.benchmark.txt", IDs = IDs)'
     if [ $local == "true" ]; then
         submitLocal
     else
