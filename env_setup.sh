@@ -19,38 +19,40 @@ A Snakemake-based pipeline desinged to predict metabolic interactions directly f
 
 #check if conda is installed/available
 echo -ne "Checking if conda is available ... "
-condatest=$(conda list|wc -l)
 
-if [[ "$condatest" -eq 0 ]]; then
+if ! command -v conda &> /dev/null ; then
     echo -e "\nWARNING: Conda is not available! Please load your cluster's conda module or install locally and re-run the env_setup.sh script using:\n\nbash env_setup.sh\n" && exit
-elif [[ "$condatest" -gt 0 ]]; then
-    condav=$(conda --version|cut -d ' ' -f2)
+else
+    condav=$(conda --version | cut -d ' ' -f2)
     echo -e "detected version $condav!"
 fi
 
 #check if mamba or mamba env are available
 echo -ne "Checking if mamba environment is available ... "
-mambatest=$(mamba --version|wc -l)
-mambaenv=$(conda info --envs|grep mamba|wc -l)
 
-if [[ "$mambaenv" -ge 1 ]]; then
-    if [[ "$mambatest" -ge 1 ]]; then
+source $(which conda | sed -e 's/condabin\/conda/etc\/profile\.d\/conda\.sh/')
+
+if conda info --envs | grep -q mamba ; then
+    conda activate mamba
+    if command -v mamba &> /dev/null ; then
         #mamba env installed and activated
         mambav=$(mamba --version|head -n1|cut -d ' ' -f2) && echo -e "detected version $mambav!\n"
     else
-        #mamba env installed but not activated
-        source activate mamba && echo "activated mamba environment!"
+        #mamba not installed in mamba env
+        conda install mamba && echo "Installed mamba\n"
     fi
 else
     while true; do
         read -p "Do you wish to create an environment for mamba installation? This is recommended for faster setup (y/n)" yn
         case $yn in
-            [Yy]* ) echo "conda deactivate && conda create -n mamba mamba -c conda-forge"|bash; break;;
+            [Yy]* ) echo "conda create -n mamba mamba -c conda-forge"|bash; break;;
             [Nn]* ) echo -e "\nPlease set up mamba before proceeding.\n"; exit;;
             * ) echo "Please answer yes or no.";;
         esac
     done
 fi
+
+conda activate mamba && echo "activated mamba environment!"
 
 while true; do
     read -p "Do you wish to download and set up metaGEM conda environment? (y/n)" yn
