@@ -30,7 +30,8 @@ fi
 #check if mamba or mamba env are available
 echo -ne "Checking if mamba environment is available ... "
 
-source $(which conda | sed -e 's/condabin\/conda/etc\/profile\.d\/conda\.sh/')
+repl="etc\/profile\.d\/conda\.sh"
+source $(which conda | sed -e "s/condabin\/conda/${repl}/" | sed -e "s/bin\/conda/${repl}/")
 
 if conda info --envs | grep -q mamba ; then
     conda activate mamba
