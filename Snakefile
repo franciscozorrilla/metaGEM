@@ -612,7 +612,7 @@ rule kallisto2concoctTable:
 
         # Compile individual mapping results into coverage table for given assembly
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
-            --samplenames <(for s in {input}*; do echo $s|sed 's|^.*/||'; done) \
+            --samplenames <(for s in {input}/*; do echo $s|sed 's|^.*/||'; done) \
             $(find {input} -name "*.gz") > {output}
     
         """
