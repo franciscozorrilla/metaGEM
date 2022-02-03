@@ -356,14 +356,14 @@ rule assemblyVis:
             ID=$(echo $(basename $(dirname $assembly)))
 
             # Check if assembly file is empty
-            check=$(less $assembly|wc -l)
+            check=$(zcat $assembly | head | wc -l)
             if [ $check -eq 0 ]
             then
                 N=0
                 L=0
             else
-                N=$(less $assembly|grep -c ">");
-                L=$(less $assembly|grep ">"|cut -d '-' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
+                N=$(zcat $assembly | grep -c ">");
+                L=$(zcat $assembly | grep ">"|cut -d '-' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
             fi
 
             # Write values to stats file
