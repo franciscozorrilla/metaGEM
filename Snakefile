@@ -581,6 +581,11 @@ rule crossMapParallel:
 
         # Move mapping file out output folder
         mv abundance.tsv.gz {output}
+
+        # Cleanup temp folder
+        echo -e "\nRemoving temporary directory {config[path][scratch]}/{config[folder][kallisto]}/${{focal}}_${{mapping}} ... "
+        cd ..
+        rm -r {config[path][scratch]}/{config[folder][kallisto]}/${{focal}}_${{mapping}}
         """
 
 rule gatherCrossMapParallel: 
