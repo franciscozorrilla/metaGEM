@@ -111,7 +111,7 @@ echo -ne "Searching for metaGEM conda environment ... "
 envcheck1=$(conda info --envs|grep -w metagem|wc -l)
 if [[ "$envcheck1" -ge 1 ]]; then
     echo "detected! Activating metagem env ... "
-    source activate metagem
+    conda activate metagem
 else
     echo "not detected, please run the env_setup.sh script!"
 fi
