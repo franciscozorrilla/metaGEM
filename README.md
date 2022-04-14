@@ -69,7 +69,10 @@ Usage: bash metaGEM.sh [-t|--task TASK]
                         CORE WORKFLOW
                             fastp 
                             megahit 
-                            crossMap 
+                            crossMapSeries
+                            kallistoIndex
+                            crossMapParallel
+                            kallisto2concoct 
                             concoct 
                             metabat
                             maxbin 
