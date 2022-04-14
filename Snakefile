@@ -487,6 +487,8 @@ rule crossMapSeries:
         echo -e "\nMoving CONCOCT input table to $fsampleID concoct folder"
         mv coverage_table.tsv {output.concoct}
 
+        echo -e "\nRemoving intermediate sorted bam files ... "
+        rm *.sort
         """
 
 rule kallistoIndex:
