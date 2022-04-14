@@ -341,7 +341,7 @@ rule assemblyVis:
     shell:
         """
         # Activate metagem env
-        set +u;source activate {config[envs][metagem]};set -u;
+        set +uo pipefail;source activate {config[envs][metagem]};set -u;
 
         # Make sure stats folder exists
         mkdir -p $(dirname {output.text})
