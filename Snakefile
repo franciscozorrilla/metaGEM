@@ -878,7 +878,7 @@ rule maxbinCross:
 
         # Move files into output dir
         mkdir -p $(basename {output})
-        mv *.fasta $(basename {output})
+        [ -f *.fasta ] && mv *.fasta $(basename {output})
         mv * $(dirname {output})
         """
 
