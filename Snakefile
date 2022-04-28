@@ -341,7 +341,7 @@ rule assemblyVis:
     shell:
         """
         # Activate metagem env
-        set +u;source activate {config[envs][metagem]};set -u;
+        set +uo pipefail;source activate {config[envs][metagem]};set -u;
 
         # Make sure stats folder exists
         mkdir -p $(dirname {output.text})
@@ -356,14 +356,14 @@ rule assemblyVis:
             ID=$(echo $(basename $(dirname $assembly)))
 
             # Check if assembly file is empty
-            check=$(less $assembly|wc -l)
+            check=$(zcat $assembly | head | wc -l)
             if [ $check -eq 0 ]
             then
                 N=0
                 L=0
             else
-                N=$(less $assembly|grep -c ">");
-                L=$(less $assembly|grep ">"|cut -d '-' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
+                N=$(zcat $assembly | grep -c ">");
+                L=$(zcat $assembly | grep ">"|cut -d '-' -f4|sed 's/len=//'|awk '{{sum+=$1}}END{{print sum}}');
             fi
 
             # Write values to stats file
@@ -487,6 +487,8 @@ rule crossMapSeries:
         echo -e "\nMoving CONCOCT input table to $fsampleID concoct folder"
         mv coverage_table.tsv {output.concoct}
 
+        echo -e "\nRemoving intermediate sorted bam files ... "
+        rm *.sort
         """
 
 rule kallistoIndex:
@@ -581,6 +583,11 @@ rule crossMapParallel:
 
         # Move mapping file out output folder
         mv abundance.tsv.gz {output}
+
+        # Cleanup temp folder
+        echo -e "\nRemoving temporary directory {config[path][scratch]}/{config[folder][kallisto]}/${{focal}}_${{mapping}} ... "
+        cd ..
+        rm -r {config[path][scratch]}/{config[folder][kallisto]}/${{focal}}_${{mapping}}
         """
 
 rule gatherCrossMapParallel: 
@@ -612,7 +619,7 @@ rule kallisto2concoctTable:
 
         # Compile individual mapping results into coverage table for given assembly
         python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
-            --samplenames <(for s in {input}*; do echo $s|sed 's|^.*/||'; done) \
+            --samplenames <(for s in {input}/*; do echo $s|sed 's|^.*/||'; done) \
             $(find {input} -name "*.gz") > {output}
     
         """
@@ -871,7 +878,7 @@ rule maxbinCross:
 
         # Move files into output dir
         mkdir -p $(basename {output})
-        mv *.fasta $(basename {output})
+        [ -f *.fasta ] && mv *.fasta $(basename {output})
         mv * $(dirname {output})
         """
 
