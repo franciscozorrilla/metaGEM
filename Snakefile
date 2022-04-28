@@ -19,7 +19,7 @@ focal = get_ids_from_path_pattern('dataset/*')
 
 rule all:
     input:
-        expand(f'{config["path"]["root"]}/{config["folder"]["qfiltered"]}/{{IDs}}/{{IDs}}_R1.fastq.gz', IDs=IDs)
+        expand(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins", IDs = IDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
@@ -882,6 +882,12 @@ rule maxbinCross:
         mv * $(dirname {output})
         """
 
+rule binning:
+    input:
+        concoct = expand(config["path"]["root"]+"/"+config["folder"]["concoct"]+"/{IDs}/{IDs}.concoct-bins", IDs = IDs),
+        maxbin = expand(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins", IDs = IDs),
+        metabat = expand(config["path"]["root"]+"/"+config["folder"]["metabat"]+"/{IDs}/{IDs}.metabat-bins", IDs = IDs)
+
 
 rule binRefine:
     input:
@@ -981,6 +987,11 @@ rule binReassemble:
         # Move results to output folder
         mv * $(dirname {output})
         """
+
+rule binEvaluation:
+    input: 
+        refined = expand(config["path"]["root"]+"/"+config["folder"]["refined"]+"/{IDs}", IDs = IDs),
+        reassembled = expand(config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}", IDs = IDs)
 
 
 rule binningVis:
@@ -1798,3 +1809,29 @@ rule roary:
 
         mv yes_al/* {output}
         """
+
+rule run_prodigal:
+    """Use Prodigal for coding genes predictions in contigs."""
+    input:
+        f'{config["path"]["root"]}/{config["folder"]["assemblies"]}/{{IDs}}/contigs.fasta.gz'
+    output:
+        gff = f'{config["path"]["root"]}/{config["folder"]["prodigal"]}/{{IDs}}/{{IDs}}_genes.gff',
+        faa = f'{config["path"]["root"]}/{config["folder"]["prodigal"]}/{{IDs}}/{{IDs}}_genes_prot.fa',
+        fna = f'{config["path"]["root"]}/{config["folder"]["prodigal"]}/{{IDs}}/{{IDs}}_genes_nucl.fa',
+        log = f'{config["path"]["root"]}/{config["folder"]["prodigal"]}/{{IDs}}/{{IDs}}_log.out'
+    shell:
+        """
+        mkdir -p $(dirname {output.gff})
+        prodigal -i <(gunzip -c {input}) -o {output.gff} -a {output.faa} -d {output.fna} -p meta  &> {output.log}
+        """
+
+rule run_blastp:
+    """Use Diamond blastp for searching against coding genes predictions from contigs. Uses snakemake wrapper: https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/diamond/blastp.html"""
+    input:
+        fname_fasta=f'{config["path"]["root"]}/{config["folder"]["prodigal"]}/{{IDs}}/{{IDs}}_genes_prot.fa',
+        fname_db=f'{config["path"]["root"]}/{config["folder"]["blastp_db"]}'
+    output:
+        fname=f'{config["path"]["root"]}/{config["folder"]["blastp"]}/{{IDs}}.xml'
+    threads: 8
+    wrapper:
+        "https://github.com/snakemake/snakemake-wrappers/raw/0.80.1/bio/diamond/blastp"

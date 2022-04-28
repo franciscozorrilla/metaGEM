@@ -26,6 +26,9 @@ folder:
     kallisto: kallisto
     kallistoIndex: kallistoIndex
     benchmarks: benchmarks
+    prodigal: prodigal
+    blastp: blastp
+    blastp_db: 
 scripts:
     kallisto2concoct: kallisto2concoct.py
     prepRoary: prepareRoaryInput.R
@@ -57,6 +60,7 @@ cores:
     grid: 24
     prokka: 2
     roary: 12
+    diamond: 12
 params:
     cutfasta: 10000
     assemblyPreset: meta-sensitive
