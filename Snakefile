@@ -740,13 +740,16 @@ rule metabat:
 
         # Run metabat2
         echo -e "\nRunning metabat2 ... "
-        metabat2 -i $fsampleID.fa $id.sort -s \
+        jgi_summarize_bam_contig_depths --outputDepth $id.depth.txt $id.sort
+
+        metabat2 -i $fsampleID.fa -a $id.depth.txt -s \
             {config[params][metabatMin]} \
             -v --seed {config[params][seed]} \
             -t 0 -m {config[params][minBin]} \
             -o $(basename $(dirname {output}))
 
         rm $fsampleID.fa
+        rm $id.depth.txt
 
         # Move files to output dir
         mv *.fa {output}
