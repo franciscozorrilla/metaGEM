@@ -19,7 +19,7 @@ focal = get_ids_from_path_pattern('dataset/*')
 
 rule all:
     input:
-        expand(config["path"]["root"]+"/"+config["folder"]["maxbin"]+"/{IDs}/{IDs}.maxbin-bins", IDs = IDs)
+        expand(config["path"]["root"]+"/"+config["folder"]["qfiltered"]+"/{IDs}/{IDs}_R1.fastq.gz", IDs = IDs)
     message:
         """
         WARNING: Be very careful when adding/removing any lines above this message.
