@@ -1353,48 +1353,6 @@ rule GTDBTk:
         mv GTDBTk/* {output}
         """
 
-rule GTDBtkVis:
-    input: 
-        f'{config["path"]["root"]}'
-    output: 
-        text = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GTDBTk.stats',
-        plot = f'{config["path"]["root"]}/{config["folder"]["stats"]}/GTDBTkVis.pdf'
-    message:
-        """
-        Appropriate for visualizing many samples, does not look at relative abundances.
-        Generate bar plot with most common taxa (n>15) and density plots with mapping statistics.
-        """
-    shell:
-        """
-        cd {input}
-
-        # Summarize GTDBTk output across samples
-        for folder in GTDBTk/*;do 
-            samp=$(echo $folder|sed 's|^.*/||');
-            cat $folder/classify/*summary.tsv;
-        done > GTDBTk.stats
-
-        # Clean up stats file
-        header=$(head -n 1 GTDBTk.stats)
-        sed -i '/other_related_references(genome_id,species_name,radius,ANI,AF)/d' GTDBTk.stats
-        sed -i "1i$header" GTDBTk.stats
-
-        # Summarize abundance estimates
-        for folder in abundance/*;do 
-            samp=$(echo $folder|sed 's|^.*/||');
-            cat $folder/*.abund;
-        done > abundance.stats 
-
-        # Move files to stats folder
-        mv GTDBTk.stats {config[path][root]}/{config[folder][stats]}
-        mv abundance.stats {config[path][root]}/{config[folder][stats]}
-
-        cd {config[path][root]}/{config[folder][stats]}
-        Rscript {config[path][root]}/{config[folder][scripts]}/{config[scripts][GTDBtkVis]}
-        rm Rplots.pdf # Delete redundant pdf file
-        echo "Done. "
-        """
-
 rule compositionVis:
     input:
         taxonomy = f'{config["path"]["root"]}/{config["folder"]["classification"]}' ,
