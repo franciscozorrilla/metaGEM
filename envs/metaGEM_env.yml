@@ -17,7 +17,7 @@ dependencies:
   - motus=>2.5.1
   - r-base>=3.5.1
   - samtools>=1.9
-  - snakemake>=5.31.1
+  - snakemake>=5.10.0,<5.31.1
   - r-gridextra>=2.2.1
   - r-tidyverse
   - r-tidytext
