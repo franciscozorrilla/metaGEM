@@ -111,11 +111,15 @@ Usage: bash metaGEM.sh [-t|--task TASK]
   -l, --local       Run jobs on local machine for non-cluster usage
 ```
 
-## 💩 Tutorial
+## 💩 Tutorials
 
 `metaGEM` can be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The following tutorial showcases the `metaGEM` workflow on two unseenbio samples.
 
 [![Tutorial](https://img.shields.io/badge/metaGEM-Tutorial-%23d8b365)](https://github.com/franciscozorrilla/unseenbio_metaGEM)
+
+For a more advanced tutorial, check out the resources we put together for the [SymbNET: from metagenomics to metabolic interactions](https://www.ebi.ac.uk/training/events/symbnet-2022/) course in 2022.
+
+[![Tutorial2](https://img.shields.io/badge/SymbNET-Tutorial-red)](https://github.com/franciscozorrilla/SymbNET)
 
 ## 🏛️ Wiki
 
