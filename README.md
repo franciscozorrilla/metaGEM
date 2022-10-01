@@ -174,12 +174,24 @@ rule package-name:
 
 ## 🖇️ Publications
 
-The `metaGEM` workflow was used in the following publication(s):
+The `metaGEM` workflow has been used in the following publications:
 
 ```
 Plastic-degrading potential across the global microbiome correlates with recent pollution trends
-Jan Zrimec, Mariia Kokina, Sara Jonasson, Francisco Zorrilla, Aleksej Zelezniak
-bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558 
+J Zrimec, M Kokina, S Jonasson, F Zorrilla, A Zelezniak
+MBio, 2021
+```
+
+```
+Competition-cooperation in the chemoautotrophic ecosystem of Movile Cave: first metagenomic approach on sediments
+Chiciudean, I., Russo, G., Bogdan, D.F. et al. 
+Environmental Microbiome, 2022
+```
+
+```
+The National Ecological Observatory Network’s soil metagenomes: assembly and basic analysis
+Werbin ZR, Hackos B, Lopez-Nava J et al. 
+F1000Research, 2022
 ```
 
 [![arxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.13.422558%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.13.422558v2.full)
