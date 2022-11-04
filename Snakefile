@@ -1386,7 +1386,7 @@ rule compositionVis:
         # Summarize GTDBTk output across samples
         for folder in */;do 
             samp=$(echo $folder|sed 's|^.*/||');
-            cat $folder/classify/*summary.tsv;
+            cat $folder/classify/*summary.tsv| sed 's/orig/o/g' | sed 's/permissive/p/g' | sed 's/strict/s/g' | sed "s/^/$samp./g";
         done > GTDBTk.stats
         # Clean up stats file
         header=$(head -n 1 GTDBTk.stats)
