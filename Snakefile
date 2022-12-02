@@ -1389,7 +1389,7 @@ rule compositionVis:
             cat $folder/classify/*summary.tsv| sed 's/orig/o/g' | sed 's/permissive/p/g' | sed 's/strict/s/g' | sed "s/^/$samp./g";
         done > GTDBTk.stats
         # Clean up stats file
-        header=$(head -n 1 GTDBTk.stats)
+        header=$(head -n 1 GTDBTk.stats | sed 's/^.*\.//g')
         sed -i '/other_related_references(genome_id,species_name,radius,ANI,AF)/d' GTDBTk.stats
         sed -i "1i$header" GTDBTk.stats
         mv GTDBTk.stats {config[path][root]}/{config[folder][stats]}
