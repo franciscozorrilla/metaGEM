@@ -115,6 +115,10 @@ Usage: bash metaGEM.sh [-t|--task TASK]
 
 [![Tutorial](https://img.shields.io/badge/metaGEM-Tutorial-%23d8b365)](https://github.com/franciscozorrilla/unseenbio_metaGEM)
 
+For an introductory metabolic modeling tutorial, refer to the resources compiled for the [EMBOMicroCom: Metabolite and species dynamics in microbial communities](https://www.embl.org/about/info/course-and-conference-office/events/mcd22-01/) workshop in 2022.
+
+[![Tutorial3](https://img.shields.io/badge/MicroCom-Tutorial-green)](https://github.com/franciscozorrilla/EMBOMicroCom)
+
 For a more advanced tutorial, check out the resources we put together for the [SymbNET: from metagenomics to metabolic interactions](https://www.ebi.ac.uk/training/events/symbnet-2022/) course in 2022.
 
 [![Tutorial2](https://img.shields.io/badge/SymbNET-Tutorial-red)](https://github.com/franciscozorrilla/SymbNET)
