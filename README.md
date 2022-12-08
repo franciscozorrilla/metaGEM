@@ -14,8 +14,6 @@
 
 `metaGEM` is a Snakemake workflow that integrates an array of existing bioinformatics and metabolic modeling tools, for the purpose of predicting metabolic interactions within bacterial communities of microbiomes. From whole metagenome shotgun datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations. Additional outputs include abundance estimates, taxonomic assignment, growth rate estimation, pangenome analysis, and eukaryotic MAG identification.
 
-You can access the metaGEM-generated results for the publication [here](https://github.com/franciscozorrilla/metaGEM_paper).
-
 ## 🧉 Try it now
 
 You can set up and use `metaGEM` on the cloud by following along the google colab notebook. 
@@ -126,6 +124,18 @@ For a more advanced tutorial, check out the resources we put together for the [S
 Refer to the wiki for additional usage tips, frequently asked questions, and implementation details.
 
 [![wiki](https://img.shields.io/badge/metaGEM-Wiki-blue)](https://github.com/franciscozorrilla/metaGEM/wiki)
+
+## 📦 Datasets
+
+* You can access the metaGEM-generated results for the publication [here](https://github.com/franciscozorrilla/metaGEM_paper).
+```
+    🧪 Small communities of gut microbes from lab cultures
+    💩 Real gut microbiome samples from Swedish diabetes paper
+    🪴 Plant-associated soil samples from Chinese rhizobiome study
+    🌏 Bulk-soil samples from Australian biodiversity analysis
+    🌊 Ocean water samples from global TARA Oceans expeditions
+```
+* Additionally, you can access metaGEM-generated results from a reanalysis of recently published ancient metagenomes [here](https://zenodo.org/record/7414438#.Y5HSFYLP3bs).
 
 ## 🐍 Workflow
 
