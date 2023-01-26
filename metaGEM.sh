@@ -355,7 +355,7 @@ submitLocal() {
     while true; do
         read -p "Do you wish to submit this batch of jobs on your local machine? (y/n)" yn
         case $yn in
-            [Yy]* ) echo "snakemake all -j 1 -k"|bash; break;;
+            [Yy]* ) echo "snakemake all -j $njobs -c $ncores -k"|bash; break;;
             [Nn]* ) exit;;
             * ) echo "Please answer yes or no.";;
         esac
