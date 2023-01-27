@@ -27,7 +27,7 @@ Please note that google colab does not provide the computational resources neces
 Assuming you have already installed mamba, you can then set up `metaGEM` on your cluster with just one line of code 😉
 
 ```
-git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM/workflow && rm -r .git && mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
+git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM/workflow && rm -r ../.git && mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
 ```
 
 Congratulations, you can now start using `metaGEM`. Verify your installation by using the `check` task:
