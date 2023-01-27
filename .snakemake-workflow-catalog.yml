@@ -1,0 +1,9 @@
+usage:
+  mandatory-flags: # optional definition of additional flags
+    desc: # describe your flags here in a few sentences (they will be inserted below the example commands)
+    flags: # put your flags here
+  software-stack-deployment: # definition of software deployment method (at least one of conda, singularity, or singularity+conda)
+    conda: true # whether pipeline works with --use-conda
+    singularity: true # whether pipeline works with --use-singularity
+    singularity+conda: true # whether pipeline works with --use-singularity --use-conda
+  report: true # add this to confirm that the workflow allows to use 'snakemake --report report.zip' to generate a report containing all results and explanations

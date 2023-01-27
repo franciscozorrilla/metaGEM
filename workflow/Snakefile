@@ -1,4 +1,4 @@
-configfile: "config.yaml"
+configfile: "../config/config.yaml"
 
 import os
 import glob
@@ -598,32 +598,6 @@ rule gatherCrossMapParallel:
         echo "Gathering cross map jobs ..." 
         """
 
-rule kallisto2concoctTable: 
-    input:
-        f'{config["path"]["root"]}/{config["folder"]["kallisto"]}/{{focal}}/'
-    output: 
-        "" #f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{focal}}/cov/coverage_table.tsv'
-    message:
-        """
-        This rule is necessary for the crossMapParallel implementation subworkflow.
-        It summarizes the individual concoct input tables for a given focal sample.
-        Note: silence output if not using parallel mapping approach
-        """
-    shell:
-        """
-        # Activate metagem environment
-        set +u;source activate {config[envs][metagem]};set -u;
-
-        # Create output folder
-        mkdir -p $(dirname {output})
-
-        # Compile individual mapping results into coverage table for given assembly
-        python {config[path][root]}/{config[folder][scripts]}/{config[scripts][kallisto2concoct]} \
-            --samplenames <(for s in {input}/*; do echo $s|sed 's|^.*/||'; done) \
-            $(find {input} -name "*.gz") > {output}
-    
-        """
-
 rule concoct:
     input:
         table = f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{IDs}}/cov/coverage_table.tsv',
@@ -675,86 +649,6 @@ rule concoct:
         mv $(basename {output}) *.txt *.csv $(dirname {output})
         """
 
-
-rule metabat:
-    input:
-        assembly = rules.megahit.output,
-        R1 = rules.qfilter.output.R1,
-        R2 = rules.qfilter.output.R2
-    output:
-        "" #directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
-    benchmark:
-        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.metabat.benchmark.txt'
-    message:
-        """
-        Implementation of metabat2 where only coverage information from the focal sample is used
-        for binning. Use with the crossMapParallel subworkflow, where cross sample coverage information
-        is only used by CONCOCT.
-        """
-    shell:
-        """
-        # Activate metagem environment
-        set +u;source activate {config[envs][metagem]};set -u;
-
-        # Create output folder
-        mkdir -p {output}
-
-        # Make job specific scratch dir
-        fsampleID=$(echo $(basename $(dirname {input.assembly})))
-        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}} ... "
-        mkdir -p {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}}
-
-        # Move into scratch dir
-        cd {config[path][scratch]}/{config[folder][metabat]}/${{fsampleID}}
-
-        # Copy files
-        cp {input.assembly} {input.R1} {input.R2} .
-
-        echo -e "\nFocal sample: $fsampleID ... "
-
-        echo "Renaming and unzipping assembly ... "
-        mv $(basename {input.assembly}) $(echo $fsampleID|sed 's/$/.fa.gz/g')
-        gunzip $(echo $fsampleID|sed 's/$/.fa.gz/g')
-
-        echo -e "\nIndexing assembly ... "
-        bwa index $fsampleID.fa
-
-        id=$(basename {output})
-        echo -e "\nMapping reads from sample against assembly $fsampleID ..."
-        bwa mem -t {config[cores][metabat]} $fsampleID.fa *.fastq.gz > $id.sam
-
-        echo -e "\nDeleting no-longer-needed fastq files ... "
-        rm *.gz
-                
-        echo -e "\nConverting SAM to BAM with samtools view ... " 
-        samtools view -@ {config[cores][metabat]} -Sb $id.sam > $id.bam
-
-        echo -e "\nDeleting no-longer-needed sam file ... "
-        rm $id.sam
-
-        echo -e "\nSorting BAM file with samtools sort ... " 
-        samtools sort -@ {config[cores][metabat]} -o $id.sort $id.bam
-
-        echo -e "\nDeleting no-longer-needed bam file ... "
-        rm $id.bam
-
-        # Run metabat2
-        echo -e "\nRunning metabat2 ... "
-        jgi_summarize_bam_contig_depths --outputDepth $id.depth.txt $id.sort
-
-        metabat2 -i $fsampleID.fa -a $id.depth.txt -s \
-            {config[params][metabatMin]} \
-            -v --seed {config[params][seed]} \
-            -t 0 -m {config[params][minBin]} \
-            -o $(basename $(dirname {output}))
-
-        rm $fsampleID.fa
-        rm $id.depth.txt
-
-        # Move files to output dir
-        mv *.fa {output}
-        """
-
 rule metabatCross:
     input:
         assembly = rules.megahit.output,
@@ -791,53 +685,6 @@ rule metabatCross:
 
         # Move result files to output dir
         mv *.fa {output}
-        """
-
-
-rule maxbin:
-    input:
-        assembly = rules.megahit.output,
-        R1 = rules.qfilter.output.R1,
-        R2 = rules.qfilter.output.R2
-    output:
-        "" #directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
-    benchmark:
-        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.maxbin.benchmark.txt'
-    shell:
-        """
-        # Activate metagem environment
-        set +u;source activate {config[envs][metagem]};set -u;
-
-        # Create output folder
-        mkdir -p $(dirname {output})
-
-        # Make job specific scratch dir
-        fsampleID=$(echo $(basename $(dirname {input.assembly})))
-        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}} ... "
-        mkdir -p {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}}
-
-        # Move into scratch dir
-        cd {config[path][scratch]}/{config[folder][maxbin]}/${{fsampleID}}
-
-        # Copy files to tmp
-        cp -r {input.assembly} {input.R1} {input.R2} .
-
-        echo -e "\nUnzipping assembly ... "
-        gunzip $(basename {input.assembly})
-        
-        echo -e "\nRunning maxbin2 ... "
-        run_MaxBin.pl -contig $(echo $(basename {input.assembly})|sed 's/.gz//') \
-            -out $(basename $(dirname {output})) \
-            -reads $(basename {input.R1}) \
-            -reads2 $(basename {input.R2}) \
-            -thread {config[cores][maxbin]}
-
-        rm $(echo $(basename {input.assembly})|sed 's/.gz//')
-        
-        mkdir $(basename {output})
-        mv *.fasta *.summary *.abundance *.abund1 *.abund2 $(basename {output})
-        mv $(basename {output}) $(dirname {output})
-
         """
 
 rule maxbinCross:

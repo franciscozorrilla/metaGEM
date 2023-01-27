@@ -283,7 +283,7 @@ clusterConfig() {
 
     # Show cluster_config.json params
     echo -e "Please verify parameters set in the cluster_config.json file: \n"
-    paste cluster_config.json
+    paste ../config/cluster_config.json
     echo " "
 
     while true; do
@@ -308,7 +308,7 @@ snakePrep() {
     snakemake --unlock -j 1
 
     echo -e "\nDry-running snakemake jobs ... "
-    snakemake all -j $njobs -n -k --cluster-config cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
+    snakemake all -j $njobs -n -k --cluster-config ../config/cluster_config.json -c "sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}"
 }
 
 # Submit login node function, note that is only works for rules with no wildcard expansion
@@ -390,7 +390,7 @@ submitCluster() {
 
         # Parse cluster_config.json cores (line 5) to match number requested cores stored in "$ncores". Note: Hardcoded line number.
         echo "Parsing cluster_config.json to match requested number of cores: $ncores ... "
-        sed -i "5s/:.*$/: $ncores,/" cluster_config.json
+        sed -i "5s/:.*$/: $ncores,/" ../config/cluster_config.json
 
     fi 
 
@@ -404,7 +404,7 @@ submitCluster() {
 
         # Parse cluster_config.json time (line 4) to match number requested hours stored in "$hours". Note: Hardcoded line number.
         echo "Parsing cluster_config.json to match requested time (hours): $hours ... "
-        sed -i "4s/:.*$/: \"0-$hours:00:00\",/" cluster_config.json
+        sed -i "4s/:.*$/: \"0-$hours:00:00\",/" ../config/cluster_config.json
 
     fi 
 
@@ -421,7 +421,7 @@ submitCluster() {
         while true; do
             read -p "Do you wish to submit this batch of $task jobs? (y/n)" yn
             case $yn in
-                [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+                [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config ../config/cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
                 [Nn]* ) exit;;
                 * ) echo "Please answer yes or no.";;
             esac
@@ -431,7 +431,7 @@ submitCluster() {
 
         # Memory flag was provided, parse cluster_config.json memory (line 7) to match number requested memory stored in "$mem". Note: Hardcoded line number.
         echo "Parsing cluster_config.json to match requested memory: $mem ... "
-        sed -i "7s/:.*$/: $(echo $mem)G,/" cluster_config.json
+        sed -i "7s/:.*$/: $(echo $mem)G,/" ../config/cluster_config.json
 
         checkParams
 
@@ -440,7 +440,7 @@ submitCluster() {
         while true; do
             read -p "Do you wish to submit this batch of jobs? (y/n)" yn
             case $yn in
-                [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
+                [Yy]* ) echo "nohup snakemake all -j $njobs -k --cluster-config ../config/cluster_config.json -c 'sbatch -A {cluster.account} -t {cluster.time} --mem {cluster.mem} -n {cluster.n} --ntasks {cluster.tasks} --cpus-per-task {cluster.n} --output {cluster.output}' &"|bash; break;;
                 [Nn]* ) exit;;
                 * ) echo "Please answer yes or no.";;
             esac
