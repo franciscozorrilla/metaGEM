@@ -602,7 +602,7 @@ rule kallisto2concoctTable:
     input:
         f'{config["path"]["root"]}/{config["folder"]["kallisto"]}/{{focal}}/'
     output: 
-        #f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{focal}}/cov/coverage_table.tsv'
+        "" #f'{config["path"]["root"]}/{config["folder"]["concoct"]}/{{focal}}/cov/coverage_table.tsv'
     message:
         """
         This rule is necessary for the crossMapParallel implementation subworkflow.
@@ -682,7 +682,7 @@ rule metabat:
         R1 = rules.qfilter.output.R1,
         R2 = rules.qfilter.output.R2
     output:
-        #directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
+        "" #directory(f'{config["path"]["root"]}/{config["folder"]["metabat"]}/{{IDs}}/{{IDs}}.metabat-bins')
     benchmark:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.metabat.benchmark.txt'
     message:
@@ -800,7 +800,7 @@ rule maxbin:
         R1 = rules.qfilter.output.R1,
         R2 = rules.qfilter.output.R2
     output:
-        #directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
+        "" #directory(f'{config["path"]["root"]}/{config["folder"]["maxbin"]}/{{IDs}}/{{IDs}}.maxbin-bins')
     benchmark:
         f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.maxbin.benchmark.txt'
     shell:
