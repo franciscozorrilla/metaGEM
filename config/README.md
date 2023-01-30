@@ -1,6 +1,6 @@
-# Setup & configuration
+# 💎 Setup guide
 
-## Config files
+## 🔩 Config files
 
 Make sure to inspect and set up the two config files in this folder.
 
@@ -10,7 +10,7 @@ Make sure to inspect and set up the two config files in this folder.
 ### Cluster configuration
 `cluster_config.json`: handles parameters for submitting jobs to the cluster workload manager. Most importantly, you should make sure that the `account` is properly defined to be able to submit jobs to your cluster. Please refer to the cluster_config.json wiki page for a more in depth look at this config file.
 
-## Environments
+## 🛢️ Environments
 
 Set up three conda environments:
 - `mamba`: Used for installing mamba and setting up subsequent environments from recipe files
@@ -79,7 +79,7 @@ Or using the conda recipe file:
 env create --prefix ./envs/metawrap -f envs/metaWRAP_env.yml
 ```
 
-## Checking your installation
+## 🔮 Check installation
 
 To make sure that the basics have been properly configured, run the `check` task using the `metaGEM.sh` parser:
 
