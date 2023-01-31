@@ -13,23 +13,42 @@ Make sure to inspect and set up the two config files in this folder.
 ## 🛢️ Environments
 
 Set up three conda environments:
-- `mamba`: Used for installing mamba and setting up subsequent environments from recipe files
-- `metagem`: Contains most `metaGEM` core workflow tools, Python 3
-- `metawrap` Contains `metaWRAP` and its dependencies, Python 2
+1. `mamba`: Used for installing mamba and setting up subsequent environments from recipe files
+2. `metagem`: Contains most `metaGEM` core workflow tools, Python 3
+3. `metawrap` Contains `metaWRAP` and its dependencies, Python 2
 
-### mamba
+### 1. mamba
 
-Conda can take *ages* to solve environment dependencies when installing many tools at once, we can use [mamba](https://github.com/mamba-org/mamba) instead for faster installation:
+Conda can take *ages* to solve environment dependencies when installing many tools at once, we can use [mamba](https://github.com/mamba-org/mamba) instead for faster installation.
 
 ```
-# Clone metaGEM repo
+conda create -n mamba mamba
+```
+
+Activate mamba environment to quickly set up subsequent environments.
+
+```
+source activate mamba
+```
+
+### 2. metaGEM
+
+Clone metaGEM repo
+
+```
 git clone https://github.com/franciscozorrilla/metaGEM.git
+```
 
-# Move into metaGEM folder
+Move into metaGEM/workflow folder
+
+```
 cd metaGEM/workflow
+```
 
-# Remove unnecessary files
-rm -r ../.git # Remove ~250 Mb of unneeded git history files
+Clean up unnecessary ~250 Mb of unnecessary git history files
+
+```
+rm -r ../.git
 ```
 
 Press `y` and `Enter` when prompted to remove write-protected files, these are not necessary and just eat your precious space.
@@ -39,31 +58,25 @@ rm: remove write-protected regular file ‘.git/objects/pack/pack-f4a65f7b63c094
 rm: remove write-protected regular file ‘.git/objects/pack/pack-f4a65f7b63c09419a9b30e64b0e4405c524a5b35.idx’? y
 ```
 
-```
-# Create mamba env for faster installation
-conda create -n mamba mamba
-
-# Activate mamba env
-source activate mamba
-```
-
-### metaGEM
+Create metaGEM env using recipe .yml file
 
 ```
-# Preferred method for creating metaGEM env using recipe .yml file
 mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
+```
 
-# Alternatively metaGEM env setup, note that the line below is commented out
-#mamba install python snakemake fastp megahit bwa samtools=1.9 kallisto concoct=1.1 metabat2 maxbin2 gtdbtk eukrep eukcc smeg motus
+Deactivate mamba env and activate metaGEM env
 
-# Deactivate mamba env and activate metaGEM env
+```
 source deactivate && source activate envs/metagem
+```
 
-# Install pip tools
+Install pip tools
+
+```
 pip install --user memote carveme smetana
 ```
 
-### metaWRAP
+### 3. metaWRAP
 
 It is best to set up `metaWRAP` in its own isolated environment to prevent version conflicts with `metaGEM`. Note that `metaWRAP v1.3.2` has not migrated from python 2 to python 3 yet.
 
@@ -76,7 +89,7 @@ conda install -c ursky metawrap-mg=1.3.2
 Or using the conda recipe file:
 
 ```
-env create --prefix ./envs/metawrap -f envs/metaWRAP_env.yml
+mamba env create --prefix ./envs/metawrap -f envs/metaWRAP_env.yml
 ```
 
 ## 🔮 Check installation
