@@ -9,31 +9,19 @@
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 [![DOI](https://img.shields.io/badge/Zenodo-10.5281%2F4707723-blue)](https://zenodo.org/badge/latestdoi/137376259)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
+[![Anaconda version](https://anaconda.org/bioconda/metagem/badges/version.svg)](https://anaconda.org/bioconda/metagem)
+[![Anaconda downloads](https://anaconda.org/bioconda/metagem/badges/downloads.svg)](https://anaconda.org/bioconda/metagem)
 
 ![metawrapfigs_final4 001](https://user-images.githubusercontent.com/35606471/116543667-0d0f8f00-a8e6-11eb-835c-bc1fe935f43e.png)
 
 `metaGEM` is a Snakemake workflow that integrates an array of existing bioinformatics and metabolic modeling tools, for the purpose of predicting metabolic interactions within bacterial communities of microbiomes. From whole metagenome shotgun datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations. Additional outputs include abundance estimates, taxonomic assignment, growth rate estimation, pangenome analysis, and eukaryotic MAG identification.
 
-## 🧉 Try it now
-
-You can set up and use `metaGEM` on the cloud by following along the google colab notebook. 
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
-
-Please note that google colab does not provide the computational resources necessary to fully run `metaGEM` on a real dataset. This notebook demonstrates how to set up and use `metaGEM` by perfoming the first steps in the workflow on a toy dataset.
-
 ## ⚙️ Installation
 
-Assuming you have already installed mamba, you can then set up `metaGEM` on your cluster with just one line of code 😉
+Assuming you have mamba installed, you can start using `metaGEM` on your cluster with just one line of code 😉
 
 ```
-git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM/workflow && rm -r ../.git && mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
-```
-
-Congratulations, you can now start using `metaGEM`. Verify your installation by using the `check` task:
-
-```
-bash metaGEM.sh --task check
+mamba create -n metagem -c bioconda metagem
 ```
 
 Please consult the `config/README.md` page for more detailed setup instructions.
@@ -108,6 +96,14 @@ Usage: bash metaGEM.sh [-t|--task TASK]
   -h, --hours       Specify number of hours to allocated to job runtime
   -l, --local       Run jobs on local machine for non-cluster usage
 ```
+
+## 🧉 Try it now
+
+You can set up and use `metaGEM` on the cloud by following along the google colab notebook. 
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
+
+Please note that google colab does not provide the computational resources necessary to fully run `metaGEM` on a real dataset. This notebook demonstrates how to set up and use `metaGEM` by perfoming the first steps in the workflow on a toy dataset.
 
 ## 💩 Tutorials
 
