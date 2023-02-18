@@ -18,7 +18,7 @@
 
 ## ⚙️ Installation
 
-Assuming you have mamba installed, you can start using `metaGEM` on your cluster with just one line of code 😉
+You can start using `metaGEM` on your cluster with just one line of code with mamba 😉
 
 ```
 mamba create -n metagem -c bioconda metagem
