@@ -9,8 +9,9 @@
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 [![DOI](https://img.shields.io/badge/Zenodo-10.5281%2F4707723-blue)](https://zenodo.org/badge/latestdoi/137376259)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
-[![Anaconda version](https://anaconda.org/bioconda/metagem/badges/version.svg)](https://anaconda.org/bioconda/metagem)
-[![Anaconda downloads](https://anaconda.org/bioconda/metagem/badges/downloads.svg)](https://anaconda.org/bioconda/metagem)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/version.svg)](https://anaconda.org/bioconda/metagem)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/latest_release_date.svg)](https://anaconda.org/bioconda/metagem)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/downloads.svg)](https://anaconda.org/bioconda/metagem)
 
 ![metawrapfigs_final4 001](https://user-images.githubusercontent.com/35606471/116543667-0d0f8f00-a8e6-11eb-835c-bc1fe935f43e.png)
 
