@@ -19,17 +19,23 @@
 
 ## ⚙️ Installation
 
-You can start using `metaGEM` on your cluster with just one line of code with mamba 😉
+You can start using `metaGEM` on your cluster with just one line of code with the [mamba package manager](https://github.com/mamba-org/mamba)
 
 ```
 mamba create -n metagem -c bioconda metagem
 ```
 
-Please consult the `config/README.md` page for more detailed setup instructions.
+This will create an environment called `metagem` and start installing dependencies. Please consult the `config/README.md` page for more detailed setup instructions.
 
 [![installation](https://img.shields.io/badge/metaGEM-config-%2331a354)](https://github.com/franciscozorrilla/metaGEM/tree/master/config)
 
 ## 🔧 Usage
+
+Clone this repo
+
+```
+git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM/workflow
+```
 
 Run `metaGEM` without any arguments to see usage instructions:
 
