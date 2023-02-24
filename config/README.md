@@ -60,7 +60,7 @@ rm: remove write-protected regular file ‘.git/objects/pack/pack-f4a65f7b63c094
 
 Recommended method: install from bioconda
 ```
-conda config --add channels conda-forge && mamba create -n metagem -c bioconda metagem 
+conda config --add channels conda-forge && mamba create --prefix envs/metagem -c bioconda metagem 
 ```
 
 Alternative method: create metaGEM env using recipe .yml file
@@ -72,7 +72,7 @@ mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
 Deactivate mamba env and activate metaGEM env
 
 ```
-source deactivate && source activate metagem
+source deactivate && source activate envs/metagem
 ```
 
 Install pip tools
