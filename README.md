@@ -1,5 +1,6 @@
 # 💎 `metaGEM`
 
+> **Note** 
 > An easy-to-use workflow for generating context specific genome-scale metabolic models and predicting metabolic interactions within microbial communities directly from metagenomic data.
 
 [![Nucleic Acids Research](https://img.shields.io/badge/Nucleic%20Acids%20Research-10.1093%2Fnar%2Fgkab815-critical)](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab815/6382386)
