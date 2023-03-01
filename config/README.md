@@ -111,7 +111,7 @@ Finally, this task will check if any sequencing files are present in the dataset
 
 ## Tools requiring additional configuration
 
-Please note that you will need to set up the following tools/databases to run the complete core metaGEM workflow:
+> **Warning** Please note that you will need to set up the following tools/databases to run the complete core metaGEM workflow:
 
 ### 1. CheckM
 
