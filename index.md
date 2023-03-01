@@ -1,42 +1,37 @@
 [![Nucleic Acids Research](https://img.shields.io/badge/Nucleic%20Acids%20Research-10.1093%2Fnar%2Fgkab815-critical)](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab815/6382386)
 [![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.31.424982%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
-[![Build Status](https://travis-ci.org/franciscozorrilla/metaGEM.svg?branch=master)](https://travis-ci.org/franciscozorrilla/metaGEM)
+[![Build Status](https://app.travis-ci.com/franciscozorrilla/metaGEM.svg?branch=master)](https://app.travis-ci.com/github/franciscozorrilla/metaGEM)
 [![GitHub license](https://img.shields.io/github/license/franciscozorrilla/metaGEM)](https://github.com/franciscozorrilla/metaGEM/blob/master/LICENSE)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
 [![DOI](https://img.shields.io/badge/Zenodo-10.5281%2F4707723-blue)](https://zenodo.org/badge/latestdoi/137376259)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/version.svg)](https://anaconda.org/bioconda/metagem)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/latest_release_date.svg)](https://anaconda.org/bioconda/metagem)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/downloads.svg)](https://anaconda.org/bioconda/metagem)
 
 ![metawrapfigs_final4 001](https://user-images.githubusercontent.com/35606471/116543667-0d0f8f00-a8e6-11eb-835c-bc1fe935f43e.png)
 
 `metaGEM` is a Snakemake workflow that integrates an array of existing bioinformatics and metabolic modeling tools, for the purpose of predicting metabolic interactions within bacterial communities of microbiomes. From whole metagenome shotgun datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations. Additional outputs include abundance estimates, taxonomic assignment, growth rate estimation, pangenome analysis, and eukaryotic MAG identification.
 
-## 🧉 Try it now
-
-You can set up and use `metaGEM` on the cloud by following along the google colab notebook. 
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
-
-Please note that google colab does not provide the computational resources necessary to fully run `metaGEM` on a real dataset. This notebook demonstrates how to set up and use `metaGEM` by perfoming the first steps in the workflow on a toy dataset.
-
 ## ⚙️ Installation
 
-You can set up `metaGEM` on your cluster with just one line of code 😉
+You can start using `metaGEM` on your cluster with just one line of code with the [mamba package manager](https://github.com/mamba-org/mamba)
 
 ```
-git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM && rm -r .git && bash env_setup.sh
+mamba create -n metagem -c bioconda metagem
 ```
 
-Congratulations, you can now start using `metaGEM`. Verify your installation by using the `check` task:
+This will create an environment called `metagem` and start installing dependencies. Please consult the `config/README.md` page for more detailed setup instructions.
 
-```
-bash metaGEM.sh --task check
-```
-
-Please consult the setup page in the wiki for further configuration instructions.
-
-[![installation](https://img.shields.io/badge/metaGEM-Installation-%2331a354)](https://github.com/franciscozorrilla/metaGEM/wiki/Quickstart)
+[![installation](https://img.shields.io/badge/metaGEM-config-%2331a354)](https://github.com/franciscozorrilla/metaGEM/tree/master/config)
 
 ## 🔧 Usage
+
+Clone this repo
+
+```
+git clone https://github.com/franciscozorrilla/metaGEM.git && cd metaGEM/workflow
+```
 
 Run `metaGEM` without any arguments to see usage instructions:
 
@@ -63,7 +58,10 @@ Usage: bash metaGEM.sh [-t|--task TASK]
                         CORE WORKFLOW
                             fastp 
                             megahit 
-                            crossMap 
+                            crossMapSeries
+                            kallistoIndex
+                            crossMapParallel
+                            kallisto2concoct 
                             concoct 
                             metabat
                             maxbin 
@@ -102,17 +100,45 @@ Usage: bash metaGEM.sh [-t|--task TASK]
   -l, --local       Run jobs on local machine for non-cluster usage
 ```
 
-## 💩 Tutorial
+## 🧉 Try it now
+
+You can set up and use `metaGEM` on the cloud by following along the google colab notebook. 
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1I1S8AoGuJ9Oc2292vqAGTDmZcbnolbuj#scrollTo=awiAaVwSF5Fz)
+
+Please note that google colab does not provide the computational resources necessary to fully run `metaGEM` on a real dataset. This notebook demonstrates how to set up and use `metaGEM` by perfoming the first steps in the workflow on a toy dataset.
+
+## 💩 Tutorials
 
 `metaGEM` can be used to explore your own gut microbiome sequencing data from at-home-test-kit services such as [unseen bio](https://unseenbio.com/). The following tutorial showcases the `metaGEM` workflow on two unseenbio samples.
 
 [![Tutorial](https://img.shields.io/badge/metaGEM-Tutorial-%23d8b365)](https://github.com/franciscozorrilla/unseenbio_metaGEM)
+
+For an introductory metabolic modeling tutorial, refer to the resources compiled for the [EMBOMicroCom: Metabolite and species dynamics in microbial communities](https://www.embl.org/about/info/course-and-conference-office/events/mcd22-01/) workshop in 2022.
+
+[![Tutorial3](https://img.shields.io/badge/MicroCom-Tutorial-green)](https://github.com/franciscozorrilla/EMBOMicroCom)
+
+For a more advanced tutorial, check out the resources we put together for the [SymbNET: from metagenomics to metabolic interactions](https://www.ebi.ac.uk/training/events/symbnet-2022/) course in 2022.
+
+[![Tutorial2](https://img.shields.io/badge/SymbNET-Tutorial-red)](https://github.com/franciscozorrilla/SymbNET)
 
 ## 🏛️ Wiki
 
 Refer to the wiki for additional usage tips, frequently asked questions, and implementation details.
 
 [![wiki](https://img.shields.io/badge/metaGEM-Wiki-blue)](https://github.com/franciscozorrilla/metaGEM/wiki)
+
+## 📦 Datasets
+
+* You can access the metaGEM-generated results for the publication [here](https://github.com/franciscozorrilla/metaGEM_paper).
+```
+    🧪 Small communities of gut microbes from lab cultures
+    💩 Real gut microbiome samples from Swedish diabetes paper
+    🪴 Plant-associated soil samples from Chinese rhizobiome study
+    🌏 Bulk-soil samples from Australian biodiversity analysis
+    🌊 Ocean water samples from global TARA Oceans expeditions
+```
+* Additionally, you can access metaGEM-generated results from a reanalysis of recently published ancient metagenomes [here](https://zenodo.org/record/7414438#.Y5HSFYLP3bs).
 
 ## 🐍 Workflow
 
@@ -161,12 +187,24 @@ rule package-name:
 
 ## 🖇️ Publications
 
-The `metaGEM` workflow was used in the following publication(s):
+The `metaGEM` workflow has been used in the following publications:
 
 ```
 Plastic-degrading potential across the global microbiome correlates with recent pollution trends
-Jan Zrimec, Mariia Kokina, Sara Jonasson, Francisco Zorrilla, Aleksej Zelezniak
-bioRxiv 2020.12.13.422558; doi: https://doi.org/10.1101/2020.12.13.422558 
+J Zrimec, M Kokina, S Jonasson, F Zorrilla, A Zelezniak
+MBio, 2021
+```
+
+```
+Competition-cooperation in the chemoautotrophic ecosystem of Movile Cave: first metagenomic approach on sediments
+Chiciudean, I., Russo, G., Bogdan, D.F. et al. 
+Environmental Microbiome, 2022
+```
+
+```
+The National Ecological Observatory Network’s soil metagenomes: assembly and basic analysis
+Werbin ZR, Hackos B, Lopez-Nava J et al. 
+F1000Research, 2022
 ```
 
 [![arxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.13.422558%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.13.422558v2.full)
