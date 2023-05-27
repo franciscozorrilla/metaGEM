@@ -300,7 +300,7 @@ rule megahit:
         echo "done. "
 
         # Run megahit
-        echo -n "Running METGAHIT ... "
+        echo -n "Running MEGAHIT ... "
         megahit -t {config[cores][megahit]} \
             --presets {config[params][assemblyPreset]} \
             --verbose \
