@@ -28,7 +28,7 @@ folder:
     benchmarks: benchmarks
     prodigal: prodigal
     blastp: blastp
-    blastp_db: 
+    blastp_db: blastp_db
 scripts:
     kallisto2concoct: kallisto2concoct.py
     prepRoary: prepareRoaryInput.R
