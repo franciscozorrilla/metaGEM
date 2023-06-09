@@ -1043,6 +1043,7 @@ rule eggnog_mapper:
         set +u;source activate eggnog6;set -u;
 
         cd {input}
+        mkdir -p {output}
 
         while read protein;do
             emapper.py -m diamond -i $protein -o ${protein%.*} --cpu 18 --dbmem --excel --scratch_dir .
