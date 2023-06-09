@@ -269,6 +269,46 @@ rule qfilterVis:
         rm Rplots.pdf
         """
 
+rule shovill:
+    input:
+        f'{config["path"]["root"]}/qfiltered/{{IDs}}'
+    output:
+        directory(f'{config["path"]["root"]}/shovill/{{IDs}}')  
+    benchmark:
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.shovill.benchmark.txt'
+    message:
+        """
+        Shovill assembly of genomes, uses spades by default
+        """
+    shell:
+        """    
+        # manually set threads, add param to config file instead
+        #export OMP_NUM_THREADS=56
+
+        # Activate metagem environment
+        set +u;source activate shovill2;set -u;
+
+        # Make sure output folder exists
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        sampleID=$(echo $(basename {input}))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/shovill/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/shovill/${{sampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/shovill/${{sampleID}}
+
+        # Copy files
+        echo -e "\nCopying input files {config[path][scratch]} ... "
+        cp -r {input}/*fastq.gz .
+
+        # run shovill
+        shovill --ram 250 --keepfiles --trim --cpus 0 --outdir out --R1 *_R1.fastq.gz --R2 *_R2.fastq.gz
+
+        # move files
+        mv out/* {output}
+        """
 
 rule megahit:
     input:
@@ -1313,51 +1353,6 @@ rule carveme:
         
         echo "Done carving GEM. "
         [ -f *.xml ] && mv *.xml $(dirname {output})
-        """
-        
-rule shovill:
-    input:
-        f'{config["path"]["root"]}/qfiltered/{{IDs}}'
-    output:
-        directory(f'{config["path"]["root"]}/shovill/{{IDs}}')  
-    benchmark:
-        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.shovill.benchmark.txt'
-    message:
-        """
-        Shovill assembly of genomes, uses spades by default
-        """
-    shell:
-        """
-        # load perl module & export var to workaround annoying perl errors
-        module load perl/5.10.1
-        export PERL5LIB=/usr/local/Cluster-Apps/perl/5.10.1/bin/perl
-        
-        # manually set threads, add param to config file instead
-        #export OMP_NUM_THREADS=56
-
-        # Activate metagem environment
-        set +u;source activate shovill2;set -u;
-
-        # Make sure output folder exists
-        mkdir -p {output}
-
-        # Make job specific scratch dir
-        sampleID=$(echo $(basename {input}))
-        echo -e "\nCreating temporary directory {config[path][scratch]}/shovill/${{sampleID}} ... "
-        mkdir -p {config[path][scratch]}/shovill/${{sampleID}}
-
-        # Move into scratch dir
-        cd {config[path][scratch]}/shovill/${{sampleID}}
-
-        # Copy files
-        echo -e "\nCopying input files {config[path][scratch]} ... "
-        cp -r {input}/*fastq.gz .
-
-        # run shovill
-        shovill --ram 250 --keepfiles --trim --cpus 0 --outdir out --R1 *_R1.fastq.gz --R2 *_R2.fastq.gz
-
-        # move files
-        mv out/* {output}
         """
 
 rule modelVis:
