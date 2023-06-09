@@ -586,7 +586,7 @@ rule crossMapParallel:
 
         # Cleanup temp folder
         echo -e "\nRemoving temporary directory {config[path][scratch]}/{config[folder][kallisto]}/${{focal}}_${{mapping}} ... "
-        cd ..
+        cd -
         rm -r {config[path][scratch]}/{config[folder][kallisto]}/${{focal}}_${{mapping}}
         """
 
