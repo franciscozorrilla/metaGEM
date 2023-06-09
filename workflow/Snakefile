@@ -1044,9 +1044,12 @@ rule eggnog_mapper:
 
         cd {input}
         mkdir -p {output}
-
-        while read protein;do
-            emapper.py -m diamond -i $protein -o ${protein%.*} --cpu 18 --dbmem --excel --scratch_dir .
+        
+        while read protein;do             
+            mkdir -p tmp;
+            emapper.py -m diamond -i $protein -o ${protein%.*} --cpu 18 --dbmem --excel --scratch_dir tmp;
+            mv *.emapper.* {output}
+            rm -r tmp;
         done< <(ls|grep faa)
         """
         
