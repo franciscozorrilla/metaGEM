@@ -878,11 +878,50 @@ rule binReassemble:
         mv * $(dirname {output})
         """
 
+rule drep_isolate:
+    input:
+        f'{config["path"]["root"]}/drep/input/{{IDs}}'
+    output:
+        directory(f'{config["path"]["root"]}/drep/output/{{IDs}}')
+    benchmark:
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.drep.benchmark.txt'
+    message:
+        """
+        Compare megahit assembly, binned & reassemlbed MAGs, and shovill assembly to determine best candidate
+        Assumes you have organized input files in sample specific folders within drep input subfolder 
+        """
+    shell:
+        """     
+        # Activate metagem environment
+        set +u;source activate metagem;set -u;
+
+        # Make sure output folder exists
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        sampleID=$(echo $(basename {input}))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/drep/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/drep/${{sampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/drep/${{sampleID}}
+
+        # Copy files
+        echo -e "\nCopying input files {config[path][scratch]} ... "
+        cp -r {input} .
+
+        # run drep
+        dRep dereplicate -comp 50 -con 10 -p 56 output_skipsmash/ --SkipMash -d -g $(basename {input})/*.fa
+
+        # move files
+        mv output_skipsmash/* {output}
+
+        """
+        
 rule binEvaluation:
     input: 
         refined = expand(config["path"]["root"]+"/"+config["folder"]["refined"]+"/{IDs}", IDs = IDs),
         reassembled = expand(config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}", IDs = IDs)
-
 
 rule binningVis:
     input: 
