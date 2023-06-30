@@ -2,7 +2,7 @@
 name: Question?
 about: Are you wondering if metaGEM is appropriate for your particular case? Or maybe
   you have analyzed some data using metaGEM and need help understanding the output?
-  Post your questions here, or alternatively try out the discussions tab.
+  Post your questions here!
 title: "[Question]: _______________ ?"
 labels: question
 assignees: franciscozorrilla
