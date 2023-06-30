@@ -1,3 +1,6 @@
+> **Note** 
+> An easy-to-use workflow for generating context specific genome-scale metabolic models and predicting metabolic interactions within microbial communities directly from metagenomic data.
+
 [![Nucleic Acids Research](https://img.shields.io/badge/Nucleic%20Acids%20Research-10.1093%2Fnar%2Fgkab815-critical)](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab815/6382386)
 [![bioRxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.31.424982%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.31.424982v2.full)
 [![Build Status](https://app.travis-ci.com/franciscozorrilla/metaGEM.svg?branch=master)](https://app.travis-ci.com/github/franciscozorrilla/metaGEM)
@@ -10,6 +13,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/downloads.svg)](https://anaconda.org/bioconda/metagem)
 
 ![metawrapfigs_final4 001](https://user-images.githubusercontent.com/35606471/116543667-0d0f8f00-a8e6-11eb-835c-bc1fe935f43e.png)
+
 
 `metaGEM` is a Snakemake workflow that integrates an array of existing bioinformatics and metabolic modeling tools, for the purpose of predicting metabolic interactions within bacterial communities of microbiomes. From whole metagenome shotgun datasets, metagenome assembled genomes (MAGs) are reconstructed, which are then converted into genome-scale metabolic models (GEMs) for *in silico* simulations. Additional outputs include abundance estimates, taxonomic assignment, growth rate estimation, pangenome analysis, and eukaryotic MAG identification.
 
