@@ -14,7 +14,7 @@ Make sure to inspect and set up the two config files in this folder.
 
 Set up three conda environments:
 1. `mamba`: Used for installing mamba and setting up subsequent environments from recipe files
-2. `metagem`: Contains most `metaGEM` core workflow tools, Python 3
+2. `metagem`: Contains most `metaGEM` core workflow tools, Python 3, Snakemake>=5.10.0,<5.31.1
 3. `metawrap` Contains `metaWRAP` and its dependencies, Python 2
 
 ### 1. mamba
