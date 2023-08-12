@@ -13,6 +13,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/version.svg)](https://anaconda.org/bioconda/metagem)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/latest_release_date.svg)](https://anaconda.org/bioconda/metagem)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/metagem/badges/downloads.svg)](https://anaconda.org/bioconda/metagem)
+[![Snakemake](https://img.shields.io/badge/Snakemake->=5.10.0,<5.31.1-green)](https://snakemake.readthedocs.io/en/stable/project_info/history.html#id407)
 
 ![metawrapfigs_final4 001](https://user-images.githubusercontent.com/35606471/116543667-0d0f8f00-a8e6-11eb-835c-bc1fe935f43e.png)
 
