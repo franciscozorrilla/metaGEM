@@ -1,5 +1,4 @@
 # 💎 `metaGEM`
-
 > **Note** 
 > An easy-to-use workflow for generating context specific genome-scale metabolic models and predicting metabolic interactions within microbial communities directly from metagenomic data.
 
@@ -193,7 +192,7 @@ rule package-name:
 
 ## 🖇️ Publications
 
-The `metaGEM` workflow has been used in the following publications:
+The `metaGEM` workflow has been used in multiple studies, including the following non-exhaustive list:
 
 ```
 Plastic-degrading potential across the global microbiome correlates with recent pollution trends
@@ -213,7 +212,11 @@ Werbin ZR, Hackos B, Lopez-Nava J et al.
 F1000Research, 2022
 ```
 
-[![arxiv](https://img.shields.io/badge/bioRxiv-10.1101%2F2020.12.13.422558%20-B31B1B)](https://www.biorxiv.org/content/10.1101/2020.12.13.422558v2.full)
+```
+Microbial interactions shape cheese flavour formation
+Melkonian, C., Zorrilla, F., Kjærbølling, I. et al.
+Nature Communications, 2023
+```
 
 ## 🍾 Please cite
 
@@ -224,6 +227,16 @@ Nucleic Acids Research, 2021; gkab815, https://doi.org/10.1093/nar/gkab815
 ``` 
 
 [![Nucleic Acids Research](https://img.shields.io/badge/Nucleic%20Acids%20Research-10.1093%2Fnar%2Fgkab815-critical)](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab815/6382386)
+
+## ⭐ Star History
+
+<a href="https://star-history.com/#franciscozorrilla/metaGEM&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=franciscozorrilla/metaGEM&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=franciscozorrilla/metaGEM&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=franciscozorrilla/metaGEM&type=Date" />
+  </picture>
+</a>
 
 ## 📲 Contact
 
