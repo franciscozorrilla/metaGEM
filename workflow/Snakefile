@@ -1200,6 +1200,47 @@ rule GTDBTk:
         mv GTDBTk/* {output}
         """
 
+rule GTDBTk_singlerun:
+    input:
+        f'{config["path"]["root"]}/dna_bins'
+    output:
+        directory(f'{config["path"]["root"]}/GTDBTk/')
+    benchmark:
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/GTDBTk_singlerun.benchmark.txt'
+    message:
+        """
+        Please make sure that the GTDB-Tk database was downloaded and configured.
+        """
+    shell:
+        """
+        # Activate metagem environment
+        set +u;source activate {config[envs][metagem]};set -u;
+
+        # Make sure output folder exists
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        sampleID=$(echo $(basename $(dirname {input})))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/{config[folder][classification]}/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/{config[folder][classification]}/${{sampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/{config[folder][classification]}/${{sampleID}}
+
+        # Copy files
+        echo -e "\nCopying files to tmp dir ... "
+        cp -r {input} .
+        
+        # In case you GTDBTk is not properly configured you may need to export the GTDBTK_DATA_PATH variable,
+        # Simply uncomment the following line and fill in the path to your GTDBTk database:
+        # export GTDBTK_DATA_PATH=/path/to/the/gtdbtk/database/you/downloaded
+
+        # Run GTDBTk
+        gtdbtk classify_wf --genome_dir $(basename {input}) --out_dir GTDBTk -x fa --cpus {config[cores][gtdbtk]} --full_tree --scratch_dir .
+
+        mv GTDBTk/* {output}
+        """
+        
 rule compositionVis:
     input:
         taxonomy = f'{config["path"]["root"]}/{config["folder"]["classification"]}' ,
