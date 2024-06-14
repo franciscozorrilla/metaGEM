@@ -269,6 +269,46 @@ rule qfilterVis:
         rm Rplots.pdf
         """
 
+rule shovill:
+    input:
+        f'{config["path"]["root"]}/qfiltered/{{IDs}}'
+    output:
+        directory(f'{config["path"]["root"]}/shovill/{{IDs}}')  
+    benchmark:
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.shovill.benchmark.txt'
+    message:
+        """
+        Shovill assembly of genomes, uses spades by default
+        """
+    shell:
+        """    
+        # manually set threads, add param to config file instead
+        #export OMP_NUM_THREADS=56
+
+        # Activate metagem environment
+        set +u;source activate shovill2;set -u;
+
+        # Make sure output folder exists
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        sampleID=$(echo $(basename {input}))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/shovill/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/shovill/${{sampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/shovill/${{sampleID}}
+
+        # Copy files
+        echo -e "\nCopying input files {config[path][scratch]} ... "
+        cp -r {input}/*fastq.gz .
+
+        # run shovill
+        shovill --ram 250 --keepfiles --trim --cpus 0 --outdir out --R1 *_R1.fastq.gz --R2 *_R2.fastq.gz
+
+        # move files
+        mv out/* {output}
+        """
 
 rule megahit:
     input:
@@ -838,11 +878,50 @@ rule binReassemble:
         mv * $(dirname {output})
         """
 
+rule drep_isolate:
+    input:
+        f'{config["path"]["root"]}/drep/input/{{IDs}}'
+    output:
+        directory(f'{config["path"]["root"]}/drep/output/{{IDs}}')
+    benchmark:
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.drep.benchmark.txt'
+    message:
+        """
+        Compare megahit assembly, binned & reassemlbed MAGs, and shovill assembly to determine best candidate
+        Assumes you have organized input files in sample specific folders within drep input subfolder 
+        """
+    shell:
+        """     
+        # Activate metagem environment
+        set +u;source activate metagem;set -u;
+
+        # Make sure output folder exists
+        mkdir -p {output}
+
+        # Make job specific scratch dir
+        sampleID=$(echo $(basename {input}))
+        echo -e "\nCreating temporary directory {config[path][scratch]}/drep/${{sampleID}} ... "
+        mkdir -p {config[path][scratch]}/drep/${{sampleID}}
+
+        # Move into scratch dir
+        cd {config[path][scratch]}/drep/${{sampleID}}
+
+        # Copy files
+        echo -e "\nCopying input files {config[path][scratch]} ... "
+        cp -r {input} .
+
+        # run drep
+        dRep dereplicate -comp 50 -con 10 -p 56 output_skipsmash/ --SkipMash -d -g $(basename {input})/*.fa
+
+        # move files
+        mv output_skipsmash/* {output}
+
+        """
+        
 rule binEvaluation:
     input: 
         refined = expand(config["path"]["root"]+"/"+config["folder"]["refined"]+"/{IDs}", IDs = IDs),
         reassembled = expand(config["path"]["root"]+"/"+config["folder"]["reassembled"]+"/{IDs}", IDs = IDs)
-
 
 rule binningVis:
     input: 
@@ -1314,7 +1393,6 @@ rule carveme:
         echo "Done carving GEM. "
         [ -f *.xml ] && mv *.xml $(dirname {output})
         """
-
 
 rule modelVis:
     input: 
