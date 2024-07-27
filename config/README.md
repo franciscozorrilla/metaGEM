@@ -12,26 +12,14 @@ Make sure to inspect and set up the two config files in this folder.
 
 ## 🛢️ Environments
 
-Set up three conda environments:
-1. `mamba`: Used for installing mamba and setting up subsequent environments from recipe files
-2. `metagem`: Contains most `metaGEM` core workflow tools, Python 3 & Snakemake>=5.10.0,<5.31.1
-3. `metawrap` Contains `metaWRAP` and its dependencies, Python 2
-
-### 1. mamba
-
 Conda can take *ages* to solve environment dependencies when installing many tools at once, we can use [mamba](https://github.com/mamba-org/mamba) instead for faster installation.
 
-```
-conda create -n mamba mamba
-```
+Set up two environments:
+1. `metagem`: Contains most `metaGEM` core workflow tools, Python 3 & Snakemake>=5.10.0,<5.31.1
+2. `metawrap` Contains `metaWRAP` and its dependencies, Python 2
 
-Activate mamba environment to quickly set up subsequent environments.
 
-```
-source activate mamba
-```
-
-### 2. metaGEM
+### 1. metaGEM
 
 Clone metaGEM repo
 
@@ -69,10 +57,10 @@ Alternative method: create metaGEM env using recipe .yml file
 mamba env create --prefix ./envs/metagem -f envs/metaGEM_env.yml
 ```
 
-Deactivate mamba env and activate metaGEM env
+Deactivate activate metaGEM env
 
 ```
-source deactivate && source activate envs/metagem
+source activate envs/metagem
 ```
 
 Install pip tools
@@ -81,7 +69,7 @@ Install pip tools
 pip install --user memote carveme smetana
 ```
 
-### 3. metaWRAP
+### 2. metaWRAP
 
 It is best to set up `metaWRAP` in its own isolated environment to prevent version conflicts with `metaGEM`. Note that `metaWRAP v1.3.2` has not migrated from python 2 to python 3 yet.
 
