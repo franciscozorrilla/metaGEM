@@ -228,6 +228,16 @@ Nucleic Acids Research, 2021; gkab815, https://doi.org/10.1093/nar/gkab815
 
 [![Nucleic Acids Research](https://img.shields.io/badge/Nucleic%20Acids%20Research-10.1093%2Fnar%2Fgkab815-critical)](https://academic.oup.com/nar/advance-article/doi/10.1093/nar/gkab815/6382386)
 
+## 📲 Contact
+
+`metaGEM` is developed and maintained by Francisco Zorrilla, currently a postdoc at ETH Zürich (Sunagawa Lab). For research collaboration, consulting, or industry inquiries, see the portfolio or reach out directly.
+
+[![portfolio](https://img.shields.io/badge/portfolio-franciscozorrilla.github.io-%23a6bddb)](https://franciscozorrilla.github.io)
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
+[![Twitter](https://img.shields.io/badge/Twitter-%40metagenomez-lightblue)](https://twitter.com/metagenomez)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-fzorrilla94-blue)](https://www.linkedin.com/in/fzorrilla94/)
+[![email](https://img.shields.io/badge/email-fzorrill%40ethz.ch-%23a6bddb)](mailto:fzorrill@ethz.ch)
+
 ## ⭐ Star History
 
 <a href="https://star-history.com/#franciscozorrilla/metaGEM&Date">
@@ -237,12 +247,3 @@ Nucleic Acids Research, 2021; gkab815, https://doi.org/10.1093/nar/gkab815
     <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=franciscozorrilla/metaGEM&type=Date" />
   </picture>
 </a>
-
-## 📲 Contact
-
-Please reach out with any comments, concerns, or discussions regarding `metaGEM`.
-
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/metaGEM/community)
-[![Twitter](https://img.shields.io/badge/Twitter-%40metagenomez-lightblue)](https://twitter.com/metagenomez)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-fzorrilla94-blue)](https://www.linkedin.com/in/fzorrilla94/)
-[![email](https://img.shields.io/badge/email-fz274%40cam.ac.uk-%23a6bddb)](fz274@cam.ac.uk)
