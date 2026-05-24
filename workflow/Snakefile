@@ -1021,6 +1021,38 @@ rule binningVis:
         rm Rplots.pdf
         """
 
+rule eggnog_mapper:
+    input:
+        f'{config["path"]["root"]}/final_mags/'
+    output:
+        directory(f'{config["path"]["root"]}/emapper/')
+    benchmark:
+        f'{config["path"]["root"]}/{config["folder"]["benchmarks"]}/{{IDs}}.eggnog_mapper.benchmark.txt'
+    message:
+        """
+        batch process small number of genomes with eggnog mapper, make sure you have downloaded and 
+        configured the eggnog database path, assumes that you have ORF annotated protein fasta files 
+        (e.g. translated from DNA using prodigal) in final_mags folder, then will loop through each
+        faa file and run eggnog to produce gene annotations files, Warning: this can take a few 
+        minutes and load up to 45GB to RAM
+        """
+
+    shell:
+        """
+        # Activate eggnog environment
+        set +u;source activate eggnog6;set -u;
+
+        cd {input}
+        mkdir -p {output}
+        
+        while read protein;do             
+            mkdir -p tmp;
+            emapper.py -m diamond -i $protein -o ${protein%.*} --cpu 18 --dbmem --excel --scratch_dir tmp;
+            mv *.emapper.* {output}
+            rm -r tmp;
+        done< <(ls|grep faa)
+        """
+        
 rule abundance:
     input:
         bins = f'{config["path"]["root"]}/{config["folder"]["reassembled"]}/{{IDs}}/reassembled_bins',
